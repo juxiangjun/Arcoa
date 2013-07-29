@@ -1,0 +1,86 @@
+body {
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+}
+body,td,th {
+	font-family: Verdana, 新細明體;
+	font-size: 12px;
+	color: #333333;
+}
+a:link {
+	color: #555;
+	text-decoration: none;
+}
+a:visited {
+	text-decoration: none;
+	color: #555;
+}
+a:hover {
+	text-decoration: none;
+	color: #609CD8;
+}
+a:active {
+	text-decoration: none;
+	color: #609CD8;
+}
+.login_bg_01 {
+	background: url(../images/login_bg_01.jpg);
+	width: 340px;
+}
+.login_bg_01-1 {
+	background: url(../images/login_bg_01-1.jpg);
+}
+
+.login_bg_02 {
+	background: url(../images/login_bg_02.jpg);
+	width: 320px;
+}
+.login_bg_03 {
+	background: url(../images/login_bg_03.jpg);
+	width: 340px;
+}
+.login_bg_03-1 {
+	background: url(../images/login_bg_03-1.jpg);
+}
+
+.login_01 {
+	height: 250px;
+}
+
+
+.input_login {
+	width: 265px;
+}
+.select_login {
+	width: 270px;
+	height: 22px;
+	font-size: 11px;
+}
+
+
+
+.h_30 {
+	height: 30px;
+}
+.h_35 {
+	height: 35px;
+}
+
+
+.h_40 {
+	height: 40px;
+}
+
+.h_p-1 {
+	height: 155px;
+}
+
+.bg_password {
+	background-image: url(../images/bg_password.jpg);
+	background-repeat: no-repeat;
+}
+.input_password {
+	width: 160px;
+}

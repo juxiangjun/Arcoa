@@ -1,0 +1,6 @@
+<%@page buffer="none" session="true" import="java.util.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<!--link href="<cms:link>/system/modules/com.thesys.opencms.common/resources/cnsjText/cnsjtext.css</cms:link>" rel="stylesheet" type="text/css" /-->
+<script type="text/javascript" src="<cms:link>/system/modules/com.thesys.opencms.common/resources/cnsjText/cnsjtext.js</cms:link>"></script>
+<input name="query" type="hidden" class="input_01" id="quick_query" value="" />
+<div id="div_quick_query" name="div_quick_query" contentEditable="true" class="hardword_input" style="text-align: left;vertical-align: middle;height:20px;width:90px;font-size: 12px;background-color: #FFFFFF;border: 1px solid #999999; overflow:auto; word-wrap: break-word; word-break: break-all;" onkeyup="setStringCNSJText('quick_query');" onblur="setStringCNSJText('quick_query');" onKeyPress= "return processKeyDown(event);" ></div><a href="#" class="hardword_btn" onclick="openCNSJTextDialog('quick_query');" onkeypress="openCNSJTextDialog('quick_query');">難</a>

@@ -1,0 +1,31 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	<xsd:include schemaLocation="opencms://system/modules/com.thesys.opencms.laphone/schemas/nested/ThesysLaphoneColor.xsd"/>
+	
+	
+	<xsd:element name="ThesysLaphoneColorGroups" type="OpenCmsThesysLaphoneColorGroups"/>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneColorGroups">
+		<xsd:sequence>
+			<xsd:element name="ThesysLaphoneColorGroup" type="OpenCmsThesysLaphoneColorGroup" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneColorGroup">
+		<xsd:sequence>	
+			<xsd:element name="ColorGroupId" type="OpenCmsString"/>
+			<xsd:element name="ColorGroupName" type="OpenCmsString"/>				
+			<xsd:element name="HtmlColorCode" type="OpenCmsString"/>			
+			<xsd:element name="HtmlColorImage" type="OpenCmsString"/>			
+			<xsd:element name="Color" type="OpenCmsThesysLaphoneColor" minOccurs="1" maxOccurs="unbounded"/>	
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="optional"/> 
+	</xsd:complexType>
+	<xsd:annotation>
+		<xsd:appinfo>
+			<layouts>  			
+			</layouts>
+		</xsd:appinfo>
+	</xsd:annotation>  
+</xsd:schema>

@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>imgAreaSelect - image selection/cropping jQuery plugin - odyniec.net</title>
+  <meta name="description" content="ImgAreaSelect is an image selection/crop jQuery plugin that lets the user select a rectangular area of an image using a simple and intuitive click-and-drag interface." />
+  <meta name="keywords" content="Michal Wojciechowski,odyniec,imgareaselect,javascript,jquery,plugin,image,area,select,crop,cropper" />
+  <link rel="stylesheet" type="text/css" href="http://odyniec.net/themes/gear-orange/css/base.css" />
+  <!--[if IE 7]>
+  <link rel="stylesheet" type="text/css" href="http://odyniec.net/themes/gear-orange/css/ie7_hacks.css" />
+  <![endif]-->
+  <!--[if IE 8]>
+  <link rel="stylesheet" type="text/css" href="http://odyniec.net/themes/gear-orange/css/ie6_hacks.css" />
+  <![endif]-->
+  <link rel="stylesheet" type="text/css" href="http://odyniec.net/css/projects.css" />
+  <link rel="stylesheet" type="text/css" href="css/imgareaselect-animated.css" />
+  <link rel="stylesheet" type="text/css" href="css/index.css" />
+ </head>
+ 
+ <body>
+  <div id="root">
+   
+  
+   <div id="main">
+
+<script type="text/javascript" src="js/jquery-1.4.2.js"></script>
+<script type="text/javascript" src="js/jquery.imgareaselect.pack.js"></script>
+<script type="text/javascript">
+function preview(img, selection) {
+    if (!selection.width || !selection.height)
+        return;
+    
+    var scaleX = 300 / selection.width;
+    var scaleY = 300 / selection.height;
+
+    $('#preview img').css({
+        width: Math.round(scaleX * 300),
+        height: Math.round(scaleY * 300),
+        marginLeft: -Math.round(scaleX * selection.x1),
+        marginTop: -Math.round(scaleY * selection.y1)
+    });
+
+    $('#x1').val(selection.x1);
+    $('#y1').val(selection.y1);
+    $('#x2').val(selection.x2);
+    $('#y2').val(selection.y2);
+    $('#w').val(selection.width);
+    $('#h').val(selection.height);    
+}
+
+$(function () {
+    $('#photo').imgAreaSelect({ aspectRatio: '1:1', handles: true,
+        fadeSpeed: 200, onSelectChange: preview });
+});
+</script>
+
+<div class="container">
+
+
+
+
+
+<div class="container demo">
+ <div style="float: left; width: 50%;">
+  <p class="instructions">
+   Click and drag on the image to select an area. 
+  </p>
+ 
+  <div class="frame" style="margin: 0 0.3em; width: 300px; height: 300px;">
+   <img id="photo" src="0506010_1.jpg" style="width: 300px; height: 300px;"/>
+  </div>
+ </div>
+ 
+ <div style="float: left; width: 50%;">
+  <p style="font-size: 110%; font-weight: bold; padding-left: 0.1em;">
+   Selection Preview
+  </p>
+  
+  <div class="frame" 
+   style="margin: 0 1em; width: 300px; height: 300px;">
+   <div id="preview" style="width: 300px; height: 300px; overflow: hidden;">
+    <img src="0506010_1.jpg" style="width: 300px; height: 300px;" />
+   </div>
+  </div>
+
+
+ 
+    
+ </div>
+</div>
+
+
+
+
+
+
+
+
+
+   </div>
+   
+  
+  </div>
+</body>
+</html>   

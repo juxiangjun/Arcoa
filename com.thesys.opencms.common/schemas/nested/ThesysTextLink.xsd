@@ -1,0 +1,34 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+		
+	<xsd:element name="ThesysTextLinks" type="OpenCmsThesysTextLinks"/>
+	
+	<xsd:complexType name="OpenCmsThesysTextLinks">
+		<xsd:sequence>
+			<xsd:element name="ThesysTextLink" type="OpenCmsThesysTextLink" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysTextLink">
+		<xsd:sequence>
+			<xsd:element name="Title" type="OpenCmsString" />
+			<xsd:element name="Url" type="OpenCmsString" />
+                        <xsd:element name="Description" type="OpenCmsString" minOccurs="0" maxOccurs="1"/>
+
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<mappings>
+				<mapping element="Title" mapto="property:Title" />
+			</mappings>
+			<defaults>
+				<default element="Url" value="http://"/>						
+			</defaults>	
+		</xsd:appinfo>
+
+	</xsd:annotation>  
+</xsd:schema>

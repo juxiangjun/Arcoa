@@ -1,0 +1,58 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+		
+	<xsd:element name="ThesysNewsContents" type="OpenCmsThesysNewsContents"/>
+	
+	<xsd:complexType name="OpenCmsThesysNewsContents">
+		<xsd:sequence>
+			<xsd:element name="ThesysNewsContent" type="OpenCmsThesysNewsContent" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OpenCmsThesysNewsContent">
+		<xsd:sequence>
+			<xsd:element name="Title" type="OpenCmsString" />							
+			<!--xsd:element name="Priority" type="OpenCmsString" / -->							
+			<xsd:element name="PublishDate" type="OpenCmsDateTime" />					
+			<xsd:element name="SubTitle" type="OpenCmsString" minOccurs="0" maxOccurs="1"/>										
+			<xsd:element name="Category" type="OpenCmsString" minOccurs="0" maxOccurs="1"/>										
+			<xsd:element name="PublishUnit" type="OpenCmsString" minOccurs="0" maxOccurs="1"/>	
+			<xsd:element name="NewsContent" type="OpenCmsHtml" />				
+			<xsd:element name="AttachImage" type="OpenCmsVfsImage" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="AttachFile" type="OpenCmsVfsFile" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="ExternalUrl" type="OpenCmsString" minOccurs="0" maxOccurs="unbounded"/>
+			
+				
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="required"/>
+	</xsd:complexType>
+
+	<xsd:annotation>
+		<xsd:appinfo>			
+			<mappings>
+				<mapping element="Title" mapto="property:Title" />
+				
+				<mapping element="PublishDate" mapto="attribute:datereleased" /> 
+				<mapping element="PublishDate" mapto="property:collector.date" /> 
+				<!--<mapping element="DateExpired" mapto="attribute:dateexpired" /> -->
+				<!--mapping element="Priority" mapto="property:collector.priority" / -->
+			</mappings>
+			<defaults>
+				<default element="PublishDate" value="${currenttime}"/>	
+				<default element="NewsContent" value="${opencms.folder}"/>
+			</defaults>
+			<layouts>
+				<layout element="NewsContent" widget="HtmlWidget" configuration="anchor, editorlink, formatselect, fullpage, image, link, replace, source, spellcheck, style, unlink, imagegallery,downloadgallery,linkgallery, height:400px"/>
+				
+				<layout element="Category" widget="com.thesys.opencms.widgets.ThesysCategoryWidget" configuration="category=%(attribute.session.request.folder)"/>	
+				<layout element="PublishUnit" widget="OrgUnitWidget" />	
+				<!--layout element="Title" widget="com.thesys.opencms.widgets.CNSJTextWidget" /-->	
+				<!--layout element="Priority" widget="com.thesys.opencms.widgets.ThesysOrderByWidget" /-->	
+				<!--layout element="PublishDate" widget="com.thesys.opencms.widgets.ThesysDateSelectWidget" /-->				
+				<layout element="AttachFile" widget="DownloadGalleryWidget" />	
+				
+			</layouts>
+		</xsd:appinfo>
+
+	</xsd:annotation>  
+</xsd:schema>

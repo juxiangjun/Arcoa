@@ -1,0 +1,33 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	<xsd:include schemaLocation="opencms://system/modules/com.thesys.opencms.common/schemas/nested/ThesysParagraph.xsd"/>
+		
+	<xsd:element name="ThesysResumes" type="OpenCmsThesysResumes"/>
+	
+	<xsd:complexType name="OpenCmsThesysResumes">
+		<xsd:sequence>
+			<xsd:element name="ThesysResume" type="OpenCmsThesysResume" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OpenCmsThesysResume">
+		<xsd:sequence>
+			<xsd:element name="Title" type="OpenCmsString" />
+			<xsd:element name="PersonName" type="OpenCmsString" />			
+			<xsd:element name="Photo" type="OpenCmsVfsImage"/>				
+			<xsd:element name="Resume" type="OpenCmsThesysParagraph" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="required"/>
+	</xsd:complexType>
+
+	<xsd:annotation>
+		<xsd:appinfo>			
+			<mappings>
+				<mapping element="Title" mapto="property:Title" />
+			</mappings>
+			<layouts>
+			</layouts>
+		</xsd:appinfo>
+
+	</xsd:annotation>  
+</xsd:schema>

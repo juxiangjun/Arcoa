@@ -1,0 +1,44 @@
+ul.user-form{ border-width: 2px 1px 1px 2px;border-style:solid;border-color:#DDDDDD;min-height: 40px;padding: 15px;}
+
+ul.user-form li{padding:2px 5px;margin:5px;background: #eee;}
+ul.user-form li label{width:50px;line-height:22px;float:left;}
+ul.user-form li.verify-line{height:50px;}
+ul.user-form li.verify-line p{float:left;margin-top:2px;line-height:22px;}
+ul.user-form li.msg-line{text-align:center;padding-top:50px;padding-bottom:50px;}
+ul.user-form li.last-line{background:none;margin-top:0px;margin-bottom:-10px;}
+/** login form **/
+.login-form{width:420px;margin-left:200px;margin-top:20px;}
+.login-form li.last-line p{float:left;margin-right:0px;margin-bottom:10px;line-height:22px;height:75px;}
+
+.login-form li.last-line{background:none;height:75px;margin-top:15px;margin-bottom:-15px;}
+.login-form li.last-line p:first-child{width:200px;}
+.login-form li.last-line p span{display:block;margin-bottom:10px;}
+
+.login-form li.last-line p.btn-line{padding-top:35px;margin-right:4px;margin-left:4px;}
+.login-form li.last-line p:last-child{width:115px;padding-top:10px;}
+/** forget form **/
+.forget-form{width:420px;margin-left:210px;}
+/** conver login form **/
+.conver-login{width:420px;margin-left:190px;margin-top:20px;}
+.conver-login .user-form li label{width:70px;}
+.conver-login li.last-line p{float:left;margin-bottom:10px;/**line-height:28px;height:75px;margin-top:10px;**/}
+.conver-login li.last-line{background:none;height:70px;margin-top:15px;margin-bottom:-15px;}
+.conver-login li.last-line p:first-child{width:200px;}
+.conver-login li.last-line p span{display:block;margin-bottom:10px;}
+.conver-login li.last-line p.btn-line{padding-top:3px;margin-right:4px;margin-left:4px;}
+.conver-login li.last-line p:last-child{width:100px;padding-top:0px;}
+/** conver forget form **/
+.conver-forget{width:420px;margin-left:210px;}
+.conver-forget .user-form li label{width:70px;}
+/**msg box **/
+.login-msg-box{width:560px;margin-left:140px;margin-top:20px}
+/**verify form **/
+.verify-form{width:420px;margin-left:200px;margin-top:10px;}
+.verify-form .user-form li label{width:70px;}
+.verify-form li.title-line{background:none;text-align:center;margin-top:0px;}
+/** conver form**/
+.conver-form{width:420px;margin-left:190px;margin-top:20px;}
+.conver-form .user-form li label{width:50px;}
+.conver-form li.last-line{background:none;height:75px;margin-top:20px;margin-bottom:-15px;}
+.conver-form li.last-line p{float:right;margin-left:10px;margin-bottom:10px;line-height:22px;height:75px;}
+.conver-form li.last-line p.btn-line{padding-top:5px;}

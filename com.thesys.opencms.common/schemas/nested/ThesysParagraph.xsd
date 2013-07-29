@@ -1,0 +1,34 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+		
+	<xsd:element name="ThesysParagraphs" type="OpenCmsThesysParagraphs"/>
+	
+	<xsd:complexType name="OpenCmsThesysParagraphs">
+		<xsd:sequence>
+			<xsd:element name="ThesysParagraph" type="OpenCmsThesysParagraph" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysParagraph">
+		<xsd:sequence>
+			<xsd:element name="Title" type="OpenCmsString" />
+                        <xsd:element name="Content" type="OpenCmsString" />
+
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<mappings>
+			</mappings>
+			<defaults>						
+			</defaults>
+			<layouts>
+				<layout element="Content" widget="HtmlWidget" configuration="anchor, editorlink, find,formatselect, fullpage, image, link, replace, source, spellcheck, style, table, unlink, imagegallery,downloadgallery, htmlgallery, linkgallery, tablegallery,height:200px"/>
+			</layouts>	
+		</xsd:appinfo>
+
+	</xsd:annotation>  
+</xsd:schema>

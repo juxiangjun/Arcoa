@@ -1,0 +1,21 @@
+.hardword_btn:link,.hardword_btn:visited{
+	color: #FFF;
+	padding-top: 3px;
+	padding-bottom: 1px;
+	background-color: #F90;
+	width: 16px;
+	float: left;
+	font-size: 13px;
+	padding-left: 4px;
+	margin-right: 5px;
+	height: 16px;
+}
+
+
+.hardword_btn:hover {
+	background-color: #333;
+	color: #FFF;
+}
+.hardword_input{
+	float: left;
+}

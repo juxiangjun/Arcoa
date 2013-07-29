@@ -1,0 +1,38 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	<xsd:include schemaLocation="opencms://system/modules/com.thesys.opencms.common/schemas/nested/ThesysQuestionAnswer.xsd"/>
+	
+	
+	<xsd:element name="ThesysQuestionLists" type="OpenCmsThesysQuestionLists"/>
+	
+	<xsd:complexType name="OpenCmsThesysQuestionLists">
+		<xsd:sequence>
+			<xsd:element name="ThesysQuestionList" type="OpenCmsThesysQuestionList" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysQuestionList">
+		<xsd:sequence>	
+			<xsd:element name="QuestionCategoryCode" type="OpenCmsString" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="QuestionCategoryName" type="OpenCmsString" />			
+			<xsd:element name="OrderBy" type="OpenCmsString" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="QuestionAndAnswer" type="OpenCmsThesysQuestionAnswer" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="required"/> 
+	</xsd:complexType>
+	<xsd:annotation>
+		<xsd:appinfo>			
+			<mappings>
+				<mapping element="QuestionCategoryName" mapto="property:Title" />
+				<mapping element="QuestionCategoryName" mapto="property:NavText" />
+				<mapping element="QuestionCategoryCode" mapto="property:Title-en" />
+				<mapping element="OrderBy" mapto="property:NavPos" />
+			</mappings>
+			<defaults>
+				<default element="OrderBy" value="1"/>
+			</defaults>
+		</xsd:appinfo>
+
+	</xsd:annotation>  
+</xsd:schema>

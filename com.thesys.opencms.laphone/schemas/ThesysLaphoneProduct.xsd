@@ -1,0 +1,65 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	<xsd:include schemaLocation="opencms://system/modules/com.thesys.opencms.laphone/schemas/nested/ThesysLaphoneGroupItem.xsd"/>
+	
+	
+	<xsd:element name="ThesysLaphoneProducts" type="OpenCmsThesysLaphoneProducts"/>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneProducts">
+		<xsd:sequence>
+			<xsd:element name="ThesysLaphoneProduct" type="OpenCmsThesysLaphoneProduct" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneProduct">
+		<xsd:sequence>					
+			<xsd:element name="SapCategoryCode" type="OpenCmsString"/>
+			<xsd:element name="ProductCode" type="OpenCmsString"/>					
+			<xsd:element name="SapProductCode" type="OpenCmsString"/>
+			<xsd:element name="ProductName" type="OpenCmsString"/>	
+			<xsd:element name="ProductColor" type="OpenCmsString"/>			
+			<xsd:element name="Watermark" type="OpenCmsString"/>					
+			<xsd:element name="Description" type="OpenCmsString"/>					
+			<xsd:element name="Information" type="OpenCmsString"/>				
+			<xsd:element name="SeoKeywords" type="OpenCmsString"/>			
+			<xsd:element name="OriginalPrice" type="OpenCmsString"/>		
+			<xsd:element name="SpecialPrice" type="OpenCmsString"/>					
+			<xsd:element name="SeriesProductCode" type="OpenCmsString"/><!--同系列商品-->	
+			<xsd:element name="RelationProductCode" type="OpenCmsString"/><!--關聯商品-->	
+			<xsd:element name="ColorCode" type="OpenCmsString"/>	
+			<xsd:element name="Style" type="OpenCmsString"/>	
+			<xsd:element name="CouponCountFlag" type="OpenCmsString"/>
+			<xsd:element name="CouponUseFlag" type="OpenCmsString"/>
+			<xsd:element name="CVSShipFlag" type="OpenCmsString"/>
+			<xsd:element name="Installment" type="OpenCmsString"/>										
+			<xsd:element name="OnlineDate" type="OpenCmsString" />			
+			<xsd:element name="OfflineDate" type="OpenCmsString" />
+			<xsd:element name="SellFlag" type="OpenCmsString"/>
+			<xsd:element name="OnlineFlag" type="OpenCmsString"/>
+			<xsd:element name="GroupFlag" type="OpenCmsString"/>
+			<xsd:element name="GroupItem" type="OpenCmsThesysLaphoneGroupItem"  minOccurs="0" maxOccurs="unbounded"/>
+						
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="required"/> 
+	</xsd:complexType>
+	<xsd:annotation>
+		<xsd:appinfo>
+			<defaults>
+				<default element="GroupFlag" value="false"/>
+			</defaults>
+			<mappings>
+				<mapping element="ProductName" mapto="property:Title"/>
+				<mapping element="SeoKeywords" mapto="property:Keywords"/>
+				<!--<mapping element="OnlineDate" mapto="attribute:datereleased" /> 
+				<mapping element="OfflineDate" mapto="attribute:dateexpired" /> -->
+				<mapping element="OnlineDate" mapto="property:collector.date" /> 
+			</mappings>
+			<layouts>  	
+				<layout element="Information" widget="HtmlWidget" configuration="anchor, editorlink, find,fullpage, image, link, replace, source, spellcheck, style, table, unlink, imagegallery,downloadgallery, htmlgallery, linkgallery, tablegallery,height:400px"/>
+				<layout element="Description" widget="TextareaWidget" />
+				
+			</layouts>
+		</xsd:appinfo>
+	</xsd:annotation>  
+</xsd:schema>

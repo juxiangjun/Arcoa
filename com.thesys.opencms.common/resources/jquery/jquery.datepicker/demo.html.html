@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>jQuery UI Datepicker - Display inline</title>
+	<link type="text/css" href="jquery.ui.core.css" rel="stylesheet" />
+	<link type="text/css" href="jquery.ui.datepicker.css" rel="stylesheet" />
+	<link type="text/css" href="jquery.ui.theme.css" rel="stylesheet" />
+	<script type="text/javascript" src="js/jquery-1.4.2.js"></script>
+	<script type="text/javascript" src="js/jquery.ui.core.js"></script>
+	<script type="text/javascript" src="js/jquery.ui.widget.js"></script>
+	<script type="text/javascript" src="js/jquery.ui.datepicker.js"></script>	
+	<script type="text/javascript" src="js/jquery.ui.datepicker-zh-TW.js"></script>
+	<script type="text/javascript">
+	$(function() {
+		$("#datepicker").datepicker({
+                                 onSelect: function(dateText, inst) {  
+                                      var dateAsString = dateText; //the first parameter of this function 
+                                      var dateAsObject = $(this).datepicker( 'getDate' ); //the getDate method 
+                                      alert("test");
+                                     // $("#date_display").text($.datepicker.formatDate('yy 年 mm 月 dd 日', dateAsObject));
+                                      //$(".day_text").text($.datepicker.formatDate('mm月dd日', dateAsObject));
+                                 } 
+                                }); 
+		//$("#datepicker").datepicker();
+		$("#datepicker").datepicker("option","maxDate",  new Date(1993, 12 - 1, 31));
+		$("#datepicker").datepicker("option","minDate", new Date(1993, 1 - 1, 1) );
+		$("#datepicker").datepicker( "setDate" , new Date(1993, 1 - 1, 1) ) 
+	});
+	</script>
+</head>
+<body>
+<div id="demo" style="font-size: 12px;">
+<div id="datepicker"></div>
+</div>
+</div>
+</body>
+</html>

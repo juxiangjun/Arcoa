@@ -1,0 +1,35 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+		
+	<xsd:element name="ThesysMenuItems" type="OpenCmsThesysMenuItems"/>
+	
+	<xsd:complexType name="OpenCmsThesysMenuItems">
+		<xsd:sequence>
+			<xsd:element name="ThesysMenuItem" type="OpenCmsThesysMenuItem" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OpenCmsThesysMenuItem">
+		<xsd:sequence>							
+			<xsd:element name="MenuText" type="OpenCmsString" />					
+			<xsd:element name="MenuLink" type="OpenCmsVfsFile" />					
+			<xsd:element name="Target" type="OpenCmsString" />			
+				
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:annotation>
+		<xsd:appinfo>			
+			<mappings>
+			</mappings>
+			<defaults>
+				<default element="Target" value="_self"/>
+			</defaults>
+			<layouts>
+				<layout element="Target" widget="ComboWidget" configuration="_self|_blank|_parent"/>				
+			</layouts>
+		</xsd:appinfo>
+
+	</xsd:annotation>  
+</xsd:schema>

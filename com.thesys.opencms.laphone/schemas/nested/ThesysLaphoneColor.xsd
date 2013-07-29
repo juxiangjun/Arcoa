@@ -1,0 +1,27 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	
+	
+	<xsd:element name="ThesysLaphoneColors" type="OpenCmsThesysLaphoneColors"/>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneColors">
+		<xsd:sequence>
+			<xsd:element name="ThesysLaphoneColor" type="OpenCmsThesysLaphoneColor" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneColor">
+		<xsd:sequence>	
+			<xsd:element name="ColorCode" type="OpenCmsString"/>				
+			<xsd:element name="ColorName" type="OpenCmsString" />	
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="optional"/> 
+	</xsd:complexType>
+	<xsd:annotation>
+		<xsd:appinfo>
+			<layouts>  			
+			</layouts>
+		</xsd:appinfo>
+	</xsd:annotation>  
+</xsd:schema>

@@ -1,0 +1,22 @@
+.register-steps div{width:838px;height:50px;display:block;margin:0;background-image:url(../images/register_steps.jpg);background-repeat: no-repeat; }
+.register-steps div.step1{background-position: 0 0; }
+.register-steps div.step2{background-position:0 -50px;}
+.register-steps div.step3{background-position:0 -100px;}
+.register-steps div.step4{background-position:0 -150px;}
+h2.register-title{line-height:50px;height:50px;color: #000;}
+/** step1 **/
+.agreement{width:810px;height:420px;overflow-y:auto;border:1px solid #999;margin:0 auto;padding:15px 15px;color: #666;}
+.agreement h3{height:32px;font-weight:bold;border-width:0 0 1px 1px;border-style:solid;border-color:#ccc;background:#e8e8e8;padding:11px 0 0 20px}
+.agreement p{margin:1em 10em 2em 2em;line-height:2em}
+.agreement-checkbox{width:400px;text-align:left;float:left;line-height:40px;height:40px; color: #666;font-size: 13px}
+.agreement ol li{list-style-type: decimal;}
+.agreement ul li{list-style-type:disc;padding:20;}
+.agreement ul{padding-left:40px;}
+/** step2 **/
+.register-form{width:838px;border:1px solid #ccc;}
+.register-form th{background:#f1f2f5;border-right:1px solid #ccc;width:170px;height:38px;text-align:right;}
+.register-form th,.register-form td {border-top:1px solid #ccc;padding:4px;}
+.register-form td {color: #333;line-height:24px;}
+/** step4 **/
+.register-msg{margin-top:15px;padding:15px;border-width:1px 1px 2px 2px;border-style:solid;border-color:#ccc;background:#e8e8e8;text-align:center;line-height:30px;}
+.register-msg h2{color:#333;font-size:18px} 

@@ -1,0 +1,30 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	
+		
+	<xsd:element name="ThesysSelectItems" type="OpenCmsThesysSelectItems"/>
+	
+	<xsd:complexType name="OpenCmsThesysSelectItems">
+		<xsd:sequence>
+			<xsd:element name="ThesysSelectItem" type="OpenCmsThesysSelectItem" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="OpenCmsThesysSelectItem">
+		<xsd:sequence>
+			<xsd:element name="ItemId" type="OpenCmsString" />
+			<xsd:element name="ItemTxt" type="OpenCmsString" />
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="optional"/>
+	</xsd:complexType>
+	<xsd:annotation>
+		<xsd:appinfo>
+			<resourcebundle name="com.thesys.opencms.common.workplace"/>
+			<validationrules>
+				<rule element="ItemId" regex="[\S]+" message="${key.editor.errormessage.ThesysSelectItem.ItemId.mustnotempty}"/>
+				<rule element="ItemTxt" regex="[\S]+" message="${key.editor.errormessage.ThesysSelectItem.ItemTxt.mustnotempty}"/>
+			</validationrules>	
+		</xsd:appinfo>
+	</xsd:annotation>
+</xsd:schema>

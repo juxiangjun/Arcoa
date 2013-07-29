@@ -1,0 +1,309 @@
+@import url(jquery.ui.base.css);
+@import url(layout.css);
+@import url(search.css);
+@import url(dd.css);
+/* begin 預設字體*/
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Verdana,微軟正黑體,LiHei Pro,Heiti TC,Arial;
+    font-size: 12px;
+}
+input, textarea {
+    font-family: Verdana,微軟正黑體,LiHei Pro,Heiti TC,Arial;
+    color: inherit;
+    text-decoration: none;
+    color:#000;
+}
+a,a:link,a:visited,a:active, input, textarea {
+    font-family: Verdana,微軟正黑體,LiHei Pro,Heiti TC,Arial;
+    color: #3f3f3f;
+    text-decoration: none
+}
+/* end 預設字體*/
+
+/* begin 預設文字顏色*/
+
+/*粗體*/
+.bold{font-weight:bold;}
+
+/*#3f3f3f*/
+.black {
+    color: #3f3f3f
+}
+a.black {
+    color: #3f3f3f
+}
+a.black:hover  {
+    color: #000
+}
+.black a{
+    color: #3f3f3f
+}
+.black a:hover {
+    color: #000
+}
+
+/*#a3a3a3*/
+.grey {
+    color: #a3a3a3
+}
+a.grey {
+    color: #a3a3a3
+}
+a.grey:hover  {
+    color: #333
+}
+.grey a{
+    color: #a3a3a3
+}
+.grey a:hover {
+    color: #333
+}
+
+/*#969696*/
+.grey9 {
+    color: #969696
+}
+a.grey9 {
+    color: #969696
+}
+a.grey9:hover  {
+    color: #333
+}
+.grey9 a{
+    color: #969696
+}
+.grey9 a:hover {
+    color: #333
+}
+/*#8f8f8f*/
+.grey8 {
+    color: #8f8f8f
+}
+a.grey8 {
+    color: #8f8f8f
+}
+a.grey8:hover  {
+    color: #333
+}
+.grey8 a{
+    color: #8f8f8f
+}
+.grey8 a:hover {
+    color: #333
+}
+
+/*#666*/
+.grey6 {
+    color: #666
+}
+a.grey6 {
+    color: #666
+}
+a.grey6:hover  {
+    color: #333
+}
+.grey6 a{
+    color: #666
+}
+.grey6 a:hover {
+    color: #333
+}
+
+/*#c71818*/
+.red {
+    color: #c71818
+}
+a.red {
+    color: #c71818;
+    text-decoration:underline;
+}
+a.red:hover  {
+    color: #ff1111;
+    text-decoration:underline;
+}
+.red a{
+    color: #c71818
+}
+.red a:hover {
+    color: #ff1111
+}
+/*#c71818*/
+.red0 {
+    color: #f00
+}
+a.red0 {
+    color: #f00
+}
+a.red0:hover  {
+    color: #f00
+}
+.red0 a{
+    color: #f00
+}
+.red0 a:hover {
+    color: #f00
+}
+
+/*#ffffff*/
+.white {
+    color: #fff
+}
+a.white {
+    color: #ccc
+}
+a.white:hover {
+    color: #fff
+}
+.white a{
+    color: #ccc
+}
+.white a:hover {
+    color: #fff
+}
+/*#00a0e9*/
+.blue {
+    color: #00a0e9
+}
+a.blue {
+    color: #00a0e9
+}
+a.blue:hover {
+    color: #00a0e9
+}
+.blue a{
+    color: #00a0e9
+}
+.blue a:hover {
+    color: #00a0e9
+}
+/*#eb6101*/
+.orange {
+    color: #eb6101
+}
+a.orange {
+    color: #eb6101
+}
+a.orange:hover {
+    color: #eb6101
+}
+.orange a{
+    color: #eb6101
+}
+.orange a:hover {
+    color: #eb6101
+}
+/*#ec6941*/
+.orange2 {
+    color: #ec6941
+}
+a.orange2 {
+    color: #ec6941
+}
+a.orange2:hover {
+    color: #ec6941
+}
+.orange2 a{
+    color: #ec6941
+}
+.orange2 a:hover {
+    color: #ec6941
+}
+
+/* end 預設文字顏色*/
+
+/* begin 系統字級*/
+.font11 {
+    font-size: 11px
+}
+.font12 {
+    font-size: 12px
+}
+.font13 {
+    font-size: 13px
+}
+.font16 {
+    font-size: 16px
+}
+.font19 {
+    font-size: 19px
+}
+.font26 {
+    font-size: 26px
+}
+/* end 系統字級*/
+
+/* begin 預設樣式 */
+
+a img {
+    border: 0
+}
+/* CLEARfIX */
+.clearfix:after {
+	content: ".";
+	display: block;
+	clear: both;
+	visibility: hidden;
+	line-height: 0;
+	height: 0;
+}
+ 
+.clearfix {
+	display: inline-block;
+}
+ 
+html[xmlns] .clearfix {
+	display: block;
+}
+ 
+* html .clearfix {
+	height: 1%;
+}
+
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
+.png {
+    zoom: 1
+}
+.bold {
+    font-weight: bold;
+}
+.block {
+    display: block;
+}
+
+.desc-block-orange
+{
+    background: none repeat scroll 0 0 #FBDFCC;
+    border: 1px solid #F4D1D1;
+    padding: 14px 30px;
+    line-height: 26px;
+}
+
+.desc-block-orange p,
+.desc-block-orange h1,
+.desc-block-orange h2,
+.desc-block-orange h3,
+.desc-block-orange h4,
+.desc-block-orange h5
+{    
+    line-height:230%;
+    margin:0
+}
+.desc-block-orange ul
+{    
+    padding:0;
+    margin:0
+}
+.desc-block-orange li
+{    
+    line-height:230%;
+}
+.desc-block-orange .headline
+{
+    color: #c71818;
+    font-size:16px;
+    font-weight:bold;
+}
+/* end 預設樣式 */

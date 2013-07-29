@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>jquery.iviewer test</title>
+        <script type="text/javascript" src="js/jquery-1.4.2.js" ></script>
+        <script type="text/javascript" src="js/jquery.mousewheel.min.js" ></script>
+        <script type="text/javascript" src="js/jquery.iviewer.js" ></script>
+        <script type="text/javascript">
+            var $ = jQuery;
+            $(document).ready(function(){
+                  $("#viewer").iviewer(
+                       {
+                       src: "test_image.jpg", 
+					   ui_disabled: true,
+                       update_on_resize: false,
+                       initCallback: function ()
+                       {
+                           var object = this;
+                           $("#in").click(function(){ object.zoom_by(1);}); 
+                           $("#out").click(function(){ object.zoom_by(-1);}); 
+                           $("#fit").click(function(){ object.fit();}); 
+                           $("#orig").click(function(){  object.set_zoom(100); }); 
+                           $("#update").click(function(){ object.update_container_info();});
+                       },
+                       onMouseMove: function(object, coords) { },
+                       onStartDrag: function(object, coords) { return true; }, //this image will not be dragged
+                       onDrag: function(object, coords) { }
+                  });
+
+
+                  
+            });
+        </script>
+        <link rel="stylesheet" href="jquery.iviewer.css" />
+        <style>
+            .viewer
+            {
+                width: 50%;
+                height: 500px;
+                border: 1px solid black;
+                position: relative;
+            }
+            
+            .wrapper
+            {
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>JQuery.iviewer test</h1>
+        <!-- wrapper div is needed for opera because it shows scroll bars for reason -->
+        <div class="wrapper">
+            <span>
+                <a id="in" href="#">+</a>
+                <a id="out" href="#">-</a>
+                <a id="fit" href="#">fit</a>
+                <a id="orig" href="#">orig</a>
+                <a id="update" href="#">update</a>
+            </span>
+            <div id="viewer" class="viewer"></div>
+            <br />
+            
+        </div>
+    </body>
+</html>

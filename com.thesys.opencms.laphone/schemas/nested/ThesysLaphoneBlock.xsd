@@ -1,0 +1,28 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	
+	
+	<xsd:element name="ThesysLaphoneBlocks" type="OpenCmsThesysLaphoneBlocks"/>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneBlocks">
+		<xsd:sequence>
+			<xsd:element name="ThesysLaphoneBlock" type="OpenCmsThesysLaphoneBlock" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneBlock">
+		<xsd:sequence>	
+			<xsd:element name="ProductCode" type="OpenCmsString"/>				
+			<xsd:element name="ImagePath" type="OpenCmsVfsImage"/>		
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="optional"/> 
+	</xsd:complexType>
+	<xsd:annotation>
+		<xsd:appinfo>
+			<layouts>  
+				<layout element="ImagePath" widget="ImageGalleryWidget"/>			
+			</layouts>
+		</xsd:appinfo>
+	</xsd:annotation>  
+</xsd:schema>

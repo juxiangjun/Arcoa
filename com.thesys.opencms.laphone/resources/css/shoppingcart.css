@@ -1,0 +1,154 @@
+/**shopping cart **/
+#shoppingCart{padding:20px 57px 0 57px;}
+#shoppingCart h2{font-size: 16px;margin: 0;}
+#cart-tab-box{border-bottom: 2px solid #c71818;margin: 0 0 14px 0;overflow:hidden;}
+#cart-tab-box li{float:left;border: 1px solid #ccc;background: url(../images/shoppingStep1TabBg.gif) 0 0 repeat-x;color: #3d4042;width: 63px;    height: 27px;}
+#cart-tab-box li a{line-height: 27px;display:block;text-align: center;}
+#cart-tab-box li.selected{border: 1px solid #be0b0b;    background: url(../images/shoppingStep1TabBg2.gif) 0 0 repeat-x;color: #fff;}
+#cart-tab-box li.selected a{color: #fff;}
+.tab-content{display:none;}
+
+#step1-1.selected{display:block;}
+#step1-2.selected{display:block;}
+#step1-3.selected{display:block;}
+#step1-4.selected{display:block;}
+
+.cvs-zipcode{display:none}
+
+
+span.money{font-size:16px;color: #c71818;font-weight:bold}
+
+.shopping-box{margin: 0 0 0 0;}
+.shopping-box tr{overflow:hidden;width: 100%; margin-top:-1px;margin-bottom:0px;}
+.shopping-box tr td{text-align: center; border: 1px solid #c9c9c9;height: 110px;margin-left:-1px;vertical-align:middle;}
+.shopping-box tr td:first-child{margin-left:0px;}
+.shopping-box tr.header td{color: #fff;background: #c71818;font-weight: bold;border: 1px solid #cb9898;height: 32px;line-height: 32px;}
+
+.shopping-box td.photo{width: 125px;}
+.shopping-box td.name{width: 234px;}
+.shopping-box td.name a{text-decoration: underline;}
+.shopping-box td.name p{line-height: 18px;display:inline-block;}
+.shopping-box td.price{width: 150px;}
+.shopping-box td.quantity{width: 70px;}
+.shopping-box td.total{width: 115px;}
+.shopping-box td.tool{width: 145px;}
+
+
+.shopping-box tr.wishlist td{height: 100px;}
+.shopping-box tr.wishlist td.name p{line-height: 18px;display:inline-block;}
+.shopping-box td.date{width: 150px;}
+.shopping-box td.stock{width: 35px;}
+.shopping-box td.number{width: 130px;}
+.shopping-box td.status{width: 123px;}
+.shopping-box td.amount{width: 100px;}
+.shopping-box td.productName{width: 380px;}
+
+
+
+.shopping-box tr.coupon td{height: 32px;line-height: 32px;}
+
+.couponBar{background: #FBDFCC;border: 1px solid #F4D1D1;height: 54px;margin-top:-1px;}
+.couponBar div{float:left;font-size: 12px;margin-top:22px;margin-left:20px;margin-right:10px}
+
+.totalAmountBar{background: #efefef;border: 1px solid #cccccc;height: 54px;margin-top:-1px;margin-bottom:20px;}
+.totalAmountBar div{float:right;font-size: 12px;margin-top:22px;margin-left:10px;margin-right:20px}
+
+.totalBar{background: #efefef;border: 1px solid #cccccc;height: 64px;margin-top:20px;}
+.totalBar div{float:left;margin-top:22px;margin-left:10px;margin-right:10px}
+.totalBar div:last-child{float:right;font-size: 14px;font-weight: bold;}
+
+.note{height: 30px;background: #a0a0a0;border: 1px solid #959595;margin: 0 0 10px 0;line-height: 30px;color: #fff;text-indent: 14px;}
+.note div{float:left;}
+.note div:last-child{float:right;}
+.note a{color: #fff;text-decoration: underline;margin: 0 14px 0 0;*margin:-28px 14px 0 0;}
+.notice{float:left;padding: 14px 4px 30px 4px;line-height:18px;}
+.notice ul li{width:650px;}
+.msg-box{width:100%;font-size:14px;color: #c71818;font-weight:bold;text-align:center;background: #efefef;border: 1px solid #cccccc;height: 40px;margin:0px;padding-top:20px;}
+
+
+#shoppingButton{position: relative;height:80px;margin-top:40px;}
+#shoppingButton ul{background: url("../images/shoppingCart_button.png") no-repeat;height: 52px;position: absolute;right:-10px;width: 230px;margin:0px;padding:0px;}
+#shoppingButton ul li{float:left;height: 45px;line-height:45px;}
+#shoppingButton ul li a{display:block;font-size: 16px;white-space:nowrap;line-height: 45px;text-align: center;color:#dfdfdf;}
+#shoppingButton ul li a:hover{color:#fff;}
+#shoppingButton ul li.btnPrev{width: 100px;margin-left:25px;}
+#shoppingButton ul li.btnNext{width: 90px;}
+#shoppingButton ul.btnShort{background: url("../images/shoppingCart_button.png") no-repeat top right;height: 52px;position: absolute;right:-10px;width: 530px;margin:0px;padding:0px;}
+#shoppingButton ul.btnShort li:first-child{width:300px;}
+#shoppingButton ul.btnShort li:last-child{width:100px;}
+
+/** shopping step*/
+#stepNav{margin-top:10px;padding:0 0 26px 0;height:51px;}
+#stepNav li{float:left;}
+#stepNav li span{display:block;height:51px;position:relative;z-index:10;left:-32px;background:url(../images/shoppingNav.png)0 0 no-repeat;}
+#stepNav li.step0{width:165px;}
+#stepNav li.step1{width:134px;}
+#stepNav li.step2{width:135px;}
+#stepNav li.step3{width:133px;}
+#stepNav li.step4{width:136px;}
+#stepNav li.step5{width:135px;}
+
+#stepNav li.step0 span{width:165px;background:url(../images/shoppingNav.png);background-position: 0 0;left:0;}
+#stepNav li.step1 span{width:165px;background:url(../images/shoppingNav.png);background-position:-165px 0;}
+#stepNav li.step2 span{width:166px;background:url(../images/shoppingNav.png);background-position:-330px 0;}
+#stepNav li.step3 span{width:165px;background:url(../images/shoppingNav.png);background-position:-496px 0;}
+#stepNav li.step4 span{width:166px;background:url(../images/shoppingNav.png);background-position:-661px 0;}
+#stepNav li.step5 span{width:167px;background:url(../images/shoppingNav.png);background-position:-827px 0;}
+
+#stepNav li.step0 span.success{background:url(../images/shoppingNav.png);background-position:0 -51px;}
+#stepNav li.step1 span.success{background:url(../images/shoppingNav.png);background-position:-165px -51px;}
+#stepNav li.step2 span.success{background:url(../images/shoppingNav.png);background-position:-330px -51px;}
+#stepNav li.step3 span.success{background:url(../images/shoppingNav.png);background-position:-496px -51px;}
+#stepNav li.step4 span.success{background:url(../images/shoppingNav.png);background-position:-661px -51px;}
+#stepNav li.step5 span.success{background:url(../images/shoppingNav.png);background-position:-827px -51pxt;}
+
+#stepNav li.step0 span.current{background:url(../images/shoppingNav.png);background-position:0 -102px;}
+#stepNav li.step1 span.current{background:url(../images/shoppingNav.png);background-position:-165px -102px;}
+#stepNav li.step2 span.current{background:url(../images/shoppingNav.png);background-position:-330px -102px;}
+#stepNav li.step3 span.current{background:url(../images/shoppingNav.png);background-position:-496px -102px;}
+#stepNav li.step4 span.current{background:url(../images/shoppingNav.png);background-position:-661px -102px;}
+#stepNav li.step5 span.current{background:url(../images/shoppingNav.png);background-position:-827px -102px;}
+
+/** step 2 **/
+ul.shippingTypeBox{ width:844px; border:1px solid #d2d2d2}
+ul.shippingTypeBox li{width:836px;padding:5px 4px;line-height:22px;}
+ul.shippingTypeBox li:nth-child(even) {background: #fff;}
+ul.shippingTypeBox li:nth-child(odd) {background:#ccc;}
+.ship-detail{display:block;margin:10px 27px;padding-bottom:20px;border-bottom:dotted 1px #efefef;}
+.recipient{width:844px;border: 1px solid #ccc;}
+.recipient th{padding: 0 10px 0 0;width:172px;background:#f1f2f5;text-align:right;border: 1px solid #ccc;color: #3f3f3f;height:40px;font-size:14px;font-weight:normal;line-height:24px;}
+.recipient td{border: 1px solid #ccc;color: #3f3f3f;padding: 0 0 0 10px;text-align:left;line-height:24px;font-size:12px;}
+.recipient input{margin:0px 5px;}
+.invoice{width:844px;}
+.invoice th{padding: 0 10px 0 0;width:130px;text-align:right;height:40px;color: #3f3f3f;font-size:14px;}
+.invoice td{padding: 0 0 0 10px;text-align:left;color: #3f3f3f;font-size:12px;}
+.invoice td :input{padding-left:2px;padding-right:2px;}
+.invoice .dotted-line{ border-top-width:1px;border-top-style:dotted;border-top-color:#efefef;margin:20px 40px;}
+.invoice-notice{padding:0 0 0 35px;color: #c71818;font-size:12px;}
+span.highlight{background:#efefef;height:26px;line-height:26px;display:block;float:left;}
+
+/** step 3**/
+ul.payTypeBox{ width:844px;}
+ul.payTypeBox input{display:inline-block;float:left;}
+ul.payTypeBox li{width:844px;padding:0px;line-height:22px; border:1px solid #ccc;font-size:13px;margin-top:-1px;}
+ul.payTypeBox li {background: #fff;}
+ul.payTypeBox li.odd {background:#efefef}
+
+ul.payTypeBox p{padding:5px 20px;display:block;}
+ul.payTypeBox li.installment{background: #FBDFCC}	
+.installment{background: #FBDFCC;padding:5px 10px;border-top:1px solid #ccc;display:none;}
+.installment p{padding:5px 30px;display:block;line-height:28px;height:28px;}
+.installment p input{display:block;line-height:28px;height:28px;padding:0px;margin-right:0px;margin-left:20px;}
+.paymentBar{width:844px;background: #FBDFCC;border: 1px solid #F4D1D1;margin-top:0px;}
+.paymentBar p{padding:5px 20px;line-height:28px;height:28px;display:block;}
+
+
+
+/** step 4**/
+.receiverTable{margin: 0 0 0 0;}
+.receiverTable td{ height: 30px;line-height: 30px;border: 1px solid #d2d2d2;text-align: left;text-indent: 32px;font-weight: normal;font-size:12px;}
+.receiverTable tr:nth-child(even) {background: #efefef;}
+.receiverTable tr:nth-child(odd) {background #fff;}
+/** step 5 **/
+.complete-info{border:1px solid #cccccc;background:#efefef;font-size:13px;padding:25px;}
+.complete-info p{margin:20px 25px 0 25px;}

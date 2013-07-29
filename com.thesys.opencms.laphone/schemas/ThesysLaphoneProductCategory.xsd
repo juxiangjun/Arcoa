@@ -1,0 +1,43 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	
+	<xsd:include schemaLocation="opencms://opencms-xmlcontent.xsd"/>
+	
+	
+	<xsd:element name="ThesysLaphoneProductCategories" type="OpenCmsThesysLaphoneProductCategories"/>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneProductCategories">
+		<xsd:sequence>
+			<xsd:element name="ThesysLaphoneProductCategory" type="OpenCmsThesysLaphoneProductCategory" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="OpenCmsThesysLaphoneProductCategory">
+		<xsd:sequence>
+			<xsd:element name="CategoryId" type="OpenCmsString"/>
+			<xsd:element name="OrderBy" type="OpenCmsString"/>				
+			<xsd:element name="CategoryName" type="OpenCmsString"/>		
+			<xsd:element name="Description" type="OpenCmsString"/>					
+			<xsd:element name="Keywords" type="OpenCmsString"/>					
+			<xsd:element name="SapCategoryCode" type="OpenCmsString" minOccurs="0" maxOccurs="unbounded"/>								
+		</xsd:sequence>
+		<xsd:attribute name="language" type="OpenCmsLocale" use="required"/> 
+	</xsd:complexType>
+	<xsd:annotation>
+		<xsd:appinfo>
+			<defaults>
+			</defaults>
+			<mappings>
+				<mapping element="CategoryName" mapto="property:Title"/> 
+				<mapping element="CategoryName" mapto="property:NavText"/> 
+				<mapping element="OrderBy" mapto="property:NavPos"/> 
+				<mapping element="Description" mapto="property:Description"/> 
+				<mapping element="Keywords" mapto="property:Keywords"/>  
+			</mappings>
+			<layouts>  	
+				<layout element="Description" widget="TextareaWidget" />
+				<layout element="Keywords" widget="TextareaWidget" />
+				
+			</layouts>
+		</xsd:appinfo>
+	</xsd:annotation>  
+</xsd:schema>

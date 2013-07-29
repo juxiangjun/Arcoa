@@ -1,0 +1,15 @@
+eclipse.preferences.version=1
+encoding//elements/elemAddButton.jsp=UTF-8
+encoding//elements/elemEditButton.jsp=UTF-8
+encoding//elements/loginCheck.jsp=UTF-8
+encoding//elements/menu.jsp=UTF-8
+encoding//elements/pager.jsp=UTF-8
+encoding//elements/xmlListButton.jsp=UTF-8
+encoding//elements/xmlPublishButton.jsp=UTF-8
+encoding//jsps/delete.jsp=UTF-8
+encoding//jsps/elemProcess.jsp=UTF-8
+encoding//jsps/publish.jsp=UTF-8
+encoding//jsps/undelete.jsp=UTF-8
+encoding//jsps/undoChange.jsp=UTF-8
+encoding/<project>=UTF-8
+separateDerivedEncodings=true

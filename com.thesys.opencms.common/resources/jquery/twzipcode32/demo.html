@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-TW" lang="zh-tw">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="content-language" content="zh-tw" />
+<meta name="keywords" content="jQuery,javascript,zipcode,郵遞區號,外掛,套件" />
+<meta name="description" content="當設計網頁有加入地址選擇的需求時，使用 Twzipcode32 Plugin 可以輕易地加入數組地址下拉式清單，支援 3+2 碼格式！" />
+<meta name="author" content="essoduke.org" />
+<meta name="designer" content="essoduke.org" />
+<title>jQuery Plugin - Twzipcode32 台灣郵遞區號 3+2 版本套件</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script type="text/javascript" src="twzipcode32-1.0.1.js"></script>
+<script type="text/javascript"> 
+$(function(){
+ 
+  
+  
+  $('#example-4').twzipcode32();
+  
+});
+</script>
+</head>
+<body>
+ 
+ 
+        
+        <div class="demo">
+          <form action="/twzipcode32/index.php" method="post">
+            <div id="example-4"></div>
+          
+          </form>
+          <pre>
+<code class="js">
+$(function(){
+    $('#example-4').twzipcode32({
+        countyName: 'county',
+        areaName: 'area',
+        roadName: 'road',
+        zipName: 'zip',
+        css:['county', 'area', 'road', 'zip']
+    });
+});
+</code>
+</pre>
+        </div>
+        
+      
+  
+</body>
+</html>
+ 
+
