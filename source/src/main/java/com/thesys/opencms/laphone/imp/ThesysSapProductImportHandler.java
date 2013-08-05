@@ -21,6 +21,7 @@ import jxl.Workbook;
 
 
 
+import org.apache.axis.utils.StringUtils;
 import org.apache.commons.logging.Log;
 import org.opencms.file.CmsFile;
 import org.opencms.file.CmsObject;
@@ -38,6 +39,7 @@ import org.opencms.xml.content.CmsXmlContent;
 import org.opencms.xml.content.CmsXmlContentFactory;
 import org.opencms.xml.types.I_CmsXmlContentValue;
 
+import com.fol.utils.DateUtil;
 import com.thesys.opencms.laphone.product.ThesysRatingHandler;
 import com.thesys.opencms.laphone.system.dao.ThesysParamDAO;
 import com.thesys.opencms.laphone.util.ThesysSendMsgHandler;
@@ -85,6 +87,10 @@ public class ThesysSapProductImportHandler{
 	private final String JSON_GROUP_SPECIAL_PRICE = "SpecialPrice";		
 	private final String JSON_GROUP_QUANTITY = "GroupQuantity";	
 	
+	/**增加资料首次与最近一次汇入时间*/
+	private final String JSON_FIRST_IMPORTED_DATE = "firstImportedDate";
+	private final String JSON_LAST_IMPORTED_DATE = "lastImportedDate";
+	
 	private int processCount;
 	private int successCount;
 	private int errorCount;
@@ -92,15 +98,18 @@ public class ThesysSapProductImportHandler{
 	private InputStream resultStream;
 	private String priceAlertMsg = new String(); //價格警示訊息
 	
+	private DateUtil dateUtil = new DateUtil();
+	
 	private boolean modifyCategoryFlag = false; //判斷是否修正資料的flag
 	/** The log object for this class. */
     private static final Log LOG = CmsLog.getLog(ThesysSapProductImportHandler.class);
     private CmsObject cmsObject;
+    
+    
+    
     public ThesysSapProductImportHandler(PageContext context, HttpServletRequest req,HttpServletResponse res) throws Exception  {
     	CmsJspActionElement cms = new CmsJspActionElement(context,req,res);
     	init(cms.getCmsObject());
-		
-
 	}    
     public ThesysSapProductImportHandler(CmsObject cmso){
     	init(cmso);
@@ -545,7 +554,7 @@ public class ThesysSapProductImportHandler{
 			}catch(Exception e){
 				errorMsg += "分期付款期數格式應為[1;3;6]；";
 			}
-		}	
+		}
 		if(errorMsg.length()>0) throw new Exception(errorMsg);		
 		
 		importRow(jsonObj);
@@ -560,8 +569,20 @@ public class ThesysSapProductImportHandler{
 		if(jsonObj.has(JSON_RATING)){
 			rating = jsonObj.getInt(JSON_RATING);
 			jsonObj.remove(JSON_RATING);
-			
 		}
+		
+		
+		/**加入汇入时间*/
+		
+		String now = String.valueOf(dateUtil.getNowLong());
+		String firstImportedDate = jsonObj.getString(JSON_FIRST_IMPORTED_DATE);
+		
+		if (StringUtils.isEmpty(firstImportedDate)) {
+			jsonObj.put(JSON_FIRST_IMPORTED_DATE, now);
+		}
+		
+		jsonObj.put(JSON_LAST_IMPORTED_DATE, now);
+		
 		createProductXml(jsonObj);
 		
 		if(rating!=0){ //加上評價
@@ -636,6 +657,7 @@ public class ThesysSapProductImportHandler{
 		}
 		//預設起始日為 0~2556028800000，加上修改或新增註記
 		java.util.List<CmsProperty> properties = new java.util.ArrayList<CmsProperty>();
+		
 		if(jsonObj.has(JSON_PRODUCT_NAME)){ //為Excel 匯入才有預設上架日期			
 			Calendar cal = Calendar.getInstance();
 			cal.setTime(new java.util.Date());
@@ -643,6 +665,7 @@ public class ThesysSapProductImportHandler{
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.SECOND, 0);
 			cal.set(Calendar.MILLISECOND, 0);
+			
 			jsonObj.put(JSON_ONLINE_DATE, String.valueOf(cal.getTimeInMillis())); //即時上架
 			jsonObj.put(JSON_OFFLINE_DATE, "2556028800000"); //預設下架日期
 			
@@ -715,11 +738,9 @@ public class ThesysSapProductImportHandler{
 			cal.set(Calendar.HOUR, 0);
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.SECOND, 0);
-			cal.set(Calendar.MILLISECOND, 0);			
+			cal.set(Calendar.MILLISECOND, 0);
 			properties.add(new CmsProperty("laphone.excel-date",String.valueOf(cal.getTimeInMillis()) ,String.valueOf(cal.getTimeInMillis())));//加上匯入日期
 			properties.add(new CmsProperty("laphone.check-date",String.valueOf(cal.getTimeInMillis()) ,String.valueOf(cal.getTimeInMillis())));//加上匯入日期(檢查是否超過七日)
-			
-			
 		}
 		getCmsObject().writePropertyObjects(xmlPath,properties);
 		getCmsObject().writeFile(xmlFile);
