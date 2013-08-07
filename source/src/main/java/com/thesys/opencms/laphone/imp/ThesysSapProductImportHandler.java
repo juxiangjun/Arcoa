@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -41,6 +42,7 @@ import org.opencms.xml.types.I_CmsXmlContentValue;
 
 import com.fol.utils.DateUtil;
 import com.thesys.opencms.laphone.product.ThesysRatingHandler;
+import com.thesys.opencms.laphone.system.ThesysParamHandler;
 import com.thesys.opencms.laphone.system.dao.ThesysParamDAO;
 import com.thesys.opencms.laphone.util.ThesysSendMsgHandler;
 
@@ -105,6 +107,7 @@ public class ThesysSapProductImportHandler{
     private static final Log LOG = CmsLog.getLog(ThesysSapProductImportHandler.class);
     private CmsObject cmsObject;
     
+    private double change_rate;
     
     
     public ThesysSapProductImportHandler(PageContext context, HttpServletRequest req,HttpServletResponse res) throws Exception  {
@@ -117,6 +120,12 @@ public class ThesysSapProductImportHandler{
     private void init(CmsObject cmso){
     	this.cmsObject = cmso;
     	OpenCms.getSearchManager().setOfflineUpdateFrequency(1000); //設定後台搜尋頻率為1秒
+    	ThesysParamHandler paramhandler = new ThesysParamHandler();
+    	try {
+			this.change_rate = Double.valueOf(paramhandler.getParamVal("/sites/laphone", "PRODUCT_WARN_THRESHOLD").split(";")[0]);
+		} catch (Exception e) {
+			LOG.error("Get change rate failed");
+		}
     }
     private void clearLog(){
     	processCount=0;
@@ -693,7 +702,7 @@ public class ThesysSapProductImportHandler{
 				double oldPrice = Double.parseDouble(priceTxt);
 				double newPrice = jsonObj.getDouble(JSON_SPECIAL_PRICE);
 				double discount =  newPrice/oldPrice;
-				if(discount<0.5){ //有問題警示
+				if(discount< change_rate){ //有問題警示
 					properties.add(new CmsProperty("laphone.price-alert","true","true"));//增加售價警示
 					//記錄價格異常訊息
 					priceAlertMsg += "<tr><td>"+jsonObj.getString(JSON_SAP_PRODUCT_CODE)+"</td><td>"+(int)oldPrice+"</td><td>"+(int)newPrice+"</td></tr>";

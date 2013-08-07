@@ -18,6 +18,7 @@ import org.opencms.xml.content.CmsXmlContent;
 import org.opencms.xml.content.CmsXmlContentFactory;
 
 import com.thesys.opencms.laphone.job.ThesysAbstractJob;
+import com.thesys.opencms.laphone.system.ThesysParamHandler;
 import com.thesys.opencms.laphone.system.dao.ThesysParamDAO;
 import com.thesys.opencms.laphone.util.ThesysSendMsgHandler;
 
@@ -29,15 +30,26 @@ public class ThesysAbnormalNoticeJob extends ThesysAbstractJob {
 	protected static final Log LOG = CmsLog.getLog(ThesysAbnormalNoticeJob.class);
 	
 	
-	private static final int deadline = 7; //超過此天數但未發佈的XML須發mail
+	private int deadline = 7; //超過此天數但未發佈的XML須發mail
 	
 
 	@Override
 	public String launch(CmsObject cmso, Map parameters) throws Exception {
 		setCmsObject(cmso);	
+		initDeadline();
 		sendOverdueReleaseMail();
 		return null;
 	}
+	
+	private void initDeadline(){
+		ThesysParamHandler paramhandler = new ThesysParamHandler();
+		try {
+			deadline = Integer.valueOf(paramhandler.getParamVal("/sites/laphone", "PRODUCT_WARN_THRESHOLD").split(";")[1]);
+		} catch (Exception e) {
+			LOG.error("Get Deadline failed");
+		}
+	}
+	
 	/**
 	 * 寄出逾期未發佈的xml
 	 */
