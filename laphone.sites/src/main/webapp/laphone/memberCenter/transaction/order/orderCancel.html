@@ -1,0 +1,149 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*,java.text.*,com.thesys.opencms.laphone.order.dao.*,com.thesys.opencms.laphone.system.*,com.thesys.opencms.laphone.util.*,org.opencms.json.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+<%orderHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="orderHandler" property="orderId" param="orderId"/>
+<c:set var="orderVO" value="${orderHandler.selectedOrder}"/>
+<c:choose>
+<c:when test="${param.act=='cancel'}">
+	<jsp:setProperty name="orderVO" property="*"/>
+	<%
+	ThesysOrderVO vo = (ThesysOrderVO )pageContext.getAttribute("orderVO");
+	if(orderHandler.cancelOrder(vo)) {
+		out.print("<script>alert('取消訂單成功');location.replace('index.html');</script>");
+	} else {
+		out.print("<script>alert('取消訂單失敗');location.replace('index.html');</script>");
+	}
+	%>
+</c:when>
+<c:otherwise>
+<cms:include property="template" element="head" />
+<link href="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/css/orders.css</cms:link>" rel="stylesheet" type="text/css"/>
+<script>
+$(function(){
+	$("#btnCancelOrder").click(function(){
+		
+			<c:if test="${orderVO.orderStatus!=0}">
+			if($("#cancelContacter").val() == ""){
+				alert("請輸入姓名");
+				return;
+			}
+			if($("#cancelContactPhone").val() == ""){
+				alert("請輸入白天可聯絡電話");
+				return;
+			}
+			</c:if>
+			if($("#cancelCode").val() == ""){
+				alert("請選擇取消訂單原因");
+				return;
+			}
+			if($("#cancelReason").val() == ""){
+				alert("請輸入取消訂單原因");
+				return;
+			}
+			if(confirm("確定取消訂單?")){
+				$("#cancelForm").submit();
+			}
+		
+	});
+});
+</script>
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+        <div id="member-body" class="member-body">
+		<h2>取消訂單</h2>
+		<c:if test="${not empty orderVO}">
+			<table class="member-list">
+	            		<tr class="header">
+		            		<td class="no">訂單編號</td>
+		                        <td class="time" style="width:125px">訂購時間</td>
+		                        <td class="pay" style="width:165px">付款/取貨方式</td>
+		                        <td class="amt" style="width:100px">訂單金額</td>
+		                        <td class="status">處理進度</td>
+		                </tr>
+		                <c:if test="${not empty orderVO}">
+		                <tr>
+		            		<td class="no">
+		            			${orderVO.orderId}
+	                        	</td>
+		                        <td class="time" style="width:125px">
+		                        	<p><fmt:formatDate pattern="yyyy/MM/dd" value="${orderVO.orderDate}"/></p>
+	                        		<p><fmt:formatDate pattern="HH:mm:ss" value="${orderVO.orderDate}"/></p>
+	                        	</td>
+		                        <td class="pay" style="width:165px">
+		                        	<c:choose><c:when test="${orderVO.shipType=='W'}"><p>國內宅配</p></c:when>
+				                <c:otherwise>
+				                	<p>超商取貨付款/</p>
+				                	<p><a class="red" href="#" onclick="return openMap('${orderVO.cvsStoreName}-${orderVO.cvsStoreAddress}','${orderVO.cvsStoreAddress}');">${orderVO.cvsStoreName}</a></p>
+				                    </c:otherwise>                    
+				                 </c:choose>
+	                       		</td>
+		                        <td class="amt" style="width:100px">
+		                        	<fmt:formatNumber value="${orderVO.orderAmount}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		                        </td>
+		                        <td class="status">${orderVO.orderStatusName}</td>
+		                </tr>	
+		                </c:if>         
+		        </table>
+		        <br>
+		        <form name="cancelForm" id="cancelForm" action="orderCancel.html" method="post">
+		        <input type="hidden" name="act" value="cancel">
+		        <input type="hidden" name="orderId" value="${param.orderId}">
+		        <c:if test="${orderVO.orderStatus>=3}"><%/**未拋轉可直接取消**/%>
+			        <div class="contact-box">
+					<h2>訂單已進入出貨處理流程，無法線上取消</h2>
+					<div class="contacter">
+						<p>因本訂單已進入出貨流程，無法線上取消訂單，請留下您的姓名及白天可聯絡電話，將有客服人員專程為您處理。</p>
+						<label for="contact-name">姓名：</label>
+						<input type="text" name="cancelContacter" id="cancelContacter" maxlength="10">
+						<label for="contact-name">白天可聯絡電話：</label>
+						<input type="text" name="cancelContactPhone" id="cancelContactPhone" maxlength="10">
+					</div>
+				</div>
+			</c:if>
+			<div class="contact-box">
+				<h2>取消訂單原因</h2>
+				<span class="red">*</span>&nbsp;
+				<select name="cancelCode" id="cancelCode">
+					<option value="">請選擇</option>
+					<option value="1">訂錯商品</option>
+					<option value="2">已至其它商店購買</option>
+					<option value="3">價格問題</option>
+					<option value="4">不想買了</option>
+					<option value="5">已有相同商品</option>
+					<option value="6">無法等候調貨</option>
+					<option value="9">其他</option>                    
+				</select>
+				<br>
+				<textarea cols="85" rows="5" name="cancelReason" id="cancelReason" maxlength="255"></textarea>
+			</div>
+			<h2>注意事項</h2>
+			<div class="notice-box">
+			    <ul class="disc">
+		                <li>laphone網路購物目前僅提供整筆訂單取消，無法針對數量進行異動或單獨取消訂單內任一項商品。</li>
+		                <li>若訂單已進入出貨處理流程，便無法直接在線上進行取消訂單作業，請依照說明填寫您的姓名及聯絡電話，將會有客服人員專程為您處理。</li>
+		                <li>取消訂單作業處理完畢後，本公司將約於8~10個工作天(不含假日)完成退款作業。</li>
+		                <li>為提供會員最快速的服務，建議您可先瀏覽<a href="<cms:link>/faq/index.html</cms:link>">購物FAQ</a>，若仍無法解答您的疑問，歡迎於<a href="<cms:link>/service/index.html</cms:link>">客服中心</a>來函詢問。</li>
+		                <li>客服中心服務時間：週一至週五（例假日除外）09:00~21:00.</li>
+		            </ul>
+			</div>
+	    		<br>
+	    		<div align="right">
+	    			<a href="index.html" class="button">回訂單查詢</a>
+	    			<a href="#cancelForm" class="button" id="btnCancelOrder" >確定取消訂單</a>
+	    		</div>
+			</form>
+		</c:if>
+        </div>
+     </div>
+</div>
+<cms:include property="template" element="foot" /> 
+</c:otherwise>
+</c:choose>

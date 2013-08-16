@@ -1,0 +1,67 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="searchReportHandler" scope="request" class="com.thesys.opencms.laphone.report.ThesysSearchReportHandler">
+<%searchReportHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<c:set var="pageSize" value="50"/>
+<jsp:setProperty name="searchReportHandler" property="pageSize" value="${pageSize}"/>
+<jsp:setProperty name="searchReportHandler" property="pageIndex" param="pageIndex"/>
+<jsp:setProperty name="searchReportHandler" property="startDate" param="startDate"/>
+<jsp:setProperty name="searchReportHandler" property="endDate" param="endDate"/>
+<c:set var="searchList" value="${searchReportHandler.pageList}"/>
+<c:set var="itemCount">${searchReportHandler.count}</c:set>
+<form id="searchForm" method="post" action="<cms:info property="opencms.uri"/>" class="alertForm">
+	<table align="center" css="table">
+		<tbody>
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">查詢日期:</td>
+			<td width="370" align="left" class="tr_b">
+				<input type="text" class="date" name="startDate" value="${param.startDate}" title="搜尋日期(起)">到
+				<input type="text" class="date" name="endDate" value="${param.endDate}"  title="搜尋日期(迄)">
+			</td>
+		</tr>
+		<tr>
+			<td align="center" colspan="2">
+				<a href="#searchForm" class="button btnSubmit" onclick="$('#searchForm').attr('action','<cms:info property="opencms.uri"/>');">查詢</a>
+				<a href="#searchForm" class="button btnSubmit" onclick="$('#searchForm').attr('action','download.html');">下載</a>
+				<a href="#searchForm" class="button btnReset">清空</a>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</form>
+<div style="padding-top: 15px">
+	<table cellspacing="0" cellpadding="0" border="0" style="width: 780px; text-align: left; border-collapse: collapse;" rules="all" class="table" id="ctl00_MainContent_GridView1">
+		<tbody>
+		<tr>
+			<th scope="col" width="25%">搜尋字串</th>
+			<th scope="col" width="25%">搜尋日期</th>
+		</tr>
+		<c:forEach var="item" items="${searchList}" varStatus="status">
+			<tr>
+				<td>${item[0]}</td>
+				<td>${item[1]}</td>
+			</tr>
+		</c:forEach>
+		<c:if test="${empty itemCount || itemCount==0}">
+		<tr><td colspan="4">無訂單資料</td></tr>
+		</c:if>
+		<tr>
+			<c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>
+			<c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<td colspan="3" style="border-bottom: none">
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+<cms:include property="template" element="foot" />

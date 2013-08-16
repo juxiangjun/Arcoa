@@ -1,0 +1,68 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@page import="com.thesys.opencms.laphone.member.dao.*"%>
+<%
+if(session.getAttribute("oldMember") == null){
+	out.print("<script>alert('請先登入');history.go(-1);</script>");
+	return;
+}
+%>
+<cms:include property="template" element="head" />
+
+<script type="text/javascript">
+$(document).ready(function(){
+	$(".convertSubmit").click(function(){
+		$(".accountId").focus().blur();
+		var err = $(".error").html();
+		if(err != ""  && err != null){
+			alert(err);
+		}else{
+			setTimeout("checkForm();",200);
+		}
+	});
+})
+function checkForm(){
+	var err = $(".error").html();
+	if(err != "" && err != null){
+		alert(err);
+	}else{
+		$("#convertForm").submit();
+	}
+}
+</script>  
+<!--<script type="text/javascript" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/js/convertForm.js</cms:link>"></script>  已與註冊合併 不使用-->
+<script type="text/javascript" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/js/registerForm.js</cms:link>"></script>
+<div id="content">
+  <div class="main">
+  	<h2 class="black"><cms:property name="Title"/></h2>
+        <form class="fixForm conver-form" name="convertForm" id="convertForm"  action="convertDone.html" method="post" enctype="application/x-www-form-urlencoded">
+             <input type="hidden" name="loginType" value="idNo"/>
+             <ul class="user-form">
+                    <li>
+                        <label>帳號:</label><input id="accountId" name="accountId"  class="accountId"  style="text-transform: lowercase"  type="text" placeholder="" maxlength="20"/>&nbsp;<span id="validateError"></span><span id="validateOk"></span>
+                        <span class="error" style="color:red"></span><span class="grey8 block font13">(會員帳號，需為6至20個字元,限為數字或英文，不分大小寫)</span>
+                    </li>  
+                    <li class="last-line">	
+                    	<p>
+	                    <img alt="網站身分識別標章" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/identify_icon.jpg</cms:link>" class="login-id-img" />
+	                </p>           	
+	                <p class="btn-line"><a href="#" class="convertSubmit button">完成設定</a></p>
+	                  
+                   </li>
+             </ul> 
+        </form>
+        
+        <div class="space-line"></div>
+            <div class="notice-box">
+            	<ul class="disc">
+	        <li class="header">說明：</li>	        
+	        <li>請先設定一組登入帳號，做為日後登入laphone網站之會員帳號。</li>
+	        <li>會員帳號，需為6至20個字元,限使用英文或數字，不分大小寫</li>
+	        </ul>
+	    </div>
+    </div>
+</div>
+<cms:include property="template" element="foot" />  

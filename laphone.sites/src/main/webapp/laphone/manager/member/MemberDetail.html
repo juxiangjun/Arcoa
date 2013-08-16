@@ -1,0 +1,194 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*,com.thesys.opencms.laphone.member.dao.*,com.thesys.opencms.laphone.member.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>										    						
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+ <jsp:useBean id="cms" class="org.opencms.jsp.CmsJspLoginBean">
+ <% cms.init(pageContext, request, response); %>
+ </jsp:useBean>
+<jsp:useBean id="handler" class="com.thesys.opencms.laphone.member.ThesysMemberHandler">
+	<%handler.init(pageContext,request,response);%>
+	<jsp:setProperty name="handler" property="memberNo" param="sno"/>
+</jsp:useBean>
+<c:set var="member" value="${handler.selectedMember}"/> 
+
+<%
+	org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger("MANAGERMEMBER");
+	String cmsuser = cms.getUserName();
+	
+	ThesysMemberVO member = (ThesysMemberVO)pageContext.getAttribute("member");
+	if(member == null){
+		out.print("<script>alert('查無此ID');history.go(-1);</script>");
+		return;					
+	}
+	
+	LOG.info("管理員 "+cmsuser+",查詢帳號:"+member.getAccountId());
+	
+
+	String preferences = member.getPreferences();
+	String pre = "";
+	
+        String[] p ={"旅遊","美食","科技","新奇","電影","音樂","閱讀","親子","運動","設計","特惠","派對","網路","保健"};            		
+	char[] b =new char[14];
+	if(preferences != null){
+		 b= preferences.toCharArray();  
+		 for(int i = 0; i < b.length;i++)
+		 	if(String.valueOf(b[i]).equals("1"))pre +=","+p[i];
+		 if(pre.length() != 0)	
+			pre = pre.substring(1); 
+	}
+		 
+%>
+
+<form id="sForm" action="changeStatus.jsp" method="post" name="aspnetForm">
+	<input type="hidden" name="accountId" value="${member.accountId}" />
+	<input type="hidden" name="oldStatus" value="${member.status}" />
+	<table class="table-2">
+		<tbody>
+		<tr>
+			<td align="right" valign="top" class="tr_a" >會員帳號:</td>
+			<td valign="top" class="tr_a">${member.accountId}</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top"  class="tr_b">中文姓名:</td>
+			<td valign="top"  class="tr_b">${member.username}</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top"  class="tr_a"> 英文姓&amp;英文名:</td>
+			<td valign="top" class="tr_a">${member.englishName}</td>
+		</tr>
+		<tr>
+			<td align="right"  valign="top"  class="tr_b">性別:</td>
+			<td valign="top"  class="tr_b">
+					<c:if test="${member.gender == 1}">男</c:if>
+					<c:if test="${member.gender == 2}">女</c:if>
+			</td>
+		</tr>
+		<tr>
+			<td align="right"  valign="top"  class="tr_a">身份類別:</td>
+			<td valign="top" class="tr_a">
+					<c:if test="${member.idType== 1}">本國人</c:if>
+					<c:if test="${member.idType== 2}">外籍</c:if>
+			</td>
+		</tr>
+		<tr>
+			<td align="right"  valign="top" class="tr_b">身份證字號:</td>
+			<td valign="top" class="tr_b">${fn:substring(member.idNo,0,4)}xxxxxx</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" class="tr_a">出生日期:</td>
+			<td valign="top" class="tr_a">${member.birthday}</td>
+		</tr>
+		<tr>
+			<td align="right"  valign="top" class="tr_b">Email:</td>
+			<td valign="top" class="tr_b"><a href="mailto:${member.email}">${member.email}</a></td>
+		</tr>
+		<tr>
+			<td align="right"  valign="top" class="tr_a">通訊地址:</td>
+			<td valign="top" class="tr_a">${member.zipCode}${member.zipCounty}${member.zipArea}${member.fullAddress}</td>
+		</tr>
+
+		<tr>
+			<td align="right"  valign="top" class="tr_b">手機號碼:</td>
+			<td valign="top" class="tr_b">${member.cellphone}</td>
+		</tr>
+
+		<tr>
+			<td align="right"  valign="top" class="tr_a">是否接受廣告:</td>
+			<td valign="top" class="tr_a">${member.edm} (1.願意接受2.僅電子郵件3.僅手機簡訊 4.全否) </td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 208px" valign="top" class="tr_b">年收入:</td>
+			<td valign="top" class="tr_b">
+			<c:choose>
+			       <c:when test="${member.income == 1}">0</c:when>
+			       <c:when test="${member.income == 2}">0 ~ 300,000</c:when>
+			       <c:when test="${member.income == 3}">300,000 ~ 600,000</c:when>
+			       <c:when test="${member.income == 4}">600,000 ~ 1,000,000</c:when>
+			       <c:when test="${member.income == 5}">1,000,000 ~ 2,000,000</c:when>
+			       <c:when test="${member.income == 6}">2,000,000 以上</c:when>
+			       <c:otherwise>&nbsp;</c:otherwise>
+			</c:choose>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 208px" valign="top" class="tr_a">使用手機品牌:</td>
+			<td valign="top" class="tr_a">
+			<c:choose>
+			       <c:when test="${member.cellphoneBrands == 1}">Apple</c:when>
+			       <c:when test="${member.cellphoneBrands == 2}">HTC</c:when>
+			       <c:when test="${member.cellphoneBrands == 3}">Samsung</c:when>
+			       <c:when test="${member.cellphoneBrands == 4}">Nokia</c:when>
+			       <c:when test="${member.cellphoneBrands == 5}">其他</c:when>
+			       <c:otherwise>&nbsp;</c:otherwise>
+			</c:choose>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 208px" valign="top" class="tr_b">職業:</td>
+			<td valign="top" class="tr_b">
+			<c:choose>
+			       <c:when test="${member.occupation == 1}">軍公教</c:when>
+			       <c:when test="${member.occupation == 2}">農漁</c:when>
+			       <c:when test="${member.occupation == 3}">行銷</c:when>
+			       <c:when test="${member.occupation == 4}">法律</c:when>
+			       <c:when test="${member.occupation == 5}">醫療</c:when>
+			       <c:when test="${member.occupation == 6}">硬體工程</c:when>
+			       <c:when test="${member.occupation == 7}">軟體工程</c:when>
+			       <c:otherwise>&nbsp;</c:otherwise>
+			</c:choose>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 208px" valign="top" class="tr_a">學歷:</td>
+			<td valign="top" class="tr_a">
+			<c:choose>
+			       <c:when test="${member.education == 1}">無</c:when>
+			       <c:when test="${member.education == 2}">小學</c:when>
+			       <c:when test="${member.education == 3}">國中</c:when>
+			       <c:when test="${member.education == 4}">高中/高職</c:when>
+			       <c:when test="${member.education == 5}">大學/大專</c:when>
+			       <c:when test="${member.education == 6}">碩士</c:when>
+			       <c:when test="${member.education == 7}">博士</c:when>
+			       <c:otherwise>&nbsp;</c:otherwise>
+			</c:choose>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 208px" valign="top" class="tr_b">婚姻狀況:</td>
+			<td valign="top" class="tr_b">
+			<c:choose>
+			       <c:when test="${member.marriage == 1}">未婚</c:when>
+			       <c:when test="${member.marriage == 2}">已婚</c:when>
+			       <c:when test="${member.marriage == 3}">其他</c:when>
+			       <c:otherwise>&nbsp;</c:otherwise>
+			</c:choose>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 208px" valign="top" class="tr_a">個人喜好:</td>
+			<td valign="top" class="tr_a"><%=pre%></td>
+		</tr>
+
+		<tr>
+			<td align="right" style="width: 208px" valign="top" class="tr_b">會員狀態:</td>
+			<td valign="top" class="tr_b">
+			<select id="status" name="status">
+				<option <c:if test="${member.status == 0}">selected</c:if> value="0">一般會員</option>
+				<option <c:if test="${member.status == 1}">selected</c:if> value="1">黑名單會員</option>
+				<option <c:if test="${member.status == 2}">selected</c:if> value="2">SMS未認證</option>
+			</select>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 208px; border-bottom: none" valign="top">&nbsp;</td>
+			<td style="border-bottom: none" valign="top">
+			<input name="formSubmit" type="submit"  value="送出" /><input id="back" name="back" type="button" onclick="history.go(-1);" value="回上頁" /></td>
+		</tr>							  
+	</tbody>
+	</table>
+</form>
+<cms:include property="template" element="foot" /> 

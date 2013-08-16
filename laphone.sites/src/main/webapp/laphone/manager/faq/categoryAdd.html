@@ -1,0 +1,57 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*,org.opencms.publish.* , org.opencms.file.*, org.opencms.jsp.*,org.opencms.file.types.*,java.util.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+
+<%
+String faqFolder = "/faq/";
+pageContext.setAttribute("faqFolder",faqFolder);
+pageContext.setAttribute("subFolderList",cms.getCmsObject().getSubFolders(faqFolder ));
+java.text.DecimalFormat fmt = new java.text.DecimalFormat("faq00");
+int maxNum = 0;
+%>
+<c:forEach var="folder" items="${subFolderList}" varStatus="status">
+	<c:set var="tmpFolder" value="${faqFolder}${folder.name}/"/>
+	<c:set var="folderName" scope="request">${folder.name}</c:set>
+	<%
+	String folderName = (String)request.getAttribute("folderName");
+	try{
+		int num = fmt.parse(folderName).intValue();
+		if(num>maxNum) maxNum = num;
+		folderName = String.valueOf(num);
+	}catch(Exception e){}
+	%>
+</c:forEach>
+<%
+String categoryName = request.getParameter("categoryName");
+
+CmsJspActionElement cja = new CmsJspActionElement(pageContext, request, response);
+CmsObject cmsObj = cja.getCmsObject();
+//CmsProject project = cmsObj.readProject("Offline");
+//cms.getRequestContext().setCurrentProject(project);
+
+//新增類別
+if (categoryName!=null && !"".equals(categoryName)) {
+	String createFolder = faqFolder + fmt.format(maxNum + 1);
+	if(!cmsObj.existsResource(createFolder)){
+		CmsProperty prop1 = new CmsProperty(CmsPropertyDefinition.PROPERTY_TITLE, categoryName, null);
+		List properties = new ArrayList();
+	        properties.add(prop1);
+		cmsObj.createResource(createFolder, CmsResourceTypeFolder.RESOURCE_TYPE_ID, null, properties);
+		OpenCms.getPublishManager().publishResource(cmsObj, createFolder);
+		out.print("<script>alert('新增成功');location.href='categoryList.html';</script>");
+	} else {
+		out.print("<script>alert('類別已存在');history.go(-1);</script>");
+		return;
+	}
+} else {
+	out.print("<script>alert('錯誤操作');history.go(-1);</script>");
+}
+%>

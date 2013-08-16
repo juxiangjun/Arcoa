@@ -1,0 +1,163 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+
+%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+<%orderHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="orderHandler" property="orderId" param="orderId"/>
+<c:set var="orderVO" value="${orderHandler.selectedOrder}"/>
+<%
+if(pageContext.getAttribute("orderVO")==null){
+%>
+<script>
+	alert("訂單不存在");
+	history.go(-1);
+</script>
+<%
+	return;
+}
+%>
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	
+        <div id="member-body" class="member-body">
+        	<p class="order-no">訂單編號:<span class="red">${orderVO.orderId}</span></p>
+		<h2>購物明細</h2>
+		<table class="member-list">
+	                <tr class="red-header">
+	            		<td class="ord-photo">商品圖片</td>
+	                        <td class="ord-name">產品名稱</td>
+	                        <td class="ord-price">價格</td>
+	                        <td class="ord-quantity">數量</td>
+	                        <td class="ord-total">小計</td>
+	                </tr>
+	                <c:forEach var="item" items="${orderVO.orderItems}" varStatus="status">
+	        	<c:set var="productCode" value="${fn:replace(fn:replace(item.itemId,'-','_'),'+','_')}"/>	  
+	                <tr class="order-item">
+	            		<td class="ord-photo">
+	            			<img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="${item.itemName}" width="124" height="100" />
+	            		</td>
+	                        <td class="ord-name">
+	                        	<p>${item.itemName}</p>
+	                        </td>
+	                        <td class="ord-price">優惠價 NT$ <fmt:formatNumber value="${item.specialPrice}" pattern="#,##0.0#" maxFractionDigits="0"/></td>
+	                        <td class="ord-quantity">${item.quantity}</td>
+	                        <td class="ord-total"> NT$ <fmt:formatNumber value="${item.specialPrice*item.quantity}" pattern="#,##0.0#" maxFractionDigits="0"/></td>
+	                </tr>
+	                </c:forEach>
+	        </table>
+	       <!-- <div class="space-line"></div>
+	        <h2>選擇優惠方式</h2>
+	        <div class="msgbar-peach">
+			<p class="coupon">
+				<c:choose><c:when test="${orderVO.couponAmount>0}">
+		       		使用抵用券<span  class="money"><sup>NT$</sup>${orderVO.couponAmount}</span>元 （配件類商品小計<span  class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.couponUseAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元 最高可折抵 <span  class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.coupon.couponAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元）
+		       		</c:when>
+		       		<c:otherwise>
+		       		未使用抵用券
+		       		</c:otherwise></c:choose>
+			</p>
+		</div>-->	        
+	        <div class="space-line"></div>
+		<h2>付款與寄送方式</h2>
+		<table class="order-pay">
+	                <tr class="odd">
+	                    <td colspan="2">
+	                        <label>取貨方式：</label>
+	                         <c:choose><c:when test="${orderVO.shipType=='W'}">國內宅配</c:when>
+		                    <c:otherwise>
+		                    	 <c:choose>
+		                    	 	<c:when test="${orderVO.shipType=='F'}">全家便利商店</c:when>
+		                    	 	<c:when test="${orderVO.shipType=='K'}">OK超商</c:when>
+		                    	 	<c:when test="${orderVO.shipType=='L'}">萊爾富便利商店</c:when>
+		                    	 </c:choose>
+		                    	 -${orderVO.cvsStoreName}-${orderVO.cvsStoreAddress}
+		                    </c:otherwise>                    
+		                 </c:choose>
+	                    </td>
+	                </tr>
+	                <tr>
+	                    <td colspan="2">
+	                        <label>付款方式：</label>
+	                          <c:choose>
+		            	 	<c:when test="${orderVO.payType==0}">到店取貨付款</c:when>
+		            	 	<c:when test="${orderVO.payType==1}">線上刷卡一次付清</c:when>
+		            	 	<c:when test="${orderVO.payType==2}"> 信用卡分期付款</c:when>
+		            	 	<c:when test="${orderVO.payType==3}">ATM 匯款</c:when>
+		                  </c:choose> 
+	                    </td>
+	                </tr>
+	                <tr class="odd">
+	                    <td colspan="2">
+	                        <label>收件者：</label>${orderVO.receiver}
+	                    </td>
+	                </tr>
+	                <tr>
+	                    <td>
+	                        <label>聯絡電話：</label>${orderVO.recMobile}<c:if test="${! empty orderVO.recPhone}">/${orderVO.recPhone}} </c:if>
+	                    </td>
+	                    <td>
+	                        <label>電子郵件：</label>${orderVO.recEmail}
+	                    </td>
+	                </tr>
+	                <tr>
+	                    <td colspan="2" >
+	                        <label>收件地址：</label>${orderVO.recZipCode} ${orderVO.recCounty}${orderVO.recArea}${orderVO.recAddress}
+	                    </td>
+	                </tr>
+	        </table>
+	        <div class="space-line"></div>             
+	        <table  class="order-pay">
+	                <tr class="odd">
+	                    <td colspan="2">
+	                        <label>發票類型：</label><c:choose><c:when test="${orderVO.invoiceType==3}">三聯式電子發票</c:when><c:otherwise>二聯式電子發票</c:otherwise></c:choose>
+	                    </td>
+	                </tr>
+	                <c:choose><c:when test="${orderVO.invoiceType==3}">
+	                <tr>
+	                    <td>
+	                        <label>統一編號：</label>${orderVO.companyNo}
+	                    </td>
+	                    <td>
+	                        <label>發票抬頭：</label>${orderVO.companyName}
+	                    </td>
+	                </tr>
+	                <tr>
+	                    <td colspan="2" >
+	                        <label>發票地址：</label>${orderVO.companyAddress}
+	                    </td>
+	                </tr>
+	                </c:when><c:otherwise> 
+	                <tr>
+	                    <td colspan="2"><label>買受人：</label>${orderVO.invoiceBuyer}</td>
+	                </tr> 
+	                </c:otherwise></c:choose>             
+	                <tr>
+	                    <td colspan="2"><label>發票寄送地址：</label>${orderVO.invoiceAddress}</td>
+	                </tr>
+	        </table>
+	        <div class="space-line"></div>
+	    	<div class="msgbar-peach">
+			<p class="coupon">總計<span class="money">&nbsp;${orderVO.totalQuantity}&nbsp;</span>項商品，消費小計：<span class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.totalAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span>元<br/>
+	                使用優惠：抵用券，金額：<span class="money"><sup>NT$</sup>${orderVO.couponAmount}</span>元<br/>
+	                運費：<span class="money"><sup>NT$</sup>${orderVO.shipFee}</span>元<br/>
+	                應付金額總計：<span class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.orderAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span>元</p>
+	    	</div>
+	    	<div class="btn-line-right"><a href="#" class="button" onclick="history.go(-1);return false;">回上頁</a></div>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

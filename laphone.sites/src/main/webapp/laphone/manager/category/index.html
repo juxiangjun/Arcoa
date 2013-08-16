@@ -1,0 +1,198 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<c:set var="pageSize" value="50" />
+<script>
+
+$(function(){
+	$("#searchForm").bind('reset',(function(){
+		$("#searchForm :input").each(function(){
+			$(this).val("");
+		});
+		return false;
+	}));
+	$("#importForm").bind('submit',(function(){
+		var fileName = $("#fileUpload").val().toLowerCase();
+		if(fileName.length==0){
+			alert("請先選擇檔案");
+			return false;
+		}else{
+			var suffix = ".xls";
+			if(fileName.substr(fileName.length - suffix.length) === suffix){
+				return true;
+			}else{
+				alert("您選擇的檔案副檔名應為.xls");
+				return false;
+			}			
+		}
+		
+	}));
+});
+</script>
+</script>
+<div style="padding-top: 15px">
+	<form id="searchForm" method="post" action="<cms:info property="opencms.uri"/>"  class="hiddenForm">
+	<table width="360px" style="margin-right:15px;margin-bottom:15px;">
+	  <tr>
+	    <td width="15%" align="right" class="tr_b">商品分類:</td>
+	    <td width="34%" class="tr_b">
+	    <%
+	    CmsJspNavBuilder nav = cms.getNavigation();
+            pageContext.setAttribute("folders",nav.getNavigationForFolder("/"));
+            %>
+            <script>
+            $(function() {  
+            	$("#category1").change(function(){
+            		var cat2Id = $(this).val();
+            		
+            		$(".category2").hide();
+            		$(".category2").attr("disabled",true);
+            		if(cat2Id !=''){            			
+            			$(".category2[id='"+cat2Id+"']").attr("disabled",false);
+            			$(".category2[id='"+cat2Id+"']").show();	
+            		}
+            		
+            	});
+            	$("#category1").trigger("change");
+            });
+            </script>
+	      <select name="category1" id="category1">
+	        <option value="">全部</option>
+	        <c:forEach var="folder" items="${folders}">
+	        <c:if test="${folder.navPosition>10 && folder.navPosition<20}">
+	        <c:set var="categoryVal">category2_${folder.navPosition}</c:set>
+	        <option value="${categoryVal}" <c:if test="${categoryVal == param.category1}">selected</c:if>>${folder.title}</option>
+	        </c:if>
+	        </c:forEach>
+	      </select>
+	      <c:forEach var="folder" items="${folders}">
+		     <c:if test="${folder.navPosition>10 && folder.navPosition<20}">
+		     	<c:set var="tmpFolder" value="${folder.resourceName}"/>
+		     	<% pageContext.setAttribute("files",nav.getNavigationForFolder((String)pageContext.getAttribute("tmpFolder")));%>
+		      	<select id="category2_${folder.navPosition}" name="subCategory" class="category2" style="display:none">		      		
+	        		<option value="${folder.resourceName}">全部</option>
+		      		<c:forEach var="file" items="${files}">
+			        <option value="${file.resourceName}" <c:if test="${file.resourceName==param.subCategory}">selected</c:if>>${file.title}</option>
+			        </c:forEach>
+		     	 </select>
+		      </c:if>
+	       </c:forEach> 
+	    </td>
+	  </tr>
+	  <tr>
+	    <td align="right" class="tr_b2">SAP階層碼:</td>
+	    <td class="tr_b2"><input type="text" name="sapCategoryCode" value="${param.sapCategoryCode}" /></td>	    
+	    </tr>
+	</table>    
+        </form>
+        <form id="importForm" method="post" enctype="multipart/form-data" action="<cms:link>import.html</cms:link>" class="hiddenForm">
+	<table width="380px" >
+	  <tr>	    
+	    <td width="24%" align="right" valign="top" class="tr_b">匯入檔案: </td>
+	    <td width="76%" class="tr_b">
+	    <input name="fileUpload" id="fileUpload" type="file"/><a href="<cms:link>categoryExample.xls</cms:link>" target="_blank">範例下載</a>
+	    </td>
+	  </tr>
+	  <tr>	    
+	    <td colspan="2"><a href="#searchForm" class="button btnSubmit">查詢</a><a href="#searchForm" class="button btnReset">清空</><a href="#importForm" class="button btnSubmit">匯入</a></td>
+	  </tr>
+	</table>    
+        </form>
+        <br/>	
+	<table class="list-table" border="0" cellpadding="0" cellspacing="0">
+		<tr>
+			<th class="w100">操作</th>
+			<th class="w200">商品主分類</th>
+			<th class="w200">商品次分類</th>
+			<th class="w300">SAP階層碼</th>
+		</tr>	
+	<c:set var="categoryRowId" value="0"/>
+	<%/**計算分頁index*/%>
+	<c:set var="pageRowStart" value="1"/>
+	<c:set var="pageRowEnd" value="${pageSize}"/>
+	<c:if test="${!empty param.pageIndex}">
+		<c:set var="pageRowStart" value="${pageSize*(param.pageIndex-1)+1}"/>
+		<c:set var="pageRowEnd" value="${pageSize*param.pageIndex}"/>	
+	</c:if>	
+	<cms:contentload collector="thesysAllInSubTreeRequireDeleted" param="/Category%(number).html|ThesysLaphoneProductCategory" editable="false">
+		<c:set var="groupRowId" value="${groupRowId+1}"/>	    			
+    		<c:set var="categoryId"><cms:contentshow element="CategoryId"/></c:set>
+    		<c:set var="categoryName"><cms:contentshow element="CategoryName"/></c:set>
+    		<c:if test="${categoryId!='search'}">	
+	    		<c:set var="xmlPath"><cms:contentshow element="%(opencms.filename)"/></c:set>
+	    	    	<c:set var="xmlFolder" value=""/>   
+	    	    	<c:forTokens items="${xmlPath}" delims="/" var="tmp">
+	    	    		<c:if test="${!fn:endsWith(tmp,'.html')}"><c:set var="xmlFolder" value="${xmlFolder}/${tmp}"/></c:if>
+	    	    	</c:forTokens>
+	    	    	<c:set var="xmlFolder" value="${xmlFolder}/"/>
+	    	    	
+	    	    	<c:if test="${empty param.subCategory || param.subCategory==xmlFolder || param.subCategory==xmlPath}"> <%/**判斷Search的類別*/%>
+				<c:set var="categoryFolderTitle"><cms:property name="Title" file="${xmlFolder}"/></c:set> 				
+		    	    	<c:set var="tagRowId" value="0"/> 		    	    	
+		    	    	<c:set var="deleteFile" value="true"/>    
+		    	    	<cms:contentcheck ifexistsone="SapCategoryCode[2]"><c:set var="deleteFile" value="false"/></cms:contentcheck> 	    
+		    	    	<cms:contentloop element="SapCategoryCode"> 
+		    	    		<c:set var="sapCategoryCode"><cms:contentshow/></c:set>
+		    	    		<c:set var="tagRowId" value="${tagRowId+1}"/>   
+		    	    		<c:if test="${empty param.sapCategoryCode || fn:indexOf(sapCategoryCode,param.sapCategoryCode)>=0}">  	 <%/**判斷SapCategoryCode*/%>	    	    		
+		    	    		<c:set var="totalRowId" value="${totalRowId+1}"/>
+		    	    		<c:if test="${pageRowStart<=totalRowId && totalRowId <=pageRowEnd}">						            	   	
+				<tr>
+					<td>
+					<c:choose>
+					<c:when test="${deleteFile}">
+					<cms:include file="/system/modules/com.thesys.opencms.manager/elements/xmlListButton.jsp">
+						<cms:param name="rowId">${totalRowId}</cms:param>
+						<cms:param name="fromUrl"><cms:info property="opencms.uri"/></cms:param>
+						<cms:param name="xmlPath">${xmlPath}</cms:param>
+						<cms:param name="editButton">false</cms:param>
+						<cms:param name="deleteButton">true</cms:param>			
+						<cms:param name="autoPublish">true</cms:param>			
+						<cms:param name="showState">false</cms:param>	
+					</cms:include>
+					</c:when>
+					<c:otherwise>
+					<cms:include file="/system/modules/com.thesys.opencms.manager/elements/elemEditButton.jsp">
+						<cms:param name="rowId">${totalRowId}</cms:param>
+						<cms:param name="fromUrl"><cms:info property="opencms.uri"/></cms:param>
+						<cms:param name="xmlPath">${xmlPath}</cms:param>
+						<cms:param name="editUrl"><cms:link>editForm.html</cms:link></cms:param>
+						<cms:param name="rootXpath">/</cms:param>				
+						<cms:param name="tagName">SapCategoryCode</cms:param>				
+						<cms:param name="tagId">${tagRowId}</cms:param>				
+						<cms:param name="autoPublish">true</cms:param>			
+						<cms:param name="editButton">false</cms:param>
+					</cms:include>
+					</c:otherwise>
+					</c:choose>
+					</td>
+					<td>${categoryFolderTitle}</td>
+					<td>${categoryName}</td>			
+					<td>${sapCategoryCode}</td>
+				</tr>
+					</c:if>
+					</c:if>
+				</cms:contentloop>
+			</c:if>
+		</c:if>
+	 </cms:contentload>	 
+	 	<tr>
+			<td colspan="4" class="btn-line">
+			<fmt:parseNumber  parseLocale="#" integerOnly="true" value="${totalRowId/pageSize}" var="pageCount" />
+			<c:if test="${totalRowId%pageSize>0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<c:if test="${pageCount == 0 }"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+	 </table>       
+</div> 

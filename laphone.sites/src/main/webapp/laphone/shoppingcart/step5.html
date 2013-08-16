@@ -1,0 +1,136 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ page import="com.thesys.opencms.laphone.order.dao.*,com.thesys.opencms.laphone.order.*,org.opencms.json.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+
+%>
+<%
+response.setHeader("pragma", "no-cache");
+response.setHeader("Cache-control", "no-cache");
+response.setHeader("Cache-control", "no-store");
+response.setHeader("Expires", "Tues, 01 Jan 1980 00:00:00 GMT");
+%>
+<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+<%orderHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="orderHandler" property="orderId" param="orderId"/>
+<c:set var="orderVO" value="${orderHandler.selectedOrder}"/>
+
+<cms:include property="template" element="head" />
+<c:choose>
+<c:when test="${orderVO.orderStatus==99}">
+<script>alert("交易失敗");</script>
+</c:when>
+<c:otherwise>
+<script>alert("交易成功");</script>
+</c:otherwise>
+</c:choose>
+   <div id="shoppingCart">
+       	<h2>購物步驟</h2>
+
+       	<ul id="stepNav">
+	        <li class="step0"><span class="success"></span></li>
+	        <li class="step1"><span class="success"></span></li>
+	        <li class="step2"><span class="success"></span></li>
+	        <li class="step3"><span class="success"></span></li>
+	        <li class="step4"><span class="success"></span></li>
+	        <li class="step5"><span class="current"></span></li>
+        </ul>
+        <div class="complete-info">
+            <p>
+            親愛的 <span class="red">${orderVO.memberName}</span>(${orderVO.memberId}) 您好，<br />
+            laphone 謝謝您的訂購，您的訂單編號為：<span class="orange">${orderVO.orderId}</span></p>
+
+            <p>
+            我們將傳送訂購明細至您的電子郵件：${sessionScope.member.email}<br />
+            您可於<a class="red" href="<cms:link>/memberCenter/index.html</cms:link>">會員中心</a>內查看<a class="red" href="<cms:link>/memberCenter/transaction/order/index.html</cms:link>">訂單明細</a></p>
+	    <c:if test="${orderVO.payType==3}">
+            <p class="blue">== ATM轉帳 ===================================================<br />
+                您本次選擇的付款方式為 ATM轉帳付款，請於48小時內依訂單金額先繳款至：<br />
+                遠東銀行 代號：805<br />
+                遠東銀行 帳號：03900100001818<br />
+                在您付款後，請至會員中心/交易明細，在您繳交款項的訂單中輸入轉帳銀行帳號後五碼，<br />
+                <img src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/atm_demo.png</cms:link>" /><br />
+                在帳款入帳後，我們將為您進行調貨及出貨作業(使用「ATM轉帳」其付款金額需與訂單金額需<br />
+                相符，若溢繳或付款金額不足，都會造成無法成功轉帳，或款項無法沖銷的情形)。<br />
+                ============================================================<br />
+            </p>
+            </c:if>
+            <c:if test="${orderVO.payType==1 || orderVO.payType==2 }">
+            <p class="blue">
+            	== 信用卡刷卡 ===================================================<br />
+                1.您選的付款方式為：信用卡刷卡[<c:choose><c:when test="${orderVO.payType==1}">一次付清</c:when><c:otherwise>分期付款</c:otherwise></c:choose>] <br />
+                2.交易結果：<span class="red"><c:choose><c:when test="${!empty orderVO.credit && orderVO.credit.succ==1}">交易成功</c:when><c:otherwise>交易失敗</c:otherwise></c:choose></span><br />
+                3.授權回應碼：${orderVO.credit.response_code}，授權回應訊息：${orderVO.credit.response_msg}<br />
+                4.刷卡單號：${orderVO.credit.auth_code}<br />
+                ============================================================<br />
+            </p>
+            </c:if>
+        </div>         
+ 	<div class="space-line"></div>   
+        <h2>購物明細</h2>  
+    	<table class="shopping-box">
+    		<tr class="header">
+            		<td class="photo">商品圖片</td>
+                        <td class="productName">產品名稱</td>
+                        <td class="price">價格</td>
+                        <td class="quantity">數量</td>
+                        <td class="total">小計</td>
+                </tr>
+                <c:forEach var="item" items="${orderVO.orderItems}" varStatus="status">
+	        	<c:set var="productCode" value="${fn:replace(fn:replace(item.itemId,'-','_'),'+','_')}"/>	        	  	
+                <tr>
+            		<td class="photo">
+            			<img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="${item.itemName}" width="124" height="100"/>
+            		</td>
+                        <td class="productName">${item.itemName}</td>
+                        <td class="price">優惠價 NT$ 
+		    		<fmt:formatNumber value="${item.specialPrice}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    	</td>
+                        <td class="quantity">${item.quantity}</td>
+                        <td class="total"> NT$ 
+                        	<fmt:formatNumber value="${item.specialPrice*item.quantity}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    	</td>
+                </tr> 
+                </c:forEach>               
+        </table> 	 
+        <div class="paymentBar">
+       		<p>總計 <span class="money">&nbsp;${orderVO.totalQuantity}&nbsp;</span> 項商品，消費金額小計：<span class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.totalAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span>元</p>
+	        <p>使用優惠： 抵用券，金額 <span class="money"><sup>NT$</sup>${orderVO.couponAmount}</span> 元</p>
+	        <p>處理費：<span class="money"><sup>NT$</sup>${orderVO.shipFee}</span>元</p>
+	        <p>應付金額總計：<span class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.orderAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元</p>
+ 	</div>	
+ 	<div class="space-line"></div> 
+ 	<h2>注意事項</h2>     
+ 	<style>
+ 	
+ 	</style>
+ 	<div class="notice-box">
+	     <ul class="sq">        
+	        <li>謝謝您的惠顧，laphone網路購物仍保有決定是否接受訂單及出貨與否之權利。我們將在24小時內寄一份完整的訂購需求至您的電子郵件信箱留存。如果您有任何疑問，請來至<a href="<cms:link>/service/index.html</cms:link>" class="sky">客服中心</a>詢問。</li>
+	        <li>您也可以至<a href="<cms:link>/memberCenter/index.html</cms:link>" class="sky">會員專區</a>，查看您的訂單處理狀況，修改會員基本資料等。</li>
+	        <li>您所訂購的商品到貨後，我們將透過E-mail通知您。請您留意取貨通知信函之E-mail。</li>
+	        <li>如訂購之商品無法順利出貨或缺貨，我們將主動通知您並取消該訂購單。</li>
+            </ul>
+	</div>
+     </div> 
+     <div id="shoppingButton">
+     	<ul>
+            <li class="btnPrev"><a href="<cms:link>/index.html</cms:link>">繼續購物</a></li>
+            <li class="btnNext"><a href="<cms:link>/memberCenter/index.html</cms:link>">會員中心</a></li>
+        </ul>
+     </div>
+<%
+session.removeAttribute("creditVO");
+session.removeAttribute("orderVO");
+%>    
+<cms:include property="template" element="foot" /> 

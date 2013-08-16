@@ -1,0 +1,58 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="java.util.*,java.sql.*,com.thesys.opencms.laphone.system.dao.*,com.thesys.opencms.laphone.system.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="paramHandler" class="com.thesys.opencms.laphone.system.ThesysParamHandler">
+	<%paramHandler.init(pageContext,request,response);%>
+	<jsp:setProperty name="paramHandler" property="*" />
+</jsp:useBean>
+
+<c:if test="${param.act=='add'}">
+	<c:set var="insertResult"><%=paramHandler.insert()%></c:set>
+	<c:choose>
+		<c:when test="${insertResult>0}">
+			<script>alert('新增成功');location.href='index.html';</script>
+		</c:when>
+		<c:otherwise>
+			<script>alert('新增失敗');location.href='index.html';</script>
+		</c:otherwise>
+	</c:choose>
+</c:if>
+<c:if test="${param.act!='add'}">
+	<form method="post" id="editForm" action="addForm.html">
+		<input type="hidden" name="act" value="add">	
+		<table cellspacing="0" cellpadding="0" border="0" class="table-2">
+			<tbody>
+				<tr class="tr_b">
+					<td valign="top" align="right" style="width: 72px">參數名稱:</td>
+					<td valign="top">
+						<input type="text" name="paramKey" style="width:300px" class="required" title="參數名稱" value="" maxlength="50">
+					</td>
+				</tr>
+				<tr class="tr_a">
+					<td valign="top" align="right" style="width: 72px">參數值:</td>
+					<td valign="top">
+						<input type="text" name="paramVal" style="width:300px" class="required" title="參數值" value="" maxlength="255">
+					</td>
+				</tr>
+				<tr class="tr_b">
+					<td valign="top" align="right" style="width: 72px">參數說明:</td>
+					<td valign="top">
+						<input type="text" name="paramDesc" style="width:300px" class="required" title="參數說明" value="" maxlength="50">
+					</td>
+				</tr>
+				<tr>
+			    		<td valign="top" align="center" style="border-bottom: none" colspan="2">
+						<a href="#editForm" class="button btnSave">儲存</a>
+						<a href="#editForm" class="button btnCancel">取消</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</c:if>	
+<cms:include property="template" element="foot" />

@@ -1,0 +1,10 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.search.*,java.util.*,org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*, java.lang.String,org.opencms.workplace.*"%>
+<%
+CmsJspActionElement cms = new CmsJspActionElement(pageContext,request,response);
+out.println(cms.info("opencms.request.folder"));
+List<CmsResource> list = cms.getCmsObject().getResourcesInFolder(cms.info("opencms.request.folder"),CmsResourceFilter.DEFAULT);
+if(list!=null && list.size()>0){
+	response.sendRedirect(list.get(0).getName());
+}
+%>

@@ -1,0 +1,64 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<c:if test="${not empty param.pc}">
+<%
+	String path = "/product/";
+	CmsJspActionElement cms = new CmsJspActionElement(pageContext,request,response);
+	String pc = (String)request.getParameter("pc");
+	pc = pc.replace("-","_").replace("+","_");
+	String fileName = path + pc+".html";
+	CmsObject cmsObj = cms.getCmsObject();
+	if(cmsObj.existsResource(fileName,CmsResourceFilter.ALL)){
+		if(cms.property("FileStatus",fileName).equals("new")){
+			out.print("OK,BUT NEW NOTPUBLISH");
+		}else{
+			out.print("OK");
+		}
+	}else{
+		out.print("ERROR");
+	}	
+%>
+<%--
+	<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+	<%cms.init(pageContext,request,response);%>
+	</jsp:useBean>
+	<jsp:useBean id="search" scope="request" class="org.opencms.search.CmsSearch">
+		<jsp:setProperty name="search" property="index" value="OFFLINE_PRODUCT_INDEX"/>
+		<jsp:setProperty name="search" property="displayPages" param="100"/>
+		
+		<c:set var="query"></c:set>
+		<c:if test="${not empty param.pc}">
+			<c:if test="${!empty query}"><c:set var="query">${query} AND </c:set></c:if>
+			<c:set var="query">${query} (ProductCode:"${param.pc}")</c:set>
+		</c:if>
+		<% 
+		search.init(cms.getCmsObject());
+		CmsSearchParameters params = search.getParameters();
+		params.setQuery((String)pageContext.getAttribute("query"));
+		search.setParameters(params);
+		%>
+	</jsp:useBean>
+	<c:set var="searchResult" value="${search.searchResult}"/>
+	<c:choose>
+		<c:when test="${!empty searchResult}">
+		<c:set var="result">ERROR</c:set>
+		<c:forEach var="entry" items="${searchResult}" varStatus="status">
+			<c:set var="xmlPath" value="${fn:replace(entry.path,cms.requestContext.siteRoot,'')}"/>
+			<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+				<c:set var="ProductCode"><cms:contentshow element="ProductCode"/></c:set>
+				<c:if test="${ProductCode==param.pc}">
+				<c:set var="result">OK</c:set>
+				</c:if>
+			</cms:contentload>
+		</c:forEach>
+		${result}
+		</c:when>
+		<c:otherwise>
+		ERROR
+		</c:otherwise>
+	</c:choose>
+--%>	
+</c:if>

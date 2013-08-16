@@ -1,0 +1,54 @@
+<%@ page buffer="none" import="com.thesys.opencms.xml.*,org.opencms.json.JSONObject,java.util.*,org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*, java.lang.String,org.opencms.workplace.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+CmsJspActionElement cms = new CmsJspActionElement(pageContext,request,response);
+JSONObject contents = new JSONObject();
+JSONObject properties = new JSONObject();
+String tag = null;
+int rowId = 0;
+
+java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy/MM/dd");
+java.text.SimpleDateFormat bdFmt = new java.text.SimpleDateFormat("MM/dd/yyyy");
+for (Enumeration params  = request.getParameterNames() ; params.hasMoreElements() ;) {
+	String param = (String)params.nextElement();
+	String val = request.getParameter(param);
+	out.println(param);
+	out.println(val);
+	if("tag".equals(param)){
+		tag = val;
+	}else if("rowId".equals(param)){
+		rowId= Integer.parseInt(val);	
+	}else if(!"xmlPath".equals(param)){
+		if(param.endsWith("Date")){ //轉形成long
+			if( val.length()>0){
+				long date = fmt.parse(val).getTime();
+				contents.put(param,String.valueOf(date));
+			}else{
+				contents.put(param,String.valueOf(0));
+			}
+		
+		}else{
+			contents.put(param,val);
+		}
+			
+	}
+}
+
+ThesysCmsXmlHandler xmlHandler = new ThesysCmsXmlHandler(cms.getCmsObject());
+String xmlPath = request.getParameter("xmlPath");
+String tagXpath ="/";
+if(tag!=null && rowId>0) tagXpath += tag+"["+rowId+"]/";
+if(!"new".equals(cms.property("FileStatus",xmlPath))){
+	properties.put("FileStatus","changed"); //增加被修改的屬性，供後台搜尋
+}
+xmlHandler.update(xmlPath,tagXpath ,contents,properties);
+
+
+OpenCms.getSearchManager().setOfflineUpdateFrequency(1000); //設定後台搜尋頻率為1秒
+try { Thread.sleep(3000); }catch (InterruptedException e) { }
+response.sendRedirect("index.html");
+%>

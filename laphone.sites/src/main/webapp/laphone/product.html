@@ -1,0 +1,335 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="com.thesys.opencms.laphone.product.*,org.opencms.search.*,java.util.*,org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*, java.lang.String,org.opencms.workplace.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+
+%>
+<%
+//String ecProductCode = (String)pageContext.getAttribute("ecProductCode");
+String ecProductCode = request.getParameter("eccode");
+if(ecProductCode == null || ecProductCode.length()==0){
+%>
+	<script>
+	alert("查無此商品");
+	history.go(-1);
+	</script>
+<%
+	return;	
+}
+//String ecProductCode = sapProductCode.replaceAll("\\+","_").replaceAll("-","_");
+String productPath = "/product/"+ecProductCode+".html";
+if(!cms.getCmsObject().existsResource(productPath)){
+%>
+	<script>
+	alert("查無此商品");
+	history.go(-1);
+	</script>
+<%
+	return;	
+}
+
+
+
+pageContext.setAttribute("productPath",productPath);
+
+%>
+<cms:contentload collector="singleFile" param="${productPath}" editable="false" > 
+<c:set var="productCode"><cms:contentshow element="ProductCode"/></c:set>
+<c:set var="sapProductCode"><cms:contentshow element="SapProductCode"/></c:set>
+<c:set var="productColor"><cms:contentshow element="ProductColor"/></c:set>
+<c:set var="onlineFlag"><cms:contentshow element="OnlineFlag"/></c:set>
+<c:if test="${onlineFlag}">
+	<jsp:useBean id="now" scope="request" class="java.util.Date"/>
+	<c:set var="onlineDate"><cms:contentshow element="OnlineDate"/></c:set>
+	<c:set var="offlineDate"><cms:contentshow element="OfflineDate"/></c:set>
+	<c:if test="${onlineDate>now.time }"><c:set var="onlineFlag" value="false"/></c:if>
+	<c:if test="${offlineDate<now.time}"><c:set var="onlineFlag" value="false"/></c:if>
+</c:if>
+<% 
+if(!Boolean.parseBoolean((String)pageContext.getAttribute("onlineFlag"))){ %>
+<script>
+	alert("此商品目前未上架或已下架");
+	history.go(-1);
+</script>
+
+<%
+	return;
+
+}
+//加入點擊率
+String sapProductCode = (String)pageContext.getAttribute("sapProductCode");
+ThesysCTRHandler ctrHandler = new ThesysCTRHandler(pageContext,request,response);
+ctrHandler.add(sapProductCode);
+
+ArrayList viewList = (ArrayList)session.getAttribute("viewList");
+if(viewList==null) viewList = new ArrayList();
+String productCode = (String)pageContext.getAttribute("productCode");
+if(!viewList.contains(productCode)){viewList.add(0,productCode);}
+session.setAttribute("viewList",viewList);
+%> 
+<cms:include property="template" element="head">
+	<cms:param name="title"><cms:contentshow element="ProductName"/></cms:param> 
+	<cms:param name="desc"><cms:contentshow element="Description"/></cms:param> 
+	<cms:param name="image">${productPhotoUrl}/${productCode}/${productCode}_1.jpg</cms:param> 
+</cms:include>
+<script type="text/javascript" >
+$(document).ready(function(){
+	$(".installmentBanks").click(function(){
+		alert("國泰世華、花旗銀行（不含大來卡）、台新銀行、玉山銀行、台北富邦、永豐信用卡、遠東銀行、澳盛銀行、匯豐銀行、新光銀行、兆豐銀行、第一銀行、渣打銀行、大眾銀行");
+	})
+})
+</script>  
+     	<div id="productContent">
+        <div id="productImageView" class="clearfix">
+            <ul id="productImage-tab">
+                <li ref="#mainImg01">
+                    <img src="${productPhotoUrl}/${productCode}/${productCode}_2.jpg" alt="產品小圖一" style="width:133px;height:100px"/></li>
+                <li ref="#mainImg02">
+                    <img src="${productPhotoUrl}/${productCode}/${productCode}_3.jpg" alt="產品小圖二" style="width:133px;height:100px"/></li>
+                <li ref="#mainImg03">
+                    <img src="${productPhotoUrl}/${productCode}/${productCode}_4.jpg" alt="產品小圖三" style="width:133px;height:100px"/></li>
+                <li ref="#mainImg04">
+                    <img src="${productPhotoUrl}/${productCode}/${productCode}_5.jpg" alt="產品小圖四" style="width:133px;height:100px"/></li>
+            </ul>
+            <div id="main-image-view">
+	            <div id="mainImg01">
+	                <img src="${productPhotoUrl}/${productCode}/${productCode}_2.jpg" alt="產品圖一" style="width:512px;height:423px;"/></div>
+	            <div id="mainImg02">
+	                <img src="${productPhotoUrl}/${productCode}/${productCode}_3.jpg" alt="產品圖二" style="width:512px;height:423px;" /></div>
+	            <div id="mainImg03">
+	                <img src="${productPhotoUrl}/${productCode}/${productCode}_4.jpg" alt="產品圖三" style="width:512px;height:423px;" /></div>
+	            <div id="mainImg04">
+	                <img src="${productPhotoUrl}/${productCode}/${productCode}_5.jpg" alt="產品圖四" style="width:512px;height:423px;" /></div>
+            </div>
+        </div>
+        <div id="productDetail">
+            <ul id="productDetail-tab">
+                <li ref="#productDetail-a">商品詳細介紹</li>
+                <li ref="#productDetail-b">付款方式及運費說明</li>
+                <li ref="#productDetail-c">退換貨須知</li>
+                <li ref="#productDetail-d">售後服務</li>
+            </ul>
+            <div id="productDetailContent">
+	        <div id="productDetail-a"><cms:contentshow element="Information"/></div>
+	        <div id="productDetail-b"><cms:contentload collector="singleFile" param="/_config_/shipping.html"><cms:contentshow element="HtmlContent"/></cms:contentload></div>
+	        <div id="productDetail-c"><cms:contentload collector="singleFile" param="/_config_/returnOrder.html"><cms:contentshow element="HtmlContent"/></cms:contentload></div>
+	        <div id="productDetail-d"><cms:contentload collector="singleFile" param="/_config_/service.html"><cms:contentshow element="HtmlContent"/></cms:contentload></div>
+            </div>
+        </div>
+        <div id="likeBox">
+            <div class="title01">
+                <h3>你可能也會喜歡</h3>
+            </div>
+            <c:set var="relationCount" value="0"/>
+            <c:set var="relationList"><cms:contentshow element="RelationProductCode"/></c:set>
+            <c:forTokens items="${relationList}" delims=";" var="relationCode">
+            	<c:set var="ecProductCode" value="${fn:replace(fn:replace(relationCode,'+','_'),'-','_')}"/>
+            	<c:set var="relationCount" value="${relationCount+1}"/>
+              	<cms:include file="/system/modules/com.thesys.opencms.laphone/elements/productBlock.jsp">
+		        <cms:param name="blockIndex">0</cms:param>
+			<cms:param name="productCode">${ecProductCode}</cms:param>
+			<cms:param name="imagePath">${productPhotoUrl}/${ecProductCode}/${ecProductCode}_1.jpg</cms:param>
+	      	</cms:include> 
+	    </c:forTokens>
+	   
+	    <c:if test="${relationCount<3}">
+	    	<jsp:useBean id="search" scope="request" class="com.thesys.opencms.laphone.product.ThesysProductSearchHandler">
+			<%search.init(pageContext,request,response);%>
+		</jsp:useBean>
+		<jsp:setProperty name="search" property="pageSize" value="4"/>
+		<jsp:setProperty name="search" property="pageIndex" param="1"/>
+		<c:set var="rand"><%= java.lang.Math.round(java.lang.Math.random() * 3) %></c:set> 	
+		<c:choose><c:when test="${rand==1}"><!--同色系-->
+			<c:set var="colorQuery"><cms:contentshow element="ColorCode"/></c:set>
+			<c:if test="${!empty colorQuery}">
+		        	<c:set var="colors" value="${fn:split(colorQuery,';')}"/>
+				<jsp:setProperty name="search" property="colors" value="${colors}"/>	  
+			</c:if>
+		</c:when><c:when test="${rand==2}"><!--同風格-->				
+			<c:set var="style"><cms:contentshow element="Style"/></c:set>
+			<jsp:setProperty name="search" property="styles" value="${style}"/>
+		</c:when><c:otherwise><%//同類別%>
+			<c:set var="categoryQuery"><cms:contentshow element="SapCategoryCode"/></c:set>
+			<c:set var="categoryIds" value="${fn:split(categoryQuery,';')}"/>
+			<jsp:setProperty name="search" property="categoryIds" value="${categoryIds}"/>
+		</c:otherwise></c:choose>					
+		<c:set var="searchResult" value="${search.pageList}"/>
+	  	<c:if test="${!empty searchResult}">
+			<c:forEach var="itemId" items="${searchResult}">
+				<c:if test="${relationCount<3 && sapProductCode!=itemId}">					
+	     				<c:set var="ecProductCode" value="${fn:replace(fn:replace(itemId,'-','_'),'+','_')}"/>
+					<cms:include file="/system/modules/com.thesys.opencms.laphone/elements/productBlock.jsp">
+				        <cms:param name="blockIndex">0</cms:param>
+					<cms:param name="productCode">${ecProductCode}</cms:param>		
+					<cms:param name="imagePath">${productPhotoUrl}/${ecProductCode}/${ecProductCode}_1.jpg</cms:param>
+				        </cms:include>				        
+            				<c:set var="relationCount" value="${relationCount+1}"/>
+				</c:if>
+			</c:forEach>
+	   	</c:if>	   	
+	   </c:if>
+        </div>
+    </div>
+    <div id="productInfo">
+        <div id="productInfoBox">
+            <ul>
+                <h2 class="productName"><cms:contentshow element="ProductName"/></h2>
+                <li class="productDescription"><cms:contentshow element="Description"/></li>
+                <li class="productNumber">
+                    <div>產品編號：</div>
+                    <div>${sapProductCode}</div>
+                </li>
+                <c:set var="seriesList"><cms:contentshow element="SeriesProductCode"/></c:set>
+		<c:if test="${!empty seriesList}">
+               <li class="productColor">
+                    <div>顏色：</div>
+                    <ul class="clearfix">
+                    	<c:forTokens items="${seriesList}" delims=";" var="seriesCode">                    		
+				<c:set var="ecProductCode" value="${fn:replace(fn:replace(seriesCode,'+','_'),'-','_')}"/>
+				<c:set var="tmpPath" value="/product/${ecProductCode}.html"/>				
+				<c:choose><c:when test="${productCode==ecProductCode}">
+				<li class="selected" ><a href="#" style="background:url(${productPhotoUrl}/${productColor}.jpg);">&nbsp;</a></li>
+                    		</c:when><c:otherwise>
+                    		<%if(cms.getCmsObject().existsResource((String)pageContext.getAttribute("tmpPath"))){%>
+				<cms:contentload collector="singleFile" param="${tmpPath}" editable="false">
+				<c:set var="OtherColor"><cms:contentshow element="ProductColor"/></c:set>				
+				<!--<li><a href="<cms:link>/product.html?eccode=${ecProductCode}</cms:link>" style="background:url(${productPhotoUrl}/<cms:contentshow element="ProductColor"/>.jpg);">&nbsp;</a></li>-->
+                    		<li><a href="<cms:link>/product.html?eccode=${ecProductCode}</cms:link>" style="background:url(${productPhotoUrl}/${fn:toLowerCase(OtherColor)}.jpg);">&nbsp;</a></li>
+                    		</cms:contentload>
+                    		<%}%>
+                    		</c:otherwise></c:choose>
+                    	</c:forTokens>
+                    </ul>
+                </li>
+                </c:if>
+                <li class="productPrice">
+                    <div>
+                        售價：<sup>NT$</sup>
+                        <c:set var="price"><cms:contentshow element="OriginalPrice"/></c:set>
+		    	<fmt:formatNumber value="${price}" pattern="#,##0.0#" maxFractionDigits="0"/>
+                    </div>
+                    <div>
+                        <span class="textRed">特價：</span><span class="text01">申請會員即可享有優惠</span></div>
+                    <div class="textRed">
+                        <sup>NT$</sup>
+                        <c:set var="price"><cms:contentshow element="SpecialPrice"/></c:set>
+		    	<fmt:formatNumber value="${price}" pattern="#,##0.0#" maxFractionDigits="0"/>
+                     </div>
+                </li>
+		<c:set var="installmentList"><cms:contentshow element="Installment"/></c:set>
+		<c:if test='${!empty installmentList && fn:indexOf(installmentList,";") != -1}'>		
+                <li class="installment">
+                	<ul>
+                	<c:forTokens items="${installmentList}" delims=";" var="installmentNo">
+                		<c:if test="${installmentNo != 1}">
+                			<li><span class="red">${installmentNo}</span>期<span class="red">0</span>利率<a href="#" class="installmentBanks" >14家</a></li>
+                		</c:if>
+                	</c:forTokens>
+                	</ul>
+<%--                
+                	<ul>
+                	<c:forEach var="i" begin="3" end="${installmentList}" step="3">
+                        <li><span class="red">${i}</span>期<span class="red">0</span>利率<a href="#">6家</a></li>
+                        </c:forEach>
+                    	</ul>
+--%>
+                </li>
+                </c:if>
+                <li class="productQuantity">
+                    <ul>
+                        <li>數量：</li>
+                        <li>  
+                           <form id="addCartForm" action="<cms:link>/shoppingcart/step1.html</cms:link>" method="POST">
+                           	<input type="hidden" name="action" value="add"/>
+                           	<input type="hidden" name="itemId" value="${sapProductCode}"/>
+                           <jsp:useBean id="stock" scope="request" class="com.thesys.opencms.laphone.product.ThesysStockHandler">
+				<%stock.init(pageContext,request,response);%>				
+                                <jsp:setProperty name="stock" property="itemId" value="${sapProductCode}"/> 
+			   </jsp:useBean>
+                           <c:set var="stockQuantity" value="${stock.stockQuantity}"/>  
+                           <c:set var="sellQuantity" value="${stockQuantity}"/>       
+                           <c:if test="${sellQuantity>10}"><c:set var="sellQuantity" value="${10}"/></c:if>             
+                           <select name="quantity" id="itemQuantity" <c:if test="${stockQuantity==0}">disabled</c:if>>
+                            	<c:forEach var="i" begin="1" end="${sellQuantity}">
+                                <option value="${i}">${i}</option>
+                                </c:forEach>
+                           </select>
+                           </form>
+                        </li>
+                        <li>&nbsp;件&nbsp;<span class="text02">(庫存${stockQuantity}件)</span></li>
+                    </ul>
+                </li>
+                <li class="productRank unLine">
+                    <div class="floatLeft">
+                        評價：
+                    </div>
+                    <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/ratingBlock.jsp">	    	
+	            	<cms:param name="itemId">${sapProductCode}</cms:param>	    	
+	            	<cms:param name="click">true</cms:param>
+		    </cms:include>
+                </li>
+               <li class="productSubmit unLine">
+                    <c:choose><c:when test="${stockQuantity>0}">
+                    <a href="#addCartForm" class="addShoppingcart btnSubmit"></a>
+                    </c:when>
+                    <c:otherwise>
+                    <span class="soldOut"></span></c:otherwise></c:choose>
+                </li>
+                <li class="productOption">
+                    <ul><li class="a01">付款方式</li>
+                    <li>
+                    	<c:choose><c:when test="${empty sessionScope.memberNo}"><a class="btnSubmit" href="#loginHiddenForm">加入追蹤</a></c:when>
+                    	<c:otherwise><a href="#" class="btnTracking" ref="${sapProductCode}">加入追蹤</a></c:otherwise></c:choose>
+                    </li>
+                    
+                    </ul>
+                </li>
+                <li class="productShare unLine">
+                    <ul class="shareList clearfix" style="width:160px">
+                    	<%
+                    	String webUrl = paramHandler.getValueByParamKey("WEB_URL");
+			webUrl += "product.html?eccode=" + ecProductCode;
+			request.setAttribute("shareLink",webUrl);
+			request.setAttribute("fbShareLink",java.net.URLEncoder.encode(webUrl));
+                    	%>
+                    	<a href="https://twitter.com/share" class="twitter-share-button" data-url="${shareLink}" data-lang="zh-tw" data-count="none">推文</a>
+			<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+                    	<a href="javascript: void(window.open('http://www.plurk.com/?qualifier=shares&status=' .concat(encodeURIComponent(location.href)) .concat(' ') .concat('(') .concat(encodeURIComponent(document.title)) .concat(')')));"><img title="分享到噗浪！" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/plurk.png</cms:link>"></a>
+                    </ul>
+                    <ul class="likes clearfix">
+			<iframe src="https://www.facebook.com/plugins/like.php?href=${fbShareLink}&amp;layout=button_count&amp;locale=zh_TW&amp;show_faces=true&amp;width=90&amp;action=like&amp;font=verdana&amp;colorscheme=light&amp;height=80" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:90px; height:22px;" allowtransparency="true"></iframe>
+			<!-- 將此顯示呼叫 (render call) 放在適當位置 -->
+			<script type="text/javascript">
+			  window.___gcfg = {lang: 'zh-TW'};
+			
+			  (function() {
+			    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+			    po.src = 'https://apis.google.com/js/plusone.js';
+			    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+			  })();
+			</script>
+                    </ul>
+                  </li>
+            </ul>
+        </div>
+        <div id="adBox">
+	<!-- 右邊廣告 -->
+	    <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/banner.jsp">
+            	<cms:param name="PrintPosition">AD-pd214x209</cms:param>
+            </cms:include>
+	<!-- 右邊廣告 -->
+        </div>
+    </div>
+ 
+<cms:include property="template" element="foot" />
+</cms:contentload>

@@ -1,0 +1,20 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<cms:include property="template" element="head" />
+<div id="content">
+  <div class="main">
+        <h2 class="black"><cms:property name="Title"/></h2>
+        <div class="login-msg-box">
+            <ul class="user-form">
+                 <li class="msg-line">
+                	您的會員帳號已設定過，請使用您的會員帳號進行登入。<a class="red" href="<cms:link>/login/</cms:link>">重新登入</a>
+                 </li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+<cms:include property="template" element="foot" />  

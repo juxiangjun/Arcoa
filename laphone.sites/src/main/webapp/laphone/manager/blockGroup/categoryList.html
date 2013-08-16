@@ -1,0 +1,143 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<%
+String specialFolder = "/special";
+pageContext.setAttribute("specialFolder",specialFolder+"/" );
+pageContext.setAttribute("subFolderList",cms.getCmsObject().getSubFolders(specialFolder ));
+java.text.DecimalFormat fmt = new java.text.DecimalFormat("special00");
+int maxNum = 0;
+%>
+<style>td { padding: 0px 0;}</style>
+<script>
+$(document).ready(function(){
+	$(".btnEditCategory").click(function(){
+		var id = $(this).attr("ref");
+		var category = $("#categoryName"+id).html();
+		var sort = $("#categoryName"+id+"-sort").html();
+		$(".editBlock"+id+" input[type='text'][name='categoryName']").val(category);
+		$(".editBlock"+id+" input[type='text'][name='sort']").val(sort);
+		$(".editBlock"+id).show();		
+		$(".viewBlock"+id).hide();
+		return false;
+	});
+	$(".btnCancelCategory").click(function(){
+		var id = $(this).attr("ref");
+		$(".editBlock"+id).hide();
+		$(".editBlock"+id).find("span.error").remove();		
+		$(".viewBlock"+id).show();
+		return false;
+	});
+	$(".btnAlert").click(function(){
+		alert("請先刪除屬於此類別的資料，再行刪除");
+		return false;
+	});
+});
+</script>
+<a href="index.html" class="button">回田字管理列表</a>
+<div style="padding-top: 15px">
+<table border="0" cellpadding="0" cellspacing="0" style="text-align:center">
+	<tr>
+	<td>
+		<table class="list-table" border="0" cellpadding="0" cellspacing="0">
+			<tr>
+				<th class="w100">狀態</th>
+				<th>類別名稱</th>
+				<th width="30%">排序[須為數字]</th>
+			</tr>
+		</table>
+	</td>
+	</tr>
+		<c:forEach var="folder" items="${subFolderList}" varStatus="status">
+			<c:set var="tmpFolder" value="${specialFolder}${folder.name}/"/>
+			<c:set var="folderName" scope="request">${folder.name}</c:set>
+			<%
+			String folderName = (String)request.getAttribute("folderName");
+			try{
+				int num = fmt.parse(folderName).intValue();
+				if(num>maxNum) maxNum = num;
+				folderName = String.valueOf(num);
+			}catch(Exception e){}
+			%>
+	<tr>
+	<td>
+		<form class="hiddenForm" method="post" id="deleteForm${status.index}" action="categoryDelete.html">
+			<input type="hidden"  name="folderName" value="${folderName}">
+		</form>
+		<form method="post" id="editForm${status.index}" action="categoryEdit.html" >
+			<c:set var="categoryName"><cms:property name="Title" file="${tmpFolder}"/></c:set>
+			<c:set var="sort"><cms:property name="NavPos" file="${tmpFolder}"/></c:set>
+			<input type="hidden"  name="folderName" value="${folderName}">
+		<table class="list-table" border="0" cellpadding="0" cellspacing="0">		
+			<tr>	
+				<td class="w100">
+					<span class="viewBlock${status.index}">	
+					[<a class="btnEditCategory" href="#" ref="${status.index}">編輯</a>]
+					<cms:contentload collector="allInFolder" param="/special/${folderName}/special%(number).html|ThesysLaphoneBlockGroup|1" editable="false">
+						<cms:contentinfo var="info"/>
+						<c:choose>
+						<c:when test="${info.resultSize == 0}">
+							[<a class="btnDelete" href="#deleteForm${status.index}">刪除</a>]
+						</c:when>
+						<c:otherwise>
+							[<a class="btnAlert" href="#" >刪除</a>]
+						</c:otherwise>
+						</c:choose>
+					</cms:contentload>
+					</span>
+					<span class="editBlock${status.index}" style="display:none">
+					[<a class="btnEdit" href="#editForm${status.index}">送出</a>]
+					[<a class="btnCancelCategory" href="#" ref="${status.index}">取消</a>]
+					</span>
+				</td>				
+				
+				<td>
+					<span class="editBlock${status.index}" style="display:none">
+						<input type="text" name="categoryName" class="required" value=""/>
+					</span>
+					<span class="viewBlock${status.index}" id="categoryName${status.index}">${categoryName}</span>
+				</td>
+				<td width="30%" >	
+					<span class="editBlock${status.index}" style="display:none">
+						<input type="text" class="required number" name="sort"  maxlength="6" />
+					</span>
+					<span class="viewBlock${status.index}" id="categoryName${status.index}-sort">${sort}</span>
+				</td>
+					
+			</tr>
+		</table>
+		</form>
+	</td>
+	</tr>
+		</c:forEach>
+	<tr>
+	<td>	
+		<form id="addForm" method="post" action="categoryAdd.html" >
+		<table class="list-table" border="0" cellpadding="0" cellspacing="0">		
+			<input type="hidden" name="folderName" value="${param.folderName}" >
+			<tr>
+				<td class="w100">
+					[<a href="#addForm" class="btnSubmit">新增</a>]
+				</td>
+				<td>
+					<input type="text" class="required" name="categoryName" >
+				</td>
+				<td width="30%" >
+					<input type="text" class="required number" name="sort" maxlength="6" >
+				</td>
+			</tr>
+		</table>		
+		</form>
+	</td>
+	</tr>
+</table>	
+</div>
+<cms:include property="template" element="foot" /> 

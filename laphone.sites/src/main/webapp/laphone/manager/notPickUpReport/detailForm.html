@@ -1,0 +1,191 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+if(request.getParameter("orderId")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+<%orderHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<cms:include property="template" element="head" /> 
+<style>
+.class1, .class1 tr, .class1 td{
+    border: 1px solid #DDDDDD;
+    border-collapse: collapse;
+    font-size:12px;
+    font-family:"微軟正黑體","新細明體",Verdana;
+}
+.class2{
+    background:none repeat scroll 0 0 #EFEFEF
+}
+.class1 label {
+    float: left;
+    text-align: right;
+    width: 100px;
+}
+</style>
+<jsp:setProperty name="orderHandler" property="orderId" param="orderId"/>
+<c:set var="orderVO" value="${orderHandler.selectedOrder}"/>
+	<h4>訂單資料</h4>
+	<table class="class1" style="width:100%">
+                <tbody>
+                <tr class="class2">
+                    <td colspan="2">
+                        <label>訂單編號：</label>${orderVO.orderId}
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label>會員帳號：</label>${orderVO.memberId}
+                    </td>
+                </tr>
+                <tr class="class2">
+                    <td colspan="2">
+                        <label>產品代碼：</label>
+                        <c:forEach var="item" items="${orderVO.orderItems}">
+				${item.itemId}<br>
+			</c:forEach>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label>產品名稱：</label>
+                        <c:forEach var="item" items="${orderVO.orderItems}">
+				${item.itemName} X ${item.quantity}<br>
+			</c:forEach>
+                    </td>
+                </tr>
+                <tr class="class2">
+                    <td colspan="2">
+                        <label>抵用券：</label>
+                        <c:if test="${not empty couponCode}">
+                        ${orderVO.couponAmount}元抵用券 x 1
+                        </c:if>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label>金額：</label>${orderVO.orderAmount}
+                    </td>
+                </tr>
+                <tr class="class2">
+                    <td width="50%">
+                    	<label>購買日期：</label>
+                    	<c:if test="${not empty orderVO.orderDate}">
+	                    	<jsp:useBean id="date" class="java.util.Date" /> 
+				<fmt:formatDate value="${orderVO.orderDate}" pattern="yyyy/MM/dd HH:mm:ss" />
+			</c:if>
+                    </td>
+                    <td>
+                    	<label>狀態：</label>
+                    	${orderVO.backendOrderStatusName}
+                    </td>
+                </tr>
+        	</tbody>
+        </table>
+	<br>
+	<h4>付款與寄送方式</h4>
+	<table class="class1" style="width:100%">
+                <tbody>
+                <tr class="class2">
+                    <td colspan="2">
+                        <label>取貨方式：</label>
+                        ${orderVO.shipTypeName}
+                    </td>
+                </tr>
+                <tr>
+        	<c:choose>
+        		<c:when test="${orderVO.payType=='1' || orderVO.payType=='2'}">
+        		<td width="50%">
+        			<label>付款方式：</label>
+        			${orderVO.payTypeName}
+			</td>
+			<td>
+				<label>授權碼：</label>
+			</td>
+        		</c:when>
+        		<c:otherwise>
+        		<td colspan="2">
+        			<label>付款方式：</label>
+        			${orderVO.payTypeName}
+        		</td>
+        		</c:otherwise>
+        	</c:choose>
+                </tr>
+                <tr class="class2">
+                    <td colspan="2">
+                        <label>收件者：</label>${orderVO.receiver}
+                    </td>
+                </tr>
+                <tr>
+                    <td width="50%">
+                        <label>聯絡電話：</label>
+                        ${orderVO.recMobile}<c:if test="${not empty orderVO.recPhone}">/${orderVO.recPhone}}</c:if>
+                    </td>
+                    <td>
+                        <label>電子郵件：</label>${orderVO.recEmail}</td>
+                </tr>
+                <tr class="class2">
+	                    <td colspan="2">
+	                        <label>收件地址：</label>${orderVO.recAddress}
+	                    </td>
+	                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label>備註：</label>${orderVO.recNote}
+                    </td>
+                </tr>
+        	</tbody>
+        </table>
+	<br>
+	<h4>發票資料</h4>
+	<table class="class1" style="width:100%">
+                <tbody>
+                <tr class="class2">
+                	<c:if test="${orderVO.invoiceType=='2'}">
+				<td width="50%">
+					<label>發票類別：</label>二聯式
+				</td>
+				<td>
+					<label>買受人姓名：</label>${orderVO.invoiceBuyer}
+				</td>
+			</c:if>
+			<c:if test="${orderVO.invoiceType=='3'}">
+				<td colspan="2">
+					<label>發票類別：</label>三聯式
+				</td>
+			</c:if>
+                </tr>
+                <c:if test="${orderVO.invoiceType=='3'}">
+                <tr>
+                    <td>
+                        <label>發票抬頭：</label>${orderVO.companyName}
+                    </td>
+                    <td>
+                    	<label>統一編號：</label>${orderVO.companyNo}
+                    </td>
+                </tr>
+                <tr class="class2">
+                    <td colspan="2">
+                        <label>發票地址：</label>${orderVO.companyAddress}
+                    </td>
+                </tr>
+                </c:if>
+                <tr>
+                    <td colspan="2">
+                        <label>發票寄送地址：</label>${orderVO.invoiceAddress}
+                    </td>
+                </tr>
+        	</tbody>
+        </table><br>
+	<div align="center">
+		<a href="#" class="button btnCancel">回上一頁</a>
+	</div>	
+<cms:include property="template" element="foot" /> 

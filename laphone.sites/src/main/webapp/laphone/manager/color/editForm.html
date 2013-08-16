@@ -1,0 +1,62 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+
+<form method="post" id="editForm" action="<cms:link>/system/modules/com.thesys.opencms.manager/jsps/elemProcess.jsp</cms:link>">
+<input type="hidden" name="fromUrl" value="${param.fromUrl}"/>
+<input type="hidden" name="xmlPath" value="${param.xmlPath}"/>
+<input type="hidden" name="rootXpath" value="${param.rootXpath}"/>
+<input type="hidden" name="autoPublish" value="${param.autoPublish}"/>
+<c:set var="rootXpath" value="${param.rootXpath}${param.tagName}[${param.tagId}]"/>
+	<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+		
+	<table border="0" cellpadding="0" cellspacing="0" class="form-table">
+		
+		<tr>
+			<th>色系編號：</th>
+			<td><cms:contentshow element="${param.rootXpath}ColorGroupId"/></td>
+		</tr>		
+		<tr>
+			<th>色系名稱：</th>
+			<td valign="top"><cms:contentshow element="${param.rootXpath}ColorGroupName"/></td>
+		</tr>
+		<tr>
+			<th>顯示圖樣：</th>
+			<td valign="top">			
+	    		<c:set var="htmlColorCode"><cms:contentshow element="${param.rootXpath}HtmlColorCode"/></c:set>
+	    		<c:set var="htmlColorImage"><cms:contentshow element="${param.rootXpath}HtmlColorImage"/></c:set>
+			<c:if test="${!empty htmlColorCode}"><div style="background:${htmlColorCode};width:52px;height:10px;border:1px #ccc solid;"></div></c:if>
+			<c:if test="${!empty htmlColorImage}"><div style="background-image:url(<cms:link>${htmlColorImage}</cms:link>);width:52px;height:10px;border:1px #ccc solid;"></div></c:if>
+			</td>
+		</tr>		
+		<tr>
+			<th>顏色代碼：</th>
+			<td valign="top"><input type="text" name="${param.tagName}[${param.tagId}]/ColorCode" class="required" value="<cms:contentshow element="${rootXpath}/ColorCode"/>"></td>
+		</tr>		
+		<tr>
+			<th>中文名稱：</th>
+			<td valign="top"><input type="text" name="${param.tagName}[${param.tagId}]/ColorName" class="required" value="<cms:contentshow element="${rootXpath}/ColorName"/>"></td>
+		</tr>
+		<tr>
+			<td colspan="2"  class="btn-line">
+				<a href="#editForm" class="button btnSave">儲存</a>
+				<a href="#editForm" class="button btnCancel">取消</a>
+			</td>
+		</tr>
+	</table>
+	</cms:contentload>
+</form>
+<cms:include property="template" element="foot" /> 

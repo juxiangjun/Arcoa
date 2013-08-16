@@ -1,0 +1,118 @@
+<%@ page import="java.util.*,java.sql.*,com.thesys.opencms.laphone.member.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<%@page import="com.thesys.opencms.laphone.member.*"%>
+<jsp:useBean id="tracking" class="com.thesys.opencms.laphone.cart.ThesysTrackingHandler">
+<%tracking.init(pageContext,request,response);%>
+</jsp:useBean>	
+<jsp:useBean id="couponHandler" class="com.thesys.opencms.laphone.promote.ThesysCouponHandler">
+<%couponHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<%--系統訊息--%>
+<jsp:useBean id="sysMsg1" class="com.thesys.opencms.laphone.msg.ThesysSystemMsgHandler">
+	<%sysMsg1.init(pageContext,request,response);%>
+	<jsp:setProperty name="sysMsg1" property="messageType" value="1"/>
+	<jsp:setProperty name="sysMsg1" property="memberId" value="${sessionScope.memberId}"/>
+</jsp:useBean>	
+<%--客服訊息--%>
+<jsp:useBean id="sysMsg2" class="com.thesys.opencms.laphone.msg.ThesysSystemMsgHandler">
+	<%sysMsg2.init(pageContext,request,response);%>
+	<jsp:setProperty name="sysMsg2" property="messageType" value="2"/>
+	<jsp:setProperty name="sysMsg2" property="memberId" value="${sessionScope.memberId}"/>
+</jsp:useBean>	
+		     
+<cms:include property="template" element="head" />
+<div id="content">
+    	<div class="member-center">
+            <span style="line-height:20px">親愛的<span class="red">${sessionScope.memberName}</span>會員您好<br/>會員卡號：<span class="red">${sessionScope.cardId}</span></span>
+            <ul class="fun-list">
+                    <li class="odd">
+                        <h3>[公告]</h3>
+                        <ul>
+                            <li class="info">
+                                <cms:include file="/system/modules/com.thesys.opencms.laphone/jsps/event.jsp">
+			     	    <cms:param name="displayPage">memberCenter</cms:param>
+			        </cms:include>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h3>[交易記錄]</h3>
+                        <ul>
+                            <li class="fn-find">
+                                <a href="transaction/order/index.html">
+                        	    <jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+				    <%orderHandler.init(pageContext,request,response);%>
+				    </jsp:useBean>
+                                    <h4><span>訂單查詢</span>（未出貨：${orderHandler.unshippedCount} | 已到門市：${orderHandler.cvsCount} | 已寄出：${orderHandler.shippedCount}）</h4>
+                                    <p>訂單處理狀況查詢</p>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+                    <li class="odd">
+                        <h3>[抵用券記錄]</h3>
+                        <ul class="clearfix">
+                            <li class="fn-coupon">
+                                <a href="coupon/couponList.html">
+                                    <h4><span>抵用券記錄</span>（尚未過期：${couponHandler.usableCount} | 即將過期：${couponHandler.weekExpireCount}）</h4>
+                                    <p>抵用券記錄（即將過期：1周內過期）</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h3>[訊息記錄]</h3>
+                        <ul class="clearfix">
+                            <li class="fn-log">
+                                <a href="message/system/index.html">
+                                    <h4><span>系統訊息記錄</span>（${sysMsg1.notReadCount}封未開）</h4>
+                                    <p>三個月內發送過的系統通知信</p>
+                                </a>
+                            </li>
+                            <li class="fn-support">
+                                <a href="message/customer/index.html">
+                                    <h4><span>客服訊息記錄</span>（${sysMsg2.notReadCount}封未開）</h4>
+                                    <p>三個月內客服中心訊息記錄</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="odd">
+                        <h3>[會員資料]</h3>
+                        <ul class="clearfix">
+                            <li class="fn-account">
+                                <a href="member/modify/">
+                                    <h4><span>修改會員資料</span></h4>
+                                    <p>修改email、電話等個人資料</p>
+                                </a>
+                            </li>
+                            <li class="fn-passwd">
+                                <a href="member/changePwd.html">
+                                    <h4><span>修改密碼</span></h4>
+                                    <p>修改會員登入密碼</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h3>[追蹤商品]</h3>
+                        <ul class="clearfix">
+                            <li class="fn-watchlist">
+                                <a href="<cms:link>tracking/trackingList.html</cms:link>">
+                                    <span class="ico"></span>
+                                    <h4><span>追蹤商品</span>（追蹤商品：${tracking.count}）</h4>
+                                    <p>加入追蹤的商品資料</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+</div>
+
+<cms:include property="template" element="foot" />  

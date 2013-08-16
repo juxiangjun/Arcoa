@@ -1,0 +1,145 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%!
+	String isExist(CmsJspActionElement  cms ,String pc){
+		String path = "/product/";
+		pc = pc.replace("-","_").replace("+","_");
+		String fileName = path + pc+".html";
+		CmsObject cmsObj = cms.getCmsObject();
+		if(cmsObj.existsResource(fileName,CmsResourceFilter.ALL)){
+			if(cms.property("FileStatus",fileName).equals("new")){
+				return "NOTPUBLISH";
+			}else{
+				return "OK";
+			}
+		}else{
+			return "NOEXIST";
+		}	
+	}
+%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+	<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<cms:include property="template" element="head" /> 
+<style>
+.innerTable td{
+	border:0;
+}
+img { 
+	vertical-align: middle; 
+	max-width:550px;   /* FF IE7 */
+	max-height:250px; /* FF IE7 */
+	_width:expression(this.width > 550 && this.width > this.height ?550 : auto); /* IE6 */
+	_height:expression(this.height > 250? 250 : auto); /* IE6 */ 
+} 
+</style>
+<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+	<table cellspacing="0" cellpadding="0" border="0" class="table-2">
+		<tbody>
+		<tr class="tr_b">
+			<td align="right">類別:</td>
+			<td>
+				<c:forTokens items="${param.xmlPath}" delims="/" var="tmp">
+	            	    		<c:if test="${!fn:endsWith(tmp,'.html')}"><c:set var="xmlFolder" value="${xmlFolder}/${tmp}"/></c:if>
+	            	    	</c:forTokens>
+	            	    	<cms:property name="Title" file="${xmlFolder}"/>
+			</td>
+		</tr>
+		<tr class="tr_b2">
+			<td valign="middle" align="right">版型:</td>
+			<td>
+				<img width="30px" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/layout_icon-0<cms:contentshow element="GroupType" />.jpg</cms:link>">
+			</td>
+		</tr>
+		<tr class="tr_b">
+			<td align="right">排序:</td>
+			<td><cms:contentshow element="Sort"/></td>
+		</tr>
+		<tr class="tr_b2">
+			<td align="right">上架日期:</td>
+			<td>
+				<jsp:useBean id="date" class="java.util.Date" /> 
+				<c:set var="dateLong"><cms:contentshow element="OnlineDate"/></c:set>
+				<c:set var="dateText" value=""/>
+				<c:if test="${dateLong!=0}"> 
+					<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+					<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+				</c:if>
+				${dateText}
+			</td>
+		</tr>
+		<tr class="tr_b">
+			<td align="right">下架日期:</td>
+			<td>
+				<c:set var="dateLong"><cms:contentshow element="OfflineDate"/></c:set>
+				<c:set var="dateText" value=""/>
+				<c:if test="${dateLong!=0 && dateLong!=2556028800000}"> 
+					<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+					<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+				</c:if>
+				${dateText}
+			</td>
+		</tr>
+		<c:set var="count">1</c:set>
+		<cms:contentloop element="Product">
+		<c:set var="ProductCode"><cms:contentshow element="ProductCode"/></c:set>
+		<c:set var="ImagePath"><cms:contentshow element="ImagePath"/></c:set>
+		<c:if test="${not empty ProductCode || not empty ImagePath}">
+		<tr id="data${status.index}" class="tr_b<c:if test="${count%2==1}">2</c:if>">
+			<td valign="top" align="right">圖片${count}:</td>
+			<td>
+				<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+					<tbody>
+					<tr class="tr_b">
+						<td valign="top" align="right" style="width:60px">商品編號:</td>
+						<td valign="top">
+						
+							<c:set var="ProductCode"><cms:contentshow element="ProductCode"/></c:set>
+							${ProductCode}
+							<c:set var="pcCheck"><%=isExist(cms,(String)pageContext.getAttribute("ProductCode")) %></c:set>
+							<c:if test="${pcCheck =='NOTPUBLISH'}">
+								,<font color="red">此商品新增但尚未發佈</font>
+							</c:if>
+							<c:if test="${pcCheck =='NOEXIST'}">
+								,<font color="red">此商品不存在</font>
+							</c:if>
+						</td>		
+					</tr>
+					<tr class="tr_b2">
+						<td valign="top" align="right">圖片:</td>
+						<td valign="top">
+							<a href="<cms:link><cms:contentshow element="ImagePath"/></cms:link>" target="_blank" ><img src="<cms:link><cms:contentshow element="ImagePath"/></cms:link>"></a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</td>
+		</tr>
+		</c:if>
+		<c:set var="count">${count+1}</c:set>
+		</cms:contentloop>
+		<tr>
+			<td colspan="2"  class="btn-line" align="center">			
+				<cms:include file="/system/modules/com.thesys.opencms.manager/elements/xmlPublishButton.jsp">
+					<cms:param name="fromUrl">${param.fromUrl}</cms:param>
+					<cms:param name="xmlPath">${param.xmlPath}</cms:param>		
+				</cms:include>
+				<a href="#" class="button btnCancel">取消</a>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</cms:contentload>
+
+<cms:include property="template" element="foot" />

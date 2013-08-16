@@ -1,0 +1,243 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="com.thesys.opencms.laphone.member.*,com.thesys.opencms.laphone.member.dao.*,java.util.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<jsp:useBean id="memberhandler" class="com.thesys.opencms.laphone.member.ThesysMemberHandler">
+	<%memberhandler.init(pageContext,request,response);%>
+	<jsp:setProperty name="memberhandler" property="memberNo" value="${memberNo}"/>
+</jsp:useBean>
+
+<c:set var="member" value="${memberhandler.selectedMember}"/>
+<%	
+	ThesysMemberVO member = memberhandler.getSelectedMember();
+	String accountId = member.getAccountId();
+	String pwd = request.getParameter("pwd") ==null?"":(String)request.getParameter("pwd");
+	int pwdErrTimes = session.getAttribute("pwdErrTimes") == null?0:(Integer)session.getAttribute("pwdErrTimes");
+	
+	
+	if(!memberhandler.checkOldPassword(member.getMemberNo(),pwd)){
+		session.setAttribute("pwdErrTimes",pwdErrTimes+1);
+		if(pwdErrTimes >= 2){
+			out.print("<script>alert('密碼輸入錯誤3次，請重新登入');location.href='"+cms.link("/login/logout.html")+"';</script>");
+			return;
+		}	
+		out.print("<script>alert('密碼輸入錯誤');history.go(-1);</script>");
+		return;
+	}else{
+		session.setAttribute("pwdErrTimes",0);
+	}
+	
+%>
+<cms:include property="template" element="head" />
+<script type="text/javascript" >
+$(document).ready(function(){
+	$("#addr").append("<span class='error' style='color:red;display:none'></span>");
+})
+</script>
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>	
+        <div id="member-body" class="member-body">
+        	<h2>修改會員資料</h2>
+<form class="info-form fixForm" id="modifyForm" method="post" action="step3.html">
+			<p class="red">*欄位請必須填寫</p>
+            <table>
+                <tr>
+                    <th>帳號</th>
+                    <td colspan="3">${member.accountId}</td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>姓名</th>
+                    <td colspan="3">${member.username}</td>
+                </tr>
+                <tr>
+                    <th>英文名/英文姓</th>
+                    <td colspan="3"><input type="text" name="eng-name" class="text" value="${member.englishName}" maxlength="20"/><span class="error" style="color:red"></span></td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>身分證字號</th>
+                    <td colspan="3">${member.idNo}</td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>電子郵件</th>
+                    <td colspan="3">
+                        <input type="text" name="email" value="${member.email}"  class="input-type2 required email" maxlength="30" />
+                        <span class="error" style="color:red"></span>
+                        <span class="note">(為保持系統訊息能順利通知您以及保護您的個人資料安全，請填寫正確的電子郵件，系統稍後將發送電子郵件認證，經認證後您才能收到系統所發送的通知訊息，敬請見諒)</span>
+                   	
+                    </td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>性別</th>
+                    <td colspan="3">
+                    	<c:if test="${member.gender == 1}">男</c:if>
+                    	<c:if test="${member.gender == 2}">女</c:if>
+                    </td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>生日</th>
+                    <td colspan="3">西元${member.birthday}</td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>手機號碼</th>
+                    <td colspan="3">
+                        <input type="text" name="cellphone" class="required mobile" value="${member.cellphone}" maxlength="10" />
+                        <span class="error" style="color:red"></span><BR><span class="note">(手機號碼經變更後，系統將發送認證簡訊，重新認證會員身分)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>聯絡地址</th>
+                    <td colspan="3">
+                        <span class="zip">郵遞區號:</span><span id="addr" class="zipcodeSelect required"></span>
+                        <input type="text" id="fullAddress" name="fullAddress" class="required zh" value="${member.fullAddress}" maxlength="40" /><span class="error" style="color:red"></span>
+                        <input type="hidden" id="addr_zipcode_def" value="${member.zipCode}">
+                        <input type="hidden" id="addr_county_def" value="${member.zipCounty}">
+                        <input type="hidden" id="addr_area_def" value="${member.zipArea}">
+                    </td>
+                </tr>
+                <tr>
+                    <th>年收入</th>
+                    <td>
+                        <select name="income">
+                            <option <c:if test="${member.income == 0}">selected</c:if> value="0">請選擇</option>
+                            <option <c:if test="${member.income == 1}">selected</c:if> value="1">0</option>
+                            <option <c:if test="${member.income == 2}">selected</c:if> value="2">0 ~ 300,000</option>
+                            <option <c:if test="${member.income == 3}">selected</c:if> value="3">300,000 ~ 600,000</option>
+                            <option <c:if test="${member.income == 4}">selected</c:if> value="4">600,000 ~ 1,000,000</option>
+                            <option <c:if test="${member.income == 5}">selected</c:if> value="5">1,000,000 ~ 2,000,000</option>
+                            <option <c:if test="${member.income == 6}">selected</c:if> value="6">2,000,000 以上</option>
+                        </select>
+                    </td>
+                    <th class="s">使用手機品牌</th>
+                    <td>
+                        <select name="cellphone-brand">
+                            <option <c:if test="${member.cellphoneBrands == 0}">selected</c:if> value="0">請選擇</option>
+                            <option <c:if test="${member.cellphoneBrands == 1}">selected</c:if> value="1">Apple</option>
+                            <option <c:if test="${member.cellphoneBrands == 2}">selected</c:if> value="2">HTC</option>
+                            <option <c:if test="${member.cellphoneBrands == 3}">selected</c:if> value="3">Samsung</option>
+                            <option <c:if test="${member.cellphoneBrands == 4}">selected</c:if> value="4">Nokia</option>
+                            <option <c:if test="${member.cellphoneBrands == 5}">selected</c:if> value="5">其他</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>職業</th>
+                    <td>
+                        <select name="occupation">
+                            <option <c:if test="${member.occupation == 0}">selected</c:if> value="0">請選擇</option>
+                            <option <c:if test="${member.occupation == 1}">selected</c:if> value="1">軍公教</option>
+                            <option <c:if test="${member.occupation == 2}">selected</c:if> value="2">農漁</option>
+                            <option <c:if test="${member.occupation == 3}">selected</c:if> value="3">行銷</option>
+                            <option <c:if test="${member.occupation == 4}">selected</c:if> value="4">法律</option>
+                            <option <c:if test="${member.occupation == 5}">selected</c:if> value="5">醫療</option>
+                            <option <c:if test="${member.occupation == 6}">selected</c:if> value="6">硬體工程</option>
+                            <option <c:if test="${member.occupation == 7}">selected</c:if> value="7">軟體工程</option>
+                        </select>
+                    </td>
+                    <th class="s">學歷</th>
+                    <td>
+                    	<select name="education">
+                            <option <c:if test="${member.education == 0}">selected</c:if> value="0">請選擇</option>
+                            <option <c:if test="${member.education == 1}">selected</c:if> value="1">無</option>
+                            <option <c:if test="${member.education == 2}">selected</c:if> value="2">小學</option>
+                            <option <c:if test="${member.education == 3}">selected</c:if> value="3">國中</option>
+                            <option <c:if test="${member.education == 4}">selected</c:if> value="4">高中/高職</option>
+                            <option <c:if test="${member.education == 5}">selected</c:if> value="5">大學/大專</option>
+                            <option <c:if test="${member.education == 6}">selected</c:if> value="6">碩士</option>
+                            <option <c:if test="${member.education == 7}">selected</c:if> value="7">博士</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>婚姻狀況</th>
+                    <td>
+                        <select name="marriage">
+                            <option <c:if test="${member.marriage == 0}">selected</c:if> value="0">請選擇</option>
+                            <option <c:if test="${member.marriage == 1}">selected</c:if> value="1">未婚</option>
+                            <option <c:if test="${member.marriage == 2}">selected</c:if> value="2">已婚</option>
+                            <option <c:if test="${member.marriage == 3}">selected</c:if> value="3">其他</option>
+                        </select>
+                    </td>
+                    <th class="s">子女人數</th>
+                    <td>
+                        <select name="offspring">
+                            <option <c:if test="${member.offspring== 0}">selected</c:if> value="0">請選擇</option>
+                            <option <c:if test="${member.offspring== 1}">selected</c:if> value="1">無</option>
+                            <option <c:if test="${member.offspring== 2}">selected</c:if> value="2">1</option>
+                            <option <c:if test="${member.offspring== 3}">selected</c:if> value="3">2</option>
+                            <option <c:if test="${member.offspring== 4}">selected</c:if> value="4">3</option>
+                            <option <c:if test="${member.offspring== 5}">selected</c:if> value="5">3個以上</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="intr">
+                    <th>個人喜好</th>
+                    <td colspan="3">
+                    	<%
+                    		String preferences = member.getPreferences();
+                    		char[] b =new char[14];
+                    		if(preferences!=null) b= preferences.toCharArray();                    	
+                    		int i = 0;
+                    	%>
+                        <p>
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-1"/> 旅遊
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-2"/> 美食
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-3"/> 科技
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-4"/> 新奇
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-5"/> 電影
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-6"/> 音樂
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-7"/> 閱讀
+                        </p>
+                        <p>
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-8"/> 親子
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-9"/> 運動
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-10"/> 設計
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-11"/> 特惠
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-12"/> 派對
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-13"/> 網路
+                            <input type="checkbox" <%if(String.valueOf(b[i++]).equals("1")){%>checked<%}%> name="intr-14"/> 保健
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><span class="red">*</span>是否願意接受廣告</th>
+                    <td colspan="3">
+                        <select id="edm" class="edm required"  name="promo-mail">
+                            <option <c:if test="${member.edm == 0}">selected</c:if> value="">請選擇</option>
+                            <option <c:if test="${member.edm == 1}">selected</c:if> value="1">願意接受</option>
+                            <option <c:if test="${member.edm == 2}">selected</c:if> value="2">僅願意接受電子郵件廣告</option>
+                            <option <c:if test="${member.edm == 3}">selected</c:if> value="3">僅願意接受手機簡訊廣告</option>
+                            <option <c:if test="${member.edm == 4}">selected</c:if> value="4">否</option>
+                        </select>
+                        <span class="error" style="color:red"></span>
+                    </td>
+                </tr>
+            </table>
+			
+			<div class="btn-line-right">		                    
+		        	<a href="#modifyForm" class="button btnSubmit">修改會員資料</a>
+		        </div>
+</form>
+		
+		<div class="space-line"></div>
+	        <div class="notice-box">
+		    <ul class="disc">
+		    	<li class="header">說明</li>
+		        <li>為保持系統訊息能順利通知您以及保護您的個人資料安全，請填寫正確的電子郵件，系統稍後將發送電子郵件認證信到您所填寫的電子郵件信箱中，請您留意您的電子郵件信箱。</li>
+		        <li>當您變更電子郵件信箱時，系統會自動發送電子郵件認證信至您的電子郵件信箱，認證連結有效期限為三天，為維護您的權益，請於三天內點選請信件中的認證連結以完成電子郵件認證；若您已超過電子郵件認證期限，您可於登入「會員中心」後至「會員資料」→「電子郵件認證」→點選「重新發送電子郵件認證信」來重新發送認證信函。</li>
+		        <li>當您變更手機號碼時，系統將自動發送會員手機認證簡訊至您變更後的手機號碼中，請您於24小時內<a href="<cms:link>/login/</cms:link>">登入會員</a>後輸入會員手機認證碼，以啟用您的會員身份。</li>
+		        <li>當您未輸入手機認證碼啟用會員身份時，您將無法進行購物。</li>
+		        <li>laphone 網路購物的訂購單明細、取貨通知…等信件，皆會發送至會員註冊時所留的電子郵件信箱中。</li>
+		        <li>若您未能收到，可在登入「會員中心」後，於「訊息記錄」中查詢。</li>
+		        <li>由於laphone發信量較大，因此可能被部分郵件伺服器視為發送垃圾信或廣告信，而將信件直接移至「垃圾信箱」，若未收到信件，可先於「垃圾信箱」中查看是否有laphone寄來的信件。</li>
+		        <li>若有任何問題，請您可於<a href="<cms:link>/service/</cms:link>">客服中心</a>詢問。</li>
+		     </ul>
+		</div>	
+		<div class="space-line"></div>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

@@ -1,0 +1,43 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<jsp:useBean id="searchItem" scope="request" class="com.thesys.opencms.laphone.product.dao.ThesysProductSearchVO"/>
+<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+<c:set var="categoryId"><cms:contentshow element="SapCategoryCode"/></c:set>
+<jsp:setProperty name="searchItem" property="categoryId" value="${categoryId}"/>
+<c:set var="itemId"><cms:contentshow element="SapProductCode"/></c:set>
+<jsp:setProperty name="searchItem" property="itemId" value="${itemId}"/>
+<c:set var="itemName"><cms:contentshow element="ProductName"/></c:set>
+<jsp:setProperty name="searchItem" property="itemName" value="${itemName}"/>
+<c:set var="specialPrice"><cms:contentshow element="SpecialPrice"/></c:set>
+<jsp:setProperty name="searchItem" property="specialPrice" value="${specialPrice}"/>
+<c:set var="colors"><cms:contentshow element="ColorCode"/></c:set>
+<jsp:setProperty name="searchItem" property="colors" value="${colors}"/>
+<c:set var="styles"><cms:contentshow element="Style"/></c:set>
+<jsp:setProperty name="searchItem" property="styles" value="${styles}"/>
+<c:set var="startDate"><cms:contentshow element="OnlineDate"/></c:set>
+<jsp:setProperty name="searchItem" property="startDate" value="${startDate}"/>
+<c:set var="endDate"><cms:contentshow element="OfflineDate"/></c:set>
+<jsp:setProperty name="searchItem" property="endDate" value="${endDate}"/>
+<c:set var="onlineFlag"><cms:contentshow element="OnlineFlag"/></c:set>
+<jsp:setProperty name="searchItem" property="onlineFlag" value="${onlineFlag}"/>
+<c:set var="groupFlag"><cms:contentshow element="GroupFlag"/></c:set>
+<jsp:setProperty name="searchItem" property="groupFlag" value="${groupFlag}"/>
+</cms:contentload>
+<%
+com.thesys.opencms.laphone.product.ThesysProductSearchHandler searchHandler= new com.thesys.opencms.laphone.product.ThesysProductSearchHandler(pageContext,request,response);
+searchHandler.add(searchItem);
+
+response.sendRedirect("index.html");
+%>
+

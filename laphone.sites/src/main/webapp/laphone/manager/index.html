@@ -1,0 +1,52 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<% 
+
+String sess = request.getParameter("sess");
+String user = request.getParameter("user");
+String siteId = request.getParameter("siteId");
+if(sess != null && user != null){
+	session.setAttribute("sess",sess);
+	session.setAttribute("user",user);
+	session.setAttribute("siteId",siteId);
+}
+CmsJspActionElement cms = new CmsJspActionElement(pageContext,request,response);
+CmsObject cmso = cms.getCmsObject();
+List<CmsGroup> groups = cmso.getGroupsOfUser(cmso.getRequestContext().currentUser().getName(), true);
+//預設皆無權限
+session.setAttribute("PublishGroup",false);
+session.setAttribute("ProductGroup",false);
+session.setAttribute("OrderGroup",false);
+session.setAttribute("MemberGroup",false);
+session.setAttribute("SiteGroup",false);
+session.setAttribute("SystemGroup",false);
+session.setAttribute("ReportGroup",false);
+session.setAttribute("SuperGroup",false);
+if(groups!=null){
+	Iterator<CmsGroup> it = groups.iterator();
+	while(it.hasNext()){
+		CmsGroup group = it.next();
+		String groupName = group.getName();
+		if("ProductGroup".equals(groupName )) session.setAttribute("ProductGroup",true);
+		else if("MemberGroup".equals(groupName )) session.setAttribute("MemberGroup",true);
+		else if("SiteGroup".equals(groupName )) session.setAttribute("SiteGroup",true);
+		else if("SystemGroup".equals(groupName )) session.setAttribute("SystemGroup",true);
+		else if("SuperGroup".equals(groupName )) session.setAttribute("SuperGroup",true);
+		else if("PublishGroup".equals(groupName )) session.setAttribute("PublishGroup",true);
+		else if("ReportGroup".equals(groupName )) session.setAttribute("ReportGroup",true);
+		else if("OrderGroup".equals(groupName )) session.setAttribute("OrderGroup",true);
+	}
+
+}
+%>
+
+<cms:include property="template" element="head" />
+<div style="margin-left:-10px;margin-top:-15px;">
+<img src="<cms:link>/system/modules/com.thesys.opencms.manager/resources/images/ad.jpg</cms:link>" width="800" height="600"/>
+</div>
+<cms:include property="template" element="foot" />

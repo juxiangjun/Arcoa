@@ -1,0 +1,54 @@
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@page import="com.thesys.opencms.laphone.member.*,com.thesys.opencms.laphone.member.dao.*,com.thesys.opencms.laphone.util.*,com.thesys.opencms.laphone.system.*,org.opencms.json.*"%>
+
+
+<%
+ThesysMemberHandler handler = new ThesysMemberHandler(pageContext, request, response);
+
+String accountId = request.getParameter("accountId") ==null?"":(String)request.getParameter("accountId").toLowerCase();
+ThesysMemberVO member = (ThesysMemberVO)session.getAttribute("oldMember");
+
+
+if(accountId.equals("") || member == null){
+	out.print("<script>alert('錯誤!!!請從登入頁進入');history.go(-1);</script>");
+	return;
+}
+if(handler.getMemberByAccountId(accountId ) != null){
+	out.print("<script>alert('帳號重複');history.go(-1);</script>");
+	return;
+}
+
+member.setAccountId(accountId);
+if(!handler.updateAccountId(member)){
+	out.print("<script>alert('修改失敗');history.go(-1);</script>");
+	return;
+}else{
+	session.removeAttribute("oldMember");
+	session.setAttribute("memberNo",member.getMemberNo());
+	session.setAttribute("memberId",member.getAccountId());
+	session.setAttribute("memberName",member.getUsername());
+	session.setAttribute("memberMobile",member.getCellphone());
+	session.setAttribute("memberEmail",member.getEmail());
+	session.setAttribute("mailVerifyCode",member.getMailVerifyCode());
+	session.setAttribute("smsVerifyCode",member.getSmsVerifyCode());
+	session.setAttribute("smsVerifyDeadline",member.getSmsVerifyDeadline());
+}
+
+%>
+<cms:include property="template" element="head" />	
+<div id="content">
+  <div class="main">
+        <h2 class="black"><cms:property name="Title"/></h2>
+        <div class="login-msg-box">
+            <ul class="user-form">
+                 <li class="msg-line">
+                	您的會員帳號已設定完成。您可以開始進行購物。<a class="red" href="<cms:link>/index.html</cms:link>">開始購物</a>
+                 </li>
+            </ul>
+        </div>
+    </div>
+</div>    
+<cms:include property="template" element="foot" />  

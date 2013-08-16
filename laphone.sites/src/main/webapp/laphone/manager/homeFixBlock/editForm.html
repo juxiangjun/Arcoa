@@ -1,0 +1,224 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<style>
+img { 
+	vertical-align: middle; 
+	max-width:550px;   /* FF IE7 */
+	max-height:250px; /* FF IE7 */
+	_width:expression(this.width > 550 && this.width > this.height ?550 : auto); /* IE6 */
+	_height:expression(this.height > 250? 250 : auto); /* IE6 */ 
+} 
+.innerTable td{
+	border:0;
+}
+</style>
+<script type="text/javascript">
+var pcCheck = new Array(4);
+var t;
+for(var i=0;i<4;i++)
+	pcCheck[i] = false;
+var isChecking = false;
+
+function checkProductCode(pc, num){
+ 	$('#ProductCode'+ num).parents(":first").find("span.error").remove();
+	isChecking = true;
+	$.ajax({
+		//url:'checkProductCode.html',
+		url:'checkProductExist.html',
+		data:{pc:$('#ProductCode'+ num).val()},
+		error:function(xhr) {
+			showErrorMessage($('#ProductCode'+ num),"商品編號驗證發生錯誤","");	
+		},
+		success: function(response) {
+			if(response.indexOf("OK")<0){
+				clearTimeout(t);
+				pcCheck[num-1] = false;
+				showErrorMessage($('#ProductCode'+ num),"商品編號不存在","");	
+			}else{
+				if(response.indexOf("NOTPUBLISH") != -1)
+					showErrorMessage($('#ProductCode'+ num),"此商品新增但尚未發佈","");
+				pcCheck[num-1] = true;
+			}
+			isChecking = false;
+		}
+	});
+}
+function showImg(href,c,oldImgUrl ){
+	var contextPath = "<cms:link>/</cms:link>";
+	var a = "";
+	if(href != '' && href != oldImgUrl ){
+		if(href.substring(0,contextPath.length)!=contextPath) href = contextPath+href.substring(1);
+		var img = "<img src='"+href+"' alt='圖片網址輸入錯誤'/>";
+		a = "新圖:<a href='"+href+"'  title='看原圖'  target='_blank'>"+img+"</a>";
+	}else{
+		a = "";
+	}
+	$("#showImg"+c).html(a);
+}
+function doSubmit(){
+	$("span.error").remove();
+	if(isChecking == true){
+		t = setTimeout('doSubmit()', 200);
+	}else{
+		var flag = true;
+		for(var i=0;i<4 ;i++){
+			if($('#ProductCode'+ (i+1)).val() == ""){
+				showErrorMessage($('#ProductCode'+ (i+1)),"必填欄位","");	
+				flag = false;
+			}else if(pcCheck[i]==false){
+				showErrorMessage($('#ProductCode'+ (i+1)),"商品編號不存在","");	
+				flag = false;
+			}
+		}
+		$(".required:input").each(function(){
+			if(!checkRequired($(this),"")){			
+				flag = false;
+			}
+		});
+		$(".number").each(function(){
+			if(!checkNumber($(this),"")){
+				flag = false;
+			}
+		});
+		if(flag){
+			$("#editForm").submit();
+		} else{
+			alert("表單欄位驗證失敗，請檢查資料填寫是否正確");
+		}
+	}
+}
+$(document).ready(function(){
+
+	$("input[id^=ProductCode]").each(function(){
+		checkProductCode($(this).val(), $(this).attr("ref"));
+	})
+	$("input[id^=ProductCode]").blur(function(){
+		if($(this).val()!="")
+			checkProductCode($(this).val(), $(this).attr("ref"));
+		else{
+			$(this).parents(":first").find("span.error").remove();
+			showErrorMessage($(this),"必填欄位","");	
+			pcCheck[$(this).attr("ref")-1] = false;
+		}
+	});
+	
+	$(".imageGallery").focus(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		var oldImgUrl = $("#imgUrl"+c).val();
+		showImg(href,c,oldImgUrl );
+	}).blur(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		var oldImgUrl = $("#imgUrl"+c).val();
+		showImg(href,c,oldImgUrl );
+	});
+	
+	$("#btnSave").click(function(){
+		doSubmit();
+	});
+});
+
+</script> 
+<c:set var="xmlPath" value="/index.html" />
+<form id="editForm" method="post" action="editProcess.html">
+	<input type="hidden" name="xmlPath" value="${xmlPath}"/>
+	<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+	<cms:contentinfo var="info"/>
+	<c:set var="count">1</c:set>
+	<table border="0" cellpadding="0" cellspacing="0" class="table-2">
+		<tbody>
+		<cms:contentloop element="Product">
+		<tr id="" class="tr_b<c:if test="${count%2==1}">2</c:if>">
+			<td valign="middle" align="right" style="width: 90px">固定版位【${count}】</td>
+			<td >
+				<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+					<tbody>
+					<tr class="tr_b<c:if test="${count%2==1}">2</c:if>">
+						<td valign="top" align="right" style="width:72px">商品編號:</td>
+						<td valign="top">
+							<input type="text" name="Product[${count}]/ProductCode" id="ProductCode${count}" ref="${count}" value="<cms:contentshow element="ProductCode"/>">
+						</td>		
+					</tr>
+					<tr class="tr_b<c:if test="${count%2==1}">2</c:if>">
+						<td valign="top" align="right" style="width:72px;border-bottom:0px">圖片:</td>
+						<td valign="top" style="border-bottom:0px">
+							<input type="hidden" id="imgUrl${count}" value="<cms:contentshow element="ImagePath"/>">
+							<div><input type="text" name="Product[${count}]/ImagePath" id="pic${count}" no="${count}" class="imgurl imageGallery" value="<cms:contentshow element="ImagePath"/>"></div>
+							<div id="img${count}">原圖:<a href='<cms:link><cms:contentshow element="ImagePath"/></cms:link>'  title='看原圖'  target='_blank'><img src="<cms:link><cms:contentshow element="ImagePath"/></cms:link>"></a></div>
+							<div id="showImg${count}"></div>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</td>
+			<c:set var="count">${count+1}</c:set>
+		</tr>
+		</cms:contentloop>
+		<%--<tr id="" class="tr_b<c:if test="${count%2==1}">2</c:if>">
+			<td valign="middle" align="right" style="width: 90px">固定版位【${count}】</td>
+			<td >
+				<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+					<tbody>
+					<tr class="tr_b<c:if test="${count%2==1}">2</c:if>">
+						<td valign="top" align="right" style="width:72px">商品編號:</td>
+						<td valign="top">
+							<input type="text" name="MiddleRightBlockGroup[1]/TopLeftProduct[1]/ProductCode" id="ProductCode${count}" ref="${count}" value="<cms:contentshow element="MiddleRightBlockGroup[1]/TopLeftProduct[1]/ProductCode"/>">
+						</td>		
+					</tr>
+					<tr class="tr_b<c:if test="${count%2==1}">2</c:if>">
+						<td valign="top" align="right" style="width:72px;border-bottom:0px">圖片:</td>
+						<td valign="top" style="border-bottom:0px">
+							<div><input type="text" name="MiddleRightBlockGroup[1]/TopLeftProduct[1]/ImagePath" id="pic${count}" class="imgurl imageGallery" value="<cms:contentshow element="MiddleRightBlockGroup[1]/TopLeftProduct[1]/ImagePath"/>"></div>
+							<div id="img${count}"><a href='<cms:link><cms:contentshow element="MiddleRightBlockGroup[1]/TopLeftProduct[1]/ImagePath"/></cms:link>'  title='看原圖'  target='_blank'><img src="<cms:link><cms:contentshow element="MiddleRightBlockGroup[1]/TopLeftProduct[1]/ImagePath"/></cms:link>"></a></div>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</td>
+			<c:set var="count">${count+1}</c:set>
+		</tr>
+		<tr id="" class="tr_b<c:if test="${count%2==1}">2</c:if>">
+			<td valign="middle" align="right" style="width: 90px">固定版位【${count}】</td>
+			<td >
+				<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+					<tbody>
+					<tr class="tr_b<c:if test="${count%2==1}">2</c:if>">
+						<td valign="top" align="right" style="width:72px">商品編號:</td>
+						<td valign="top">
+							<input type="text" name="MiddleRightBlockGroup[1]/BottomProduct[1]/ProductCode" id="ProductCode${count}" ref="${count}" value="<cms:contentshow element="MiddleRightBlockGroup[1]/BottomProduct[1]/ProductCode"/>">
+						</td>		
+					</tr>
+					<tr class="tr_b<c:if test="${count%2==1}">2</c:if>">
+						<td valign="top" align="right" style="width:72px;border-bottom:0px">圖片:</td>
+						<td valign="top" style="border-bottom:0px">
+							<div><input type="text" name="MiddleRightBlockGroup[1]/BottomProduct[1]/ImagePath" id="pic${count}" class="imgurl imageGallery" value="<cms:contentshow element="MiddleRightBlockGroup[1]/BottomProduct[1]/ImagePath"/>"></div>
+							<div id="img${count}"><a href='<cms:link><cms:contentshow element="MiddleRightBlockGroup/BottomProduct/ImagePath"/></cms:link>'  title='看原圖'  target='_blank'><img src="<cms:link><cms:contentshow element="MiddleRightBlockGroup[1]/BottomProduct[1]/ImagePath"/></cms:link>"></a></div>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</td>
+			<c:set var="count">${count+1}</c:set>
+		</tr>--%>
+		<tr>
+			<td valign="top" align="center" style="width: 72px; border-bottom: none" colspan="2">
+				<a  href="#" id="btnSave" class="button">送出修改</a>
+				<a href="#addForm" class="button btnCancel">取消</a>
+			</td>
+		</tr>
+		</tbody>	
+	</table>
+	</cms:contentload>
+</form>
+<cms:include property="template" element="foot" />

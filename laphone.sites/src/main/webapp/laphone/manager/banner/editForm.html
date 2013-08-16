@@ -1,0 +1,286 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+
+String printArray[][] = {
+			{"AD-960bar","首頁覇刊頭"},
+			{"AD-kv","首頁大輪播"},
+			{"AD-home214x209","首頁右側二小"},
+			{"AD-new943x100","新品上市中間橫幅"},
+			{"AD-sp943x100","精選商品中間橫幅"},
+			{"AD-pd943x100","其他商品列表頁中間橫幅"},
+			{"AD-pd214x209","商品內頁右側二小"},
+			};
+request.setAttribute("printArray", printArray);
+
+%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:useBean id="date" class="java.util.Date" />
+<script type="text/javascript">
+var startupFolder1040506356 = "";
+$(document).ready(function(){
+
+	startupFolder1040506356 = startupFolder1040506356 = "/images/banner/"+$("select[name=PrintPosition]").val()+"/"; //將預設圖片資料夾改為目前版位的資料夾
+	
+	$("select[name=PrintPosition]").change(function(){
+		startupFolder1040506356 = "/images/banner/"+$(this).val()+"/";
+		if($(this).val() == 'AD-960bar' || $(this).val() == 'AD-kv' ){
+			$(".count1").click();
+			$(".count2Span").hide();
+		}else{
+			$(".count2").click();
+			$(".count2Span").show();
+		}	
+	})
+	if( $("select[name=PrintPosition]").val() == 'AD-960bar' || $("select[name=PrintPosition]").val() == 'AD-kv'){
+		$(".count2Span").hide();
+		$(".count1").click();
+	}else{
+		if($(".srcCount").val() == 1)
+			$(".count1").click();
+		else
+			$(".count2").click();
+			
+		$(".count2Span").show();
+	}
+	
+	$(".imageGallery").focus(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		showImg(href,c);
+	}).blur(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		showImg(href,c);
+	});
+})
+function clickThis(str){
+	if(str == ".count2"){
+		if($("#pic2url").val() == '')
+			$(".img2url").addClass("required");
+	 	$(".img2Table").show();
+	}else if(str == ".count1"){
+		$(".img2url").removeClass("required").val("");
+		$(".link2").val($("#pic2Link").val());
+		$(".img2Table").hide();
+		$("#tr"+2).html("");
+	}
+}
+function imgErr(str){
+	$("#"+str).addClass("required");
+}	
+function showImg(href,c){
+	var contextPath = "<cms:link>/</cms:link>";
+	var td = "";
+	if(href != ''){
+		if(href.substring(0,contextPath.length)!=contextPath) href = contextPath+href.substring(1);
+		var img = "<img src='"+href+"' alt='圖片網址輸入錯誤'/>";
+		var a = "<a href='"+href+"'  title='看原圖'  target='_blank'>"+img+"</a>";
+		td = "<td  colspan='2'><div class='album-pic'>新圖:"+a+"</div></td>";
+	}else{
+		td = "";
+	}
+	$("#tr"+c).html(td);
+}
+</script>
+<style>
+.album-pic img { 
+	vertical-align: middle; 
+	max-width:550px;   /* FF IE7 */
+	max-height:250px; /* FF IE7 */
+	_width:expression(this.width > 550 && this.width > this.height ?550 : auto); /* IE6 */
+	_height:expression(this.height > 250? 250 : auto); /* IE6 */ 
+} 
+.innerTable td{
+	border:0;
+}
+</style>
+<form method="post" id="editForm" action="editProcess.html">
+	<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+		<c:set var="count"><cms:contentshow element="Count"/></c:set>
+		<c:set var="printPosition"><cms:contentshow element="PrintPosition"/></c:set>
+		<c:set var="openType1"><cms:contentshow element="CarouselBanner[1]/OpenType"/></c:set>
+		<c:set var="openType2"><cms:contentshow element="CarouselBanner[2]/OpenType"/></c:set>
+		<input type="hidden" name="xmlPath" value="${param.xmlPath}"/>
+		<input type="hidden" class="srcCount" value="${count}"/>
+		<table cellspacing="0" cellpadding="0" border="0" class="table-2">
+			<tbody>
+				<c:set var="i">1</c:set>
+				<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+					<td valign="top" align="right" style="width: 72px">主旨:</td>
+					<td valign="top"><input type="text" name="Title" style="width:200px" class="required" value="<cms:contentshow element="Title"/>"></td>
+					<c:set var="i">${i+1}</c:set>
+				</tr>
+				<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+					<td valign="top" align="right" style="width: 72px">版位:</td>
+					<td valign="top">
+					<select name="PrintPosition">
+					  <c:forEach  var="item" items="${printArray}" varStatus="status" >
+						<option value="${item[0]}" <c:if test="${printPosition == item[0]}">selected</c:if>>${item[1]}</option>
+					  </c:forEach>
+					</select>
+					
+					&nbsp;&nbsp;&nbsp;
+					圖片數:&nbsp;&nbsp;&nbsp;&nbsp;
+					1則<input type="radio" class="count1" onclick='javascript:clickThis(".count1")' name="Count" <c:if test="${count==1}">checked</c:if> value="1" >&nbsp;&nbsp;&nbsp;
+					<span class="count2Span">2則<input type="radio" class="count2" onclick='javascript:clickThis(".count2")' name="Count" <c:if test="${count==2}">checked</c:if> value="2"></span>
+					<c:set var="i">${i+1}</c:set>
+					</td>
+				</tr>
+				<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if> ">
+					<td valign="top" align="right" style="width: 72px">上架時間:</td>
+					<td valign="top">
+						<c:set var="dateLong"><cms:contentshow element="OnlineDate"/></c:set>
+						<c:if test="${dateLong!=0}"> 
+							<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+							<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+						</c:if>
+						<input type="text" name="OnlineDate" class="date" value="${dateText}">
+					</td>
+					<c:set var="i">${i+1}</c:set>
+				</tr>
+				<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+			    		<td valign="top" align="right" style="width: 72px">下架時間:</td>
+					<td valign="top">
+						<c:set var="dateLong"><cms:contentshow element="OfflineDate"/></c:set>
+						<c:if test="${dateLong!=0}"> 
+							<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+							<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+						</c:if>
+						<input type="text" name="OfflineDate" class="date" value="${dateText}">
+					</td>
+					<c:set var="i">${i+1}</c:set>
+				</tr>
+				<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+					<td valign="top" align="right" style="width: 72px">圖片一:</td>
+					<td >
+						<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+							<tbody>
+							<c:set var="x">1</c:set>
+								<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+									<td align="right" style="width: 72px">圖片網址:</td>
+									<td valign="top">
+									<input type="text"  id="imgurl1" name="CarouselBanner[1]/ImagePath" no="1" class="imageGallery">
+									</td>
+									<c:set var="x">${x+1}</c:set>
+								</tr>
+								<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+									<td align="right" style="width: 72px;">連結網址:</td>
+									<c:set var="link" ><cms:contentshow element="CarouselBanner[1]/Link"/></c:set>
+					    				<td valign="top">
+					    					<input type="text" name="CarouselBanner[1]/Link" style="width:100%" value="${link}">
+					    				</td>
+									<c:set var="x">${x+1}</c:set>
+								</tr>
+								<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+									<td valign="top" align="right" style="width: 72px">開啟方式:</td>
+					    				<td valign="top">
+					    					<select name="CarouselBanner[1]/OpenType">
+											 <option <c:if test="${openType1 == '_self'}">selected</c:if> value="_self">原視窗</option>
+											 <option <c:if test="${openType1 == '_blank'}">selected</c:if> value="_blank">新開視窗</option>
+										</select>
+					    				</td>
+									<c:set var="x">${x+1}</c:set>
+								</tr>
+								<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+									<td  colspan="2">
+									<div class="album-pic">
+									原圖:
+									<a href="<cms:link><cms:contentshow element="CarouselBanner[1]/ImagePath"/></cms:link>"  title="看原圖"  target="_blank">
+										<img onerror='javascript:imgErr("imgurl1")' id="pic1" src="<cms:link><cms:contentshow element="CarouselBanner[1]/ImagePath"/></cms:link>" alt="說明文字" />
+									</a>
+									</div>
+									</td>
+									<c:set var="x">${x+1}</c:set>
+								</tr>
+								<tr id="tr1" class="tr_b<c:if test="${x%2 == 0}">2</c:if>"></tr>
+							</tbody>
+						</table>
+					</td>
+					<c:set var="i">${i+1}</c:set>
+				</tr>
+				<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if> img2Table">
+					<td valign="top" align="right" style="width: 72px">圖片二:</td>
+					<td >
+						<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+							<tbody>
+							<c:set var="x">1</c:set>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+								<td valign="top" align="right" style="width: 72px">圖片網址:</td>
+								<td valign="top">
+								<c:set var="pic2"><cms:contentshow element="CarouselBanner[2]/ImagePath"/></c:set>
+								<input id="pic2url" value="${pic2}" type="hidden">
+								<input type="text"   id="img2url"  name="CarouselBanner[2]/ImagePath" no="2" class="img2url imageGallery">
+								</td>
+								<c:set var="x">${x+1}</c:set>
+							</tr>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+								<td valign="top" align="right" style="width: 72px">連結網址:</td>
+								<c:set var="link" ><cms:contentshow element="CarouselBanner[2]/Link"/></c:set>
+								<input id="pic2Link" value="${link}" type="hidden">
+				    				<td valign="top">
+				    					<input type="text" name="CarouselBanner[2]/Link" style="width:100%" class="link2" value="${link}">
+				    				</td>
+								<c:set var="x">${x+1}</c:set>
+							</tr>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+								<td valign="top" align="right" style="width: 72px">開啟方式:</td>
+				    				<td valign="top">
+				    					<select name="CarouselBanner[2]/OpenType">
+										 <option <c:if test="${openType2 == '_self'}">selected</c:if> value="_self">原視窗</option>
+										 <option <c:if test="${openType2 == '_blank'}">selected</c:if> value="_blank">新開視窗</option>
+									</select>
+				    				</td>
+								<c:set var="x">${x+1}</c:set>
+								</td>
+							</tr>
+							<c:if test="${pic2 != ''}">
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+								<td  colspan="2">
+								<div class="album-pic">	
+								原圖:
+								<a href="<cms:link>${pic2}</cms:link>" title="看原圖"  target="_blank">
+									<img onerror='javascript:imgErr("img2url")'  id="pic2" src="<cms:link><cms:contentshow element="CarouselBanner[2]/ImagePath"/></cms:link>" alt="說明文字" />
+								</div>
+								</td>
+								</a>
+								<c:set var="x">${x+1}</c:set>
+							</tr>
+							</c:if>
+							<tr id="tr2" class="tr_b<c:if test="${x%2 == 0}">2</c:if>"></tr>
+							</tbody>
+						</table>
+					</td>
+					<c:set var="i">${i+1}</c:set>
+				</tr>
+				<tr>
+			    		<td valign="top" align="center" style="border-bottom: none" colspan="2">
+						<a href="#editForm" class="button btnSave">儲存</a>
+						<a href="#editForm" class="button btnCancel">取消</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		
+	</cms:contentload>
+</form>
+<c:if test="${count == 1}">
+<script type="text/javascript">
+$(document).ready(function(){
+	clickThis(".count1");
+});
+</script>
+</c:if>
+<cms:include property="template" element="foot" /> 

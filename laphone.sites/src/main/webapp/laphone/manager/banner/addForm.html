@@ -1,0 +1,211 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+<%
+String printArray[][] = {
+			{"AD-960bar","首頁覇刊頭"},
+			{"AD-kv","首頁大輪播"},
+			{"AD-home214x209","首頁右側二小"},
+			{"AD-new943x100","新品上市中間橫幅"},
+			{"AD-sp943x100","精選商品中間橫幅"},
+			{"AD-pd943x100","其他商品列表頁中間橫幅"},
+			{"AD-pd214x209","商品內頁右側二小"},
+			};
+request.setAttribute("printArray", printArray);
+%>
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<script type="text/javascript">
+var startupFolder1040506356 = "";
+$(document).ready(function(){
+
+	startupFolder1040506356 = startupFolder1040506356 = "/images/banner/"+$("select[name=PrintPosition]").val()+"/"; //將預設圖片資料夾改為目前版位的資料夾
+
+	$("select[name=PrintPosition]").change(function(){
+		startupFolder1040506356 = "/images/banner/"+$(this).val()+"/";
+		if($(this).val() == 'AD-960bar' || $(this).val() == 'AD-kv' ){
+			$(".count1").click();
+			$(".count2Span").hide();
+		}else{
+			$(".count2").click();
+			$(".count2Span").show();
+		}	
+	})
+	
+	
+	if( $("select[name=PrintPosition]").val() == 'AD-960bar' || $("select[name=PrintPosition]").val() == 'AD-kv' ){
+		$(".count2Span").hide();			      //2則的radio box
+		$(".pic2url").removeClass("required").val("");//圖片網址
+		$(".link2url").val("");			      //連結網址
+		$("#tr"+2).html("");			      //呈現圖片的tr	
+		$(".img2Table").hide();			      //第二則圖的table
+	}else{
+		$(".count2").click();
+		$(".count2Span").show();
+	}
+	$(".count1").click(function(){
+		$(".pic2url").removeClass("required").val("");
+		$(".link2url").val("");
+		$("#tr"+2).html("");
+		$(".img2Table").hide();
+	})
+	$(".count2").click(function(){
+		$(".pic2url").addClass("required");
+		$(".error").html("");
+	 	$(".img2Table").show();
+	})
+	$(".imageGallery").focus(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		showImg(href,c);
+	}).blur(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		showImg(href,c);
+	});	
+});
+function showImg(href,c){
+	var contextPath = "<cms:link>/</cms:link>";
+	var td = "";
+	if(href != ''){
+		if(href.substring(0,contextPath.length)!=contextPath) href = contextPath+href.substring(1);
+		var img = "<img src='"+href+"' alt='圖片網址輸入錯誤'/>";
+		var a = "<a href='"+href+"'  title='看原圖'  target='_blank'>"+img+"</a>";
+		td = "<td  colspan='2'><div class='album-pic'>"+a+"</div></td>";
+	}else{
+		td = "";
+	}
+	$("#tr"+c).html(td);
+}
+</script>
+<style>
+.album-pic img { 
+	vertical-align: middle; 
+	max-width:550px;   /* FF IE7 */
+	max-height:250px; /* FF IE7 */
+	_width:expression(this.width > 550 && this.width > this.height ?550 : auto); /* IE6 */
+	_height:expression(this.height > 250? 250 : auto); /* IE6 */ 
+} 
+.innerTable td{
+	border:0;
+}
+</style>
+<form id="addForm" method="post" action="addProcess.html">
+	<table cellspacing="0" cellpadding="0" border="0" class="table-2">
+		<tbody>
+		<c:set var="i">1</c:set>
+		<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+			<td valign="top" align="right" style="width: 72px">主旨:</td>
+			<td valign="top"><input type="text" name="Title" class="required" style="width:414px"></td>
+			<c:set var="i">${i+1}</c:set>
+		</tr>
+		<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+			<td valign="top" align="right" style="width: 72px">版位:</td>
+			<td valign="top">
+				<select name="PrintPosition">
+				  <c:forEach  var="item" items="${printArray}" varStatus="status" >
+						<option <c:if test='${item[0] == "AD-home214x209"}'>selected</c:if>   value="${item[0]}">${item[1]}</option>
+				  </c:forEach>
+				</select>
+				&nbsp;&nbsp;&nbsp;
+				圖片數:&nbsp;&nbsp;&nbsp;&nbsp;
+				1則<input type="radio" class="count1" name="Count" <c:if test="${count==1}">checked</c:if> value="1" >&nbsp;&nbsp;&nbsp;
+				<span class="count2Span" >2則<input type="radio" class="count2" name="Count" <c:if test="${count==2}">checked</c:if> value="2"></span>
+			</td>
+			<c:set var="i">${i+1}</c:set>
+		</tr>
+		<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+			<td valign="top" align="right" style="width: 72px">上架時間:</td>
+			<td valign="top"><input type="text" name="OnlineDate" class="date"></td>
+			<c:set var="i">${i+1}</c:set>
+		</tr>
+		<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+			<td valign="top" align="right" style="width: 72px">下架時間:</td>
+			<td valign="top"><input type="text" name="OfflineDate" class="date"></td>
+			<c:set var="i">${i+1}</c:set>
+		</tr>
+		<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if>">
+			<td valign="top" align="right" style="width: 72px">圖片一:</td>
+					<td >
+						<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+							<tbody>
+							<c:set var="x">1</c:set>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+								<td align="right" style="width: 72px">圖片網址:</td>
+								<td valign="top">
+								<input type="text" no="1" id="img1" name="CarouselBanner[1]/ImagePath" class="required imageGallery">
+								</td>
+								<c:set var="x">${x+1}</c:set>			
+							</tr>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+								<td align="right" style="width: 72px">連結網址:</td>
+								<td valign="top">
+									<input type="text" style="width:100%" name="CarouselBanner[1]/Link" >
+								</td>
+								<c:set var="x">${x+1}</c:set>
+							</tr>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if>">
+								<td valign="top" align="right" style="width: 72px">開啟方式:</td>
+								<td valign="top">
+									<select name="CarouselBanner[1]/OpenType">
+										 <option selected value="_self">原視窗</option>
+										 <option value="_blank">新開視窗</option>
+									</select>
+								</td>
+								<c:set var="x">${x+1}</c:set>
+							</tr>
+							<tr id="tr1" class="tr_b<c:if test="${x%2 == 0}">2</c:if>"></tr>
+							</tbody>
+						</table>
+					</td>
+			<c:set var="i">${i+1}</c:set>
+		</tr>
+		<tr class="tr_b<c:if test="${i%2 == 0}">2</c:if> img2Table">
+					<td valign="top" align="right" style="width: 72px">圖片二:</td>
+					<td >
+						<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+							<tbody>
+							<c:set var="x">1</c:set>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if> " >
+								<td align="right" style="width: 72px">圖片網址:</td>
+								<td valign="top"><input type="text" no="2" id="img2"  name="CarouselBanner[2]/ImagePath" class="pic2url required imageGallery"></td>
+								<c:set var="x">${x+1}</c:set>
+							</tr>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if> " >
+								<td align="right" style="width: 72px">連結網址:</td>
+								<td valign="top">
+									<input type="text" class="link2url" style="width:100%" name="CarouselBanner[2]/Link" >
+								</td>	
+								<c:set var="x">${x+1}</c:set>	
+							</tr>
+							<tr class="tr_b<c:if test="${x%2 == 0}">2</c:if> ">
+								<td valign="top" align="right" style="width: 72px">開啟方式:</td>
+								<td valign="top">
+									<select name="CarouselBanner[1]/OpenType">
+										 <option selected value="_self">原視窗</option>
+										 <option value="_blank">新開視窗</option>
+									</select>
+								</td>
+								<c:set var="x">${x+1}</c:set>
+							</tr>
+							<tr id="tr2" class="tr_b<c:if test="${x%2 == 0}">2</c:if>"></tr>
+							</tbody>
+						</table>
+					</td>
+			<c:set var="i">${i+1}</c:set>
+		</tr>
+		<tr>
+			<td valign="top" align="center" style="width: 72px; border-bottom: none" colspan="2">
+				<a href="#addForm" class="button btnSave">送出</a>
+				<a href="#addForm" class="button btnCancel">取消</a>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</form>
+<cms:include property="template" element="foot" /> 

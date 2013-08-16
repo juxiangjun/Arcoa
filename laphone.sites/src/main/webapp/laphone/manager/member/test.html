@@ -1,0 +1,27 @@
+<%@ page import="com.thesys.opencms.laphone.member.dao.*,com.thesys.opencms.laphone.member.*,java.util.*,com.thesys.opencms.laphone.util.*" %>    
+<%
+/*
+ThesysMemberHandler handler = new ThesysMemberHandler(pageContext, request, response);
+handler.setStatus(0);
+out.print("sno:"+handler.getSno()+"<BR>");
+out.print("accountId:"+handler.getAccountId()+"<BR>");
+out.print("idNo:"+handler.getIdNo()+"<BR>");
+out.print("username:"+handler.getUsername()+"<BR>");
+out.print("email:"+handler.getEmail()+"<BR>");
+out.print("gender:"+handler.getGender()+"<BR>");
+out.print("status:"+handler.getStatus()+"<BR>");
+List<ThesysMemberVO> l = handler.getPageList();
+for(ThesysMemberVO vo:l){
+	out.println("會員:"+vo+"<BR>");
+}
+out.print(l.size()+"<BR>");
+out.print("["+handler.getSiteId()+"]<BR>");
+out.print( handler.getMemberByAccId("jack02")+"<BR>");
+out.print( handler.getCount()+"<BR>");
+*/
+
+String ss = ThesysPostClientHandler.postEncode("中文");
+out.print(ThesysPostClientHandler.postDecode(ss));
+
+
+%>

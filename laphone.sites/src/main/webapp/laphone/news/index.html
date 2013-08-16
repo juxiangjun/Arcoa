@@ -1,0 +1,119 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="java.util.*,org.opencms.main.*,org.apache.lucene.search.*,org.opencms.search.*,org.opencms.jsp.*,org.opencms.file.*, java.lang.String,org.opencms.workplace.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:useBean id="now" scope="request" class="java.util.Date"/>
+<c:set var="nowLong" value="${now.time}"/>
+<c:set var="minDateLong" value="0"/>
+<c:set var="maxDateLong" value="2556028800000"/>
+<cms:include property="template" element="head" />
+<%
+String y = request.getParameter("y");
+String m = request.getParameter("m");
+Calendar calendar = Calendar.getInstance();
+CmsSearchParameters params;
+try{
+	int yInt = Integer.parseInt(y);
+	int mInt = Integer.parseInt(m) - 1;
+	if(yInt>=1970 && (mInt>=0 && mInt<=11)){
+		calendar.set(yInt,mInt,1,0,0,0);
+		calendar.set(Calendar.MILLISECOND,0);
+		long startDateLong = calendar.getTimeInMillis();
+		
+		calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+		calendar.set(Calendar.MILLISECOND,9999);
+		long endDateLong = calendar.getTimeInMillis();
+
+		request.setAttribute("startDateLong",startDateLong);
+		request.setAttribute("endDateLong",endDateLong);
+	}
+}catch(Exception e){
+}
+%>
+<c:if test="${empty startDateLong || empty endDateLong}">
+	<jsp:useBean id="search" scope="request" class="org.opencms.search.CmsSearch">
+		<jsp:setProperty name="search" property="index" value="LAPHONE_NEWS_INDEX"/>
+		<jsp:setProperty name="search" property="matchesPerPage" value="1"/>
+		<jsp:setProperty name="search" property="displayPages" param="1000"/>
+		<c:set var="query">OnlineFlag:"true" AND OnlineDate:[${minDateLong} TO ${nowLong}] AND (OfflineDate:"0" OR OfflineDate:[${nowLong} TO ${maxDateLong}])</c:set>
+		<%
+		search.init(cms.getCmsObject());
+		params = search.getParameters();
+		params.setQuery((String)pageContext.getAttribute("query"));
+		search.setParameters(params);
+		search.setSortOrder(com.thesys.opencms.search.SearchHelper.getStringSort("PublishDate", true));
+		%>
+	</jsp:useBean>
+	<c:set var="searchResult" value="${search.searchResult}"/>
+	<c:if test="${!empty searchResult}">
+		<c:forEach var="entry" items="${searchResult}" varStatus="status">
+			<c:set var="xmlPath" value="${fn:replace(entry.path,cms.requestContext.siteRoot,'')}"/>
+			<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+				<c:set var="maxOnlineDate" scope="request"><cms:contentshow element="PublishDate"/></c:set>
+				<%
+				String maxOnlineDate = (String)request.getAttribute("maxOnlineDate");
+				long maxOnlineDateLong = Long.parseLong(maxOnlineDate);
+				calendar.setTimeInMillis(maxOnlineDateLong);
+				calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+				request.setAttribute("endDateLong",calendar.getTimeInMillis());
+				
+				calendar.set(Calendar.DAY_OF_MONTH, 1);
+				calendar.set(Calendar.HOUR_OF_DAY, 0);
+			        calendar.set(Calendar.MINUTE, 0);
+			        calendar.set(Calendar.SECOND, 0);
+			        request.setAttribute("startDateLong",calendar.getTimeInMillis());
+				%>
+			</cms:contentload>
+		</c:forEach>
+	</c:if>
+	<c:remove var="search" scope="request"/>
+</c:if>
+<div id="content">
+  <div class="main">
+        <div class="title">
+            <h2><span><cms:property name="Title"/></span></h2>
+        </div> 
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/newsMenu.jsp"/>
+        <div class="news-list">
+        	<ul>
+        		<jsp:useBean id="search2" scope="request" class="org.opencms.search.CmsSearch">
+				<jsp:setProperty name="search2" property="index" value="LAPHONE_NEWS_INDEX"/>
+				<jsp:setProperty name="search2" property="displayPages" param="1000"/>
+				<c:set var="query">OnlineFlag:"true" AND OnlineDate:[${minDateLong} TO ${nowLong}] AND (OfflineDate:"0" OR OfflineDate:[${nowLong} TO ${maxDateLong}]) AND PublishDate:[${startDateLong} TO ${endDateLong}]</c:set>
+				<%
+				search2.init(cms.getCmsObject());
+				params = search2.getParameters();
+				params.setQuery((String)pageContext.getAttribute("query"));
+				search2.setParameters(params);
+				search2.setSortOrder(com.thesys.opencms.search.SearchHelper.getStringSort("PublishDate", true));
+				%>
+			</jsp:useBean>
+		        <c:set var="searchResult" value="${search2.searchResult}"/>
+			<c:if test="${!empty searchResult}">
+				<c:forEach var="entry" items="${searchResult}" varStatus="status">
+					<c:set var="xmlPath" value="${fn:replace(entry.path,cms.requestContext.siteRoot,'')}"/>
+					<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+						<span class="news-date">
+			                        	<c:set var="publishDate"><cms:contentshow element="PublishDate"/></c:set>
+				                    	<jsp:useBean id="dateValue" class="java.util.Date" /> 
+							<jsp:setProperty name="dateValue" property="time" value="${publishDate}" /> 
+							<fmt:formatDate value="${dateValue}" pattern="yyyy/MM/dd" />
+							<c:set var="y"><fmt:formatDate value="${dateValue}" pattern="yyyy" /></c:set>
+							<c:set var="m"><fmt:formatDate value="${dateValue}" pattern="MM" /></c:set>
+			                        </span>
+			                        <span class="news-title">
+			                        	<a href="<cms:link><cms:contentshow element="%(opencms.filename)"/></cms:link>?y=${y}&m=${m}" title="<cms:contentshow element="Title"/>"><cms:contentshow element="Title"/></a>
+			                        </span>
+					</cms:contentload>
+        			</c:forEach>
+        		</c:if>
+                </ul>
+        </div>
+  </div>
+</div>    
+<cms:include property="template" element="foot" /> 

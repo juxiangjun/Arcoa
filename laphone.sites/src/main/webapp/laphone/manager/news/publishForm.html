@@ -1,0 +1,67 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<cms:include property="template" element="head" /> 
+	<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+	<table border="0" cellpadding="0" cellspacing="0" class="form-table">
+		<tr>
+			<th>主旨:</th>
+			<td valign="top"><cms:contentshow element="Title"/></td>
+		</tr>
+		<tr>
+			<th>內文:</th>
+			<td valign="top"><cms:contentshow element="Content"/></td>
+		</tr>
+		<tr>
+			<th>發佈時間:</th>
+			<td valign="top">
+				<c:set var="dateLong"><cms:contentshow element="PublishDate"/></c:set>
+				<c:if test="${dateLong!=0}">
+		                    	<jsp:useBean id="date" class="java.util.Date" /> 
+					<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+					<fmt:formatDate value="${date}" pattern="yyyy/MM/dd" />
+				</c:if>
+			</td>
+		</tr>
+		<tr>
+			<th>上架時間:</th>
+			<td valign="top">
+				<c:set var="dateLong"><cms:contentshow element="OnlineDate"/></c:set>
+				<c:if test="${dateLong!=0}">
+					<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+					<fmt:formatDate value="${date}" pattern="yyyy/MM/dd" />
+				</c:if>
+			</td>
+		</tr>
+		<tr>
+			<th>下架時間:</th>
+			<td valign="top">
+				<c:set var="dateLong"><cms:contentshow element="OfflineDate"/></c:set>
+				<c:if test="${dateLong!=0 && dateLong!=2556028800000}"> 
+					<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+					<fmt:formatDate value="${date}" pattern="yyyy/MM/dd" />
+				</c:if>	
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2"  class="btn-line">			
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/xmlPublishButton.jsp">
+				<cms:param name="fromUrl">${param.fromUrl}</cms:param>
+				<cms:param name="xmlPath">${param.xmlPath}</cms:param>		
+				<cms:param name="searchIndex">OFFLINE_NEWS_INDEX</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+	</table>
+	</cms:contentload>
+<cms:include property="template" element="foot" /> 

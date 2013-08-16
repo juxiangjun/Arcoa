@@ -1,0 +1,41 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="java.util.*,com.thesys.opencms.laphone.msg.dao.*,com.thesys.opencms.laphone.msg.*,com.thesys.opencms.laphone.util.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<jsp:useBean id="handler" class="com.thesys.opencms.laphone.msg.ThesysSystemMsgHandler">
+<%handler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="handler" property="messageId" param="msgId"/>
+<jsp:setProperty name="handler" property="messageType" value="1"/>
+
+<c:set var="sMsg" value="${handler.selectedMessage}" />
+<c:if test="${!sMsg.viewFlag}"><%handler.view();%></c:if>
+<c:set var="previous" value="${handler.previous}" />
+<c:set var="next" value="${handler.next}" />
+<cms:include property="template" element="head" />
+<div id="content">
+    <div class="member-main"> 
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	<div id="member-body" class="member-body">
+	        <h2>系統訊息</h2>
+	        <div class="msg-dtl">
+	            <div class="questionBox">
+	            	<div class="postTime">發送時間：<fmt:formatDate value="${sMsg.crtDate}" type="both" pattern="yyyy/MM/dd HH:mm"/></div>
+	            	<div class="postTitle">信件主旨：${sMsg.subject}</div>
+	            </div>
+	            <div class="answerBox">
+	            	<p>${sMsg.content}</p>
+	            </div>          
+	        
+		        <div class="btn-line">
+	        		<c:if test="${previous != 0}"><a href="msgDetail.html?msgId=${previous}" class="prev">上一則</a></c:if>
+	        		<a href="index.html" class="back">回訊息列表</a></li>
+	        		<c:if test="${next != 0}"><a href="msgDetail.html?msgId=${next}" class="next">下一則</a></c:if>
+		        </div>
+	        </div>
+	</div>
+    </div>
+</div>
+<cms:include property="template" element="foot" /> 

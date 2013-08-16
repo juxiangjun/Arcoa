@@ -1,0 +1,52 @@
+<%@ page  language="java"  contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ page import="java.util.*,java.sql.*,com.thesys.opencms.laphone.member.*,com.thesys.opencms.laphone.member.dao.*,com.thesys.opencms.util.*" %>
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<cms:include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp" />
+<%
+String postback = (String)request.getParameter("postback");
+if(postback != null){
+	ThesysMemberHandler handler = new ThesysMemberHandler(pageContext, request, response);	
+	int memberNo = (Integer)session.getAttribute("memberNo");
+	boolean flag = handler.updatePasswordDate(memberNo);
+	out.println("<script>location.href='/index.jsp';</script>");
+}
+%>
+<form name="noticeForm" id="noticeForm" action="notice.html" method="post">
+	<input type="hidden" name="postback" value="Y">
+</form>
+<cms:include property="template" element="head" />
+<div id="content">
+  <div class="main">
+        <h2 class="black"><cms:property name="Title"/></h2>
+        <div class="btn-space-line"></div>
+        <div class="msgbar-lightgray">
+                	親愛的laphone會員，提醒您，您的會員密碼已經超過90天未變更，基於個人資料安全考量，建議您先至會員中心變更密碼。
+                	<div class="btn-line-center">
+                		<a href="<cms:link>/memberCenter/member/changePwd.html</cms:link>" id="btnModifyNow" class="button">馬上去修改密碼</a>&nbsp;
+                		<a href="#passwordDialog" class="btnLightbox button">繼續延用密碼</a>
+                	</div>
+                 </li>
+        </div>        
+        <div class="btn-space-line"></div>
+    </div>
+</div>  
+<div style="display:none"> 
+	<div id="passwordDialog" class="laphoneDialog">
+		<h4><a class="btnDialogClose"></a></h4>
+	        <div class="dialogContent">
+	            確定繼續延用現在的密碼嗎？
+	            <div class="btn-line-center">
+	            	<a href="#noticeForm" class="button btnSubmit">確定</a>
+	            	<a href="#" class="button btnDialogCancel">取消</a>
+	           </div>
+	        </div>
+	</div>
+</div>
+        
+<%--  --%>     
+<cms:include property="template" element="foot" />  
+

@@ -1,0 +1,23 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.apache.commons.codec.net.BCodec,org.opencms.main.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<jsp:useBean id="orderReportHandler" scope="request" class="com.thesys.opencms.laphone.report.ThesysOrderReportHandler">
+<%orderReportHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="orderReportHandler" property="startDate" param="startDate"/>
+<jsp:setProperty name="orderReportHandler" property="endDate" param="endDate"/>
+<jsp:setProperty name="orderReportHandler" property="reportType" value="2"/>
+<%
+String fileName = "每日到貨未取異常表.csv";
+//ie用URLEncoder.encode firefox用BCodec().encode
+if (request.getHeader("User-Agent").indexOf("MSIE") != -1  || request.getHeader("User-Agent").indexOf("Chrome") != -1){
+	response.setHeader("Content-Disposition","attachment; filename=\""+java.net.URLEncoder.encode(fileName ,"utf-8") +"\"");
+}
+else{
+	response.setHeader("Content-Disposition","attachment; filename=\""+new BCodec().encode(fileName , "utf-8") +"\"");
+}
+orderReportHandler.export(response.getOutputStream());
+%>

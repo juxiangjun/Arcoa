@@ -1,0 +1,98 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<cms:include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp" />
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+
+%>
+<c:set var="pageSize" value="40"/>
+<jsp:useBean id="tracking" class="com.thesys.opencms.laphone.cart.ThesysTrackingHandler">
+	<%tracking.init(pageContext,request,response);%>
+	<jsp:setProperty name="tracking" property="pageSize" value="${pageSize}"/>
+	<jsp:setProperty name="tracking" property="pageIndex" param="pageIndex"/>
+</jsp:useBean>
+<jsp:useBean id="stock" scope="request" class="com.thesys.opencms.laphone.product.ThesysStockHandler">
+	<%stock.init(pageContext,request,response);%>				 
+</jsp:useBean>
+<jsp:useBean id="cart" class="com.thesys.opencms.laphone.cart.ThesysCartHandler">
+<%cart.init(pageContext,request,response);%>
+</jsp:useBean>
+<c:if test="${param.action=='trackingMove'}">
+<%
+cart.add(request.getParameter("itemId"),1);
+tracking.delete(request.getParameter("itemId"));
+%>
+</c:if>
+<c:if test="${param.action=='trackingDelete'}">
+<%tracking.delete(request.getParameter("itemId"));%>
+</c:if>
+<cms:include property="template" element="head" />
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	
+        <div id="member-body" class="member-body">
+		<h2><cms:property name="Title"/></h2>
+		<table class="member-list">
+	                <tr class="red-header">
+	            		<td class="tk-date">加入追蹤時間</td>
+	            		<td class="tk-photo">商品圖片</td>
+	                        <td class="tk-name">產品名稱</td>
+	                        <td class="tk-stock">庫存</td>
+	                        <td class="tk-price">售價</td>
+	                        <td class="tk-tool">變更明細</td>
+	                </tr>
+	                <c:set var="itemCount" value="${tracking.count}"/>
+	                <c:if test="${itemCount==0}"><tr><td class="nodata-line" colspan="6">追蹤清單無商品</td></tr></c:if>	  
+	                <c:forEach var="item" items="${tracking.pageList}" varStatus="status">
+	                <c:set var="productCode" value="${fn:replace(fn:replace(item.itemId,'-','_'),'+','_')}"/>
+	                <c:set var="xmlPath" value="/product/${productCode}.html"/>
+	                <cms:contentload collector="singleFile" param="${xmlPath}" editable="false">
+	                <form id="trackingForm${status.index}" method="post" action="<cms:info property="opencms.uri"/>">
+	                        <input type="hidden" name="action" value="trackingMove">
+	                        <input type="hidden" name="itemId" value="${item.itemId}">
+	                <tr class="track-item">
+	                	<td class="tk-date"><fmt:formatDate pattern="yyyy/MM/dd HH:mm:ss" value="${item.createDate}"/></td>
+	            		<td class="tk-photo">
+	            			<a href="<cms:link>/product.html?eccode=${productCode}</cms:link>" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="<cms:contentshow element="ProductName"/>" width="124" height="100"/></a>
+	            		</td>
+	                        <td class="tk-name">
+	                        	<a href="<cms:link>/product.html?eccode=${productCode}</cms:link>" target="_blank"><cms:contentshow element="ProductName"/></a>
+	                        	
+	                                
+	                        </td>
+	                        <td class="tk-stock">	 	
+	                        <c:set var="sapProductCode"><cms:contentshow element="SapProductCode"/></c:set>                        
+				<jsp:setProperty name="stock" property="itemId" value="${sapProductCode}"/>                   
+                           	<c:set var="stockQuantity" value="${stock.stockQuantity}"/>  
+                           	<c:choose><c:when test="${stockQuantity>0}">有</c:when><c:otherwise>無</c:otherwise></c:choose>
+	                        </td>
+	                        <td class="tk-price">優惠價 NT$ 
+	                        	<c:set var="price"><cms:contentshow element="SpecialPrice"/></c:set>
+		    			<fmt:formatNumber value="${price}" pattern="#,#00.0#" maxFractionDigits="0"/>
+		    		</td>
+	                        <td class="tk-tool">	                        
+	                        	<p><c:if test="${stockQuantity>0}"><a href="#trackingForm${status.index}" class="button btnTrackingMove">加入購物車</a><br/></c:if>
+	                        	 <a href="#trackingForm${status.index}" class="button btnTrackingDelete">取消追蹤</a></p>	                        
+	                        </td>
+	                </tr>
+	                </form>
+	                </cms:contentload>
+	                </c:forEach>
+	        </table>
+	        <c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>	
+	        <c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+	        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/pager.jsp">
+			<cms:param name="pageCount">${pageCount}</cms:param>
+		</cms:include>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

@@ -1,0 +1,51 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<cms:include property="template" element="head" /> 
+<c:if test="${param.pageIndex<1}"><c:set var="pageIndex" value="1"/></c:if>
+<c:set var="pageSize" value="40"/>
+<jsp:useBean id="epaper" class="com.thesys.opencms.laphone.epaper.ThesysEpaperHandler">
+	<%epaper.init(pageContext,request,response);%>
+	<jsp:setProperty name="epaper" property="pageSize" value="${pageSize}"/>
+	<jsp:setProperty name="epaper" property="pageIndex" param="pageIndex"/>
+</jsp:useBean>
+<c:set var="itemCount" value="${epaper.count}"/>
+<div id="content">
+  <div class="main">
+        <div class="title">
+            <h2><span><cms:property name="Title"/></span></h2>
+        </div>            
+         <form id="epaperForm" action="<cms:link>/epaper/epaperProcess.jsp</cms:link>" method="post" >
+         <ul class="epaper-form">
+		<li class="epaper-radio"><input type="radio" checked name="epaper-subscribe" value="Y"/> 訂閱電子報</li>
+		<li class="epaper-radio"><input type="radio" name="epaper-subscribe" value="N"/> 取消訂閱電子報</li>
+		<li>(取消訂閱電子報輸入之Email須與訂閱時輸入之Email相同)</li>
+		<li class="epaper-email">電子郵件： <input type="text" class="email required" name="epaper-email" value="${memberEmail}"/></li>
+		<li><a href="#epaperForm" id="epaperSubmit" class="btn red btnSubmit"><span>確認</span></a></li>
+         </ul>           
+         </form>
+         <div class="dotted-line"></div>
+	 <table class="epaper-history">
+	                <tr>
+	                    <th>主題</th>
+	                    <th>發送日期</th>
+	                </tr>         
+	 <c:forEach var="item" items="${epaper.pageList}" varStatus="status">
+	 	<c:set var="eno">${item.eno}</c:set>
+	                <tr>
+	                    <td><a href="/epaper/${eno}/" target="_blank">${item.subject}</a></td>
+	                    <td ><fmt:formatDate value="${item.releaseDate}" pattern="yyyy/MM/dd" /></td>
+	                </tr>
+         </c:forEach>
+	 </table>
+	 <c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>	
+         <c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+         <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/pager.jsp">
+		<cms:param name="pageCount">${pageCount}</cms:param>
+	 </cms:include>
+  </div>
+</div>    
+<cms:include property="template" element="foot" /> 

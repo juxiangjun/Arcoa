@@ -1,0 +1,23 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<%
+String defPath = "/special/";
+String specialPath = defPath;
+
+List list = cms.getCmsObject().getSubFolders(defPath);
+if(list!=null && list.size()>0){
+	CmsResource cr = (CmsResource)list.get(0);
+	specialPath = defPath + cr.getName();
+	out.print("<script>location.href='"+cms.link(specialPath)+"';</script>");
+} else {
+	//沒有subFolder導向首頁
+	out.print("<script>location.href='"+cms.link("/index.html")+"';</script>");
+}
+%>

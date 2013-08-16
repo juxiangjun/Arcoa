@@ -1,0 +1,82 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<%
+if(request.getParameter("orderId")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+int classCount = 0;
+%>
+<jsp:useBean id="orderReportHandler" scope="request" class="com.thesys.opencms.laphone.report.ThesysOrderReportHandler">
+<%orderReportHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="orderReportHandler" property="orderId" param="orderId"/>
+<c:set var="creditVO" value="${orderReportHandler.selectedCredit}"/>
+<table cellspacing="0" cellpadding="0" border="0" class="table-2">
+	<tbody>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right" style="width: 90px">訂單編號:</td>
+		<td valign="top">${creditVO.orderId}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">授權交易單號:</td>
+		<td valign="top">${creditVO.gwsr}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">回應訊息:</td>
+		<td valign="top">${creditVO.response_msg}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">處理日期:</td>
+		<td valign="top">
+			<c:if test="${fn:length(creditVO.process_date)==8 && fn:length(creditVO.process_time)==6}">
+			${fn:substring(creditVO.process_date,0,4)}/${fn:substring(creditVO.process_date,4,6)}/${fn:substring(creditVO.process_date,6,8)}&nbsp;
+			${fn:substring(creditVO.process_time,0,2)}:${fn:substring(creditVO.process_time,2,4)}:${fn:substring(creditVO.process_time,4,6)}
+			</c:if>
+		</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">購物單號:</td>
+		<td valign="top">${creditVO.od_sob}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">金額:</td>
+		<td valign="top">${creditVO.amount}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">分期期數:</td>
+		<td valign="top">${creditVO.stage}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">頭期金額:</td>
+		<td valign="top">${creditVO.stast}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">各期金額:</td>
+		<td valign="top">${creditVO.staed}</td>
+	</tr>
+	<tr <%=(classCount++%2==0)?"class=\"tr_b\"":"class=\"tr_b2\""%>>
+		<td valign="top" align="right">電子發票:</td>
+		<td valign="top">
+			<c:choose>
+				<c:when test="${creditVO.inv_code=='0'}">
+				送出成功
+				</c:when>
+				<c:otherwise>
+				送出失敗
+				</c:otherwise>
+			</c:choose>
+		</td>
+	</tr>
+	</tbody>
+</table><br>
+<div align="center">
+	<a href="#" class="button btnCancel">回上一頁</a>
+</div>	
+<cms:include property="template" element="foot" /> 

@@ -1,0 +1,232 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<%
+String specialFolder = "/special";
+pageContext.setAttribute("specialFolder",specialFolder+"/" );
+pageContext.setAttribute("subFolderList",cms.getCmsObject().getSubFolders(specialFolder)); 
+%>
+<style>
+img { 
+	vertical-align: middle; 
+	max-width:550px;   /* FF IE7 */
+	max-height:250px; /* FF IE7 */
+	_width:expression(this.width > 550 && this.width > this.height ?550 : auto); /* IE6 */
+	_height:expression(this.height > 250? 250 : auto); /* IE6 */ 
+} 
+.innerTable td{
+	border:0;
+}
+</style>
+<script type="text/javascript">
+var layoutPicQuantity = [1,2,2,3,3,3,3,4];
+var pcCheck = new Array(4);
+var isChecking = false;
+var t;
+for(var i=0;i<4;i++)
+	pcCheck[i] = false;
+		
+function getLayoutPicQuantity(){
+	return layoutPicQuantity[$("input[name=GroupType]:checked").val()-1];
+}
+
+function checkProductCode(pc, num){
+ 	$('#ProductCode'+ num).parents(":first").find("span.error").remove();
+	isChecking = true;
+	$.ajax({
+		url:'checkProductExist.html',
+		data:{pc:$('#ProductCode'+ num).val()},
+		error:function(xhr) {
+			showErrorMessage($('#ProductCode'+ num),"商品編號驗證發生錯誤","");	
+		},
+		success: function(response) {
+			if(response.indexOf("OK")<0){
+				clearTimeout(t);
+				pcCheck[num-1] = false;
+				showErrorMessage($('#ProductCode'+ num),"商品編號不存在","");	
+			}else{
+				if(response.indexOf("NOTPUBLISH") != -1)
+					showErrorMessage($('#ProductCode'+ num),"此商品新增但尚未發佈","");
+				pcCheck[num-1] = true;
+			}
+			isChecking = false;
+		}
+	});
+}
+function doSubmit(){
+	$("span.error").remove();
+	if(isChecking == true){
+		t = setTimeout('doSubmit()', 200);
+	}else{
+		var flag = true;
+		var quantity = getLayoutPicQuantity();
+		for(var i=0;i<quantity ;i++){
+			if($('#ProductCode'+ (i+1)).val() == ""){
+				showErrorMessage($('#ProductCode'+ (i+1)),"必填欄位","");	
+				flag = false;
+			}else if(pcCheck[i]==false){
+				showErrorMessage($('#ProductCode'+ (i+1)),"商品編號不存在","");	
+				flag = false;
+			}
+		}
+		$(".required:input").each(function(){
+			if(!checkRequired($(this),"")){			
+				flag = false;
+			}
+		});
+		$(".number").each(function(){
+			if(!checkNumber($(this),"")){
+				flag = false;
+			}
+		});
+		if(flag){
+			$("#addForm").submit();
+		} else{
+			alert("表單欄位驗證失敗，請檢查資料填寫是否正確");
+		}
+	}
+}
+function showImg(href,c){
+	var contextPath = "<cms:link>/</cms:link>";
+	var a = "";
+	if(href != ''){
+		if(href.substring(0,contextPath.length)!=contextPath) href = contextPath+href.substring(1);
+		var img = "<img src='"+href+"' alt='圖片網址輸入錯誤'/>";
+		a = "<a href='"+href+"'  title='看原圖'  target='_blank'>"+img+"</a>";
+	}else{
+		a = "";
+	}
+	$("#showImg"+c).html(a);
+}
+$(document).ready(function(){
+	var quantity = getLayoutPicQuantity();
+	for(var i=1;i<=quantity;i++){
+		pcCheck[i-1] = true;
+		$("#data"+i).show();
+		$("#ProductCode"+i).attr("class","required");
+		$("#pic"+i).attr("class","imgurl required imageGallery");
+	}
+	$("input[name=GroupType]").change(function(){
+		$("span[class=error]").each(function(){
+			$(this).html("");
+		});
+		var quantity = getLayoutPicQuantity();
+		/*for(var i=1;i<=4;i++){
+			$("#ProductCode"+i).val("").attr("class","");
+			$("#pic"+i).val("").attr("class","imgurl imageGallery");
+			$("#data"+i).hide();
+		}*/
+		
+		for(var i=1;i<=quantity;i++){
+			$("#data"+i).show();
+			$("#ProductCode"+i).attr("class","required");
+			$("#pic"+i).attr("class","imgurl required imageGallery");
+		}
+		for(var i=4;i>quantity;i--){
+			$("#ProductCode"+i).val("").attr("class","");
+			$("#pic"+i).val("").attr("class","imgurl imageGallery");
+			$("#showImg"+i).html("");
+			$("#data"+i).hide();
+		}
+	});
+	$("input[id^=ProductCode]").blur(function(){
+		if($(this).val()!="")
+			checkProductCode($(this).val(), $(this).attr("ref"));
+		else{
+			$(this).parents(":first").find("span.error").remove();
+			showErrorMessage($(this),"必填欄位","");	
+			pcCheck[$(this).attr("ref")-1] = false;
+		}
+	});
+	$("#btnSave").click(function(){
+		doSubmit();
+	});
+	$(".imageGallery").focus(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		showImg(href,c);
+	}).blur(function(){
+		var c = $(this).attr("no");
+		var href = $(this).val();
+		showImg(href,c);
+	});	
+});
+</script>
+<form id="addForm" method="post" action="addProcess.html">
+	<table cellspacing="0" cellpadding="0" border="0" class="table-2">
+		<tbody>
+		<tr class="tr_b">
+			<td valign="middle" align="right" style="width: 72px">類別:</td>
+			<td valign="top">
+				<select name="selectFolder" id="selectFolder">
+					<option value="/blockGroup/">首頁田字</option>
+					<option value="/new/">新品上市</option>
+					<c:forEach var="folder" items="${subFolderList}">
+					<c:set var="tmpFolder" value="${specialFolder}${folder.name}/"/>
+					<option value="${tmpFolder}" <c:if test="${tmpFolder==param.selectFolder}">selected</c:if>>精選商品/<cms:property name="Title" file="${tmpFolder}"/></option>
+					</c:forEach>
+				</select>
+			</td>
+		</tr>
+		<tr class="tr_b2">
+			<td valign="middle" align="right">版型:</td>
+			<td valign="top">
+				<c:forEach var="item" begin="1" end="8" varStatus="status">
+				<input type="radio" name="GroupType" id="GroupType" value="${status.index}" <c:if test="${status.index==1}">checked</c:if>> 
+				<img width="30px" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/layout_icon-0${status.index}.jpg</cms:link>">&nbsp;&nbsp;
+				</c:forEach>
+			</td>
+		</tr>
+		<tr class="tr_b">
+			<td valign="middle" align="right">排序:</td>
+			<td><input type="text" name="Sort" class="required number" size="10" maxlength="10" value=""></td>
+		</tr>
+		<tr class="tr_b2">
+			<td valign="top" align="right">上架時間:</td>
+			<td valign="top"><input type="text" name="OnlineDate" class="date"></td>
+		</tr>
+		<tr class="tr_b">
+			<td valign="top" align="right">下架時間:</td>
+			<td valign="top"><input type="text" name="OfflineDate" class="date"></td>
+		</tr>
+		<c:forEach begin="1" end="4" varStatus="status">
+		<tr id="data${status.index}" class="tr_b<c:if test="${status.index%2==1}">2</c:if>" style="display:none">
+			<td valign="top" align="right" style="width: 72px">圖片${status.index}:</td>
+			<td >
+				<table cellspacing="0" cellpadding="0" border="1" class="table-2 innerTable">
+					<tbody>
+					<tr class="tr_b">
+						<td valign="top" align="right" style="width:72px">商品編號:</td>
+						<td valign="top">
+							<input type="text" name="Product[${status.index}]/ProductCode" id="ProductCode${status.index}" ref="${status.index}" class="<c:if test="${status.index==1}">required</c:if>">
+						</td>		
+					</tr>
+					<tr class="tr_b2">
+						<td valign="top" align="right" style="width:72px;border-bottom:0px">圖片:</td>
+						<td valign="top" style="border-bottom:0px">
+							<div><input type="text" name="Product[${status.index}]/ImagePath" id="pic${status.index}" no="${status.index}" class="imgurl <c:if test="${status.index==1}">required</c:if> imageGallery" value=""></div>
+							<div id="showImg${status.index}"></div>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</td>
+		</tr>
+		</c:forEach>
+		<tr>
+			<td valign="top" align="center" style="width: 72px; border-bottom: none" colspan="2">
+				<a id="btnSave" href="#addForm" class="button">送出</a>
+				<a href="#addForm" class="button btnCancel">取消</a>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</form>
+<cms:include property="template" element="foot" /> 

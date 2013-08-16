@@ -1,0 +1,172 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+
+//所有版位
+String printArray[][] = {
+			{"AD-960bar","首頁覇刊頭"},
+			{"AD-kv","首頁大輪播"},
+			{"AD-home214x209","首頁右側二小"},
+			{"AD-new943x100","新品上市中間橫幅"},
+			{"AD-sp943x100","精選商品中間橫幅"},
+			{"AD-pd943x100","其他商品列表頁中間橫幅"},
+			{"AD-pd214x209","商品內頁右側二小"},
+			};
+request.setAttribute("printArray", printArray);
+%>
+<jsp:useBean id="date" class="java.util.Date" />
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<style>
+.album-pic img { 
+	vertical-align: middle; 
+	max-width:550px;   /* FF IE7 */
+	max-height:250px; /* FF IE7 */
+	_width:expression(this.width > 550 && this.width > this.height ?550 : auto); /* IE6 */
+	_height:expression(this.height > 250? 250 : auto); /* IE6 */ 
+} 
+.innerTable td{
+	border:0;
+}  
+</style>
+	<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+	<c:set var="printPosition" ><cms:contentshow element="PrintPosition"/></c:set>
+	<c:set var="count"><cms:contentshow element="Count"/></c:set>
+	<table border="0" cellpadding="0" cellspacing="0" class="form-table">
+		<tr>
+			<th>主旨:</th>
+			<td valign="top"><cms:contentshow element="Title"/></td>
+		</tr>
+		<tr>
+			<th>版位:</th>
+			<td valign="top">
+				<c:forEach  var="item" items="${printArray}" varStatus="status" >
+					<c:if test="${printPosition == item[0]}">${item[1]}</c:if>
+				</c:forEach>	
+			</td>
+		</tr>
+				<tr>
+			<th>上架時間:</th>
+			<td valign="top">
+				<c:set var="dateLong"><cms:contentshow element="OnlineDate"/></c:set>
+				<c:if test="${dateLong!=0}">
+					<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+					<fmt:formatDate value="${date}" pattern="yyyy/MM/dd" />
+				</c:if>
+			</td>
+		</tr>
+		<tr>
+			<th>下架時間:</th>
+			<td valign="top">
+				<c:set var="dateLong"><cms:contentshow element="OfflineDate"/></c:set>
+				<c:if test="${dateLong!=0}">
+					<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+					<fmt:formatDate value="${date}" pattern="yyyy/MM/dd" />
+				</c:if>	
+			</td>
+		</tr>
+		<tr >
+			<th>圖片數:</th>
+			<td valign="top">
+			<c:choose>
+			       <c:when test="${count == 1}">1則</c:when>
+			       <c:when test="${count == 2}">2則</c:when>
+			</c:choose>
+			</td>
+		</tr>
+		<tr>
+			<th>圖片一:</th>
+			<td >
+				<table cellspacing="0" cellpadding="0" border="1" class="form-table innerTable">
+					<tbody>
+					<tr>
+						<td valign="top">
+						<div class="album-pic">	
+							<a href="<cms:link><cms:contentshow element="CarouselBanner[1]/ImagePath"/></cms:link>"  title="看原圖"  target="_blank">
+								<img src="<cms:link><cms:contentshow element="CarouselBanner[1]/ImagePath"/></cms:link>" alt="說明文字" />
+							</a>
+						</td>
+						</td>
+					</tr>
+					<tr>
+						<c:set var="link" ><cms:contentshow element="CarouselBanner[1]/Link"/></c:set>
+						<c:set var="openType" ><cms:contentshow element="CarouselBanner[1]/OpenType"/></c:set>
+						<c:if test='${fn:indexOf(link,"http") == -1}'><c:set var="linkhref" ><cms:link>${link}</cms:link></c:set></c:if>
+						<c:if test='${fn:indexOf(link,"http") != -1}'><c:set var="linkhref" >${link}</c:set></c:if>
+						<td valign="top">
+						<c:choose>
+						       <c:when test='${link== ""}'>無連結</c:when>
+						       <c:otherwise>
+						       		<a href="${linkhref}"  target="_blank">${link}</a>&nbsp;&nbsp;
+						       		<c:if test="${openType == '_self' }">原視窗</c:if>	
+						       		<c:if test="${openType == '_blank' }">新開視窗</c:if>						       
+						       </c:otherwise>
+						</c:choose>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</td>
+		
+		</tr>
+		<c:if test="${count == 2}">
+		<tr>
+			<th>圖片二:</th>
+			<td >
+				<table cellspacing="0" cellpadding="0" border="1" class="form-table innerTable">
+					<tbody>
+					<tr>
+						<td valign="top">
+						<c:set var="pic2"><cms:contentshow element="CarouselBanner[2]/ImagePath"/></c:set>
+						<c:if test="${pic2 != ''}">
+							<a href="<cms:link><cms:contentshow element="CarouselBanner[2]/ImagePath"/></cms:link>"  title="看原圖"  target="_blank">
+								<img src="<cms:link><cms:contentshow element="CarouselBanner[2]/ImagePath"/></cms:link>" alt="說明文字" />
+							</a>
+						</c:if>
+						</td>
+					</tr>
+					<tr>
+						<c:set var="link" ><cms:contentshow element="CarouselBanner[2]/Link"/></c:set>
+						<c:set var="openType" ><cms:contentshow element="CarouselBanner[2]/OpenType"/></c:set>
+						<c:if test='${fn:indexOf(link,"http") == -1}'><c:set var="linkhref2" ><cms:link>${link}</cms:link></c:set></c:if>
+						<c:if test='${fn:indexOf(link,"http") != -1}'><c:set var="linkhref2" >${link}</c:set></c:if>
+						<td valign="top">
+						<c:choose>
+						       <c:when test='${link== ""}'>無連結</c:when>
+						       <c:otherwise>
+						       		<a href="${linkhref2}"  target="_blank">${link}</a>&nbsp;&nbsp;
+						       		<c:if test="${openType == '_self' }">原視窗</c:if>	
+						       		<c:if test="${openType == '_blank' }">新開視窗</c:if>	
+						       </c:otherwise>
+						</c:choose>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</td>
+		
+		</tr>
+		</c:if>
+		<tr>
+			<td colspan="2"  class="btn-line">			
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/xmlPublishButton.jsp">
+				<cms:param name="fromUrl">${param.fromUrl}</cms:param>
+				<cms:param name="xmlPath">${param.xmlPath}</cms:param>
+			</cms:include>
+			<a href="#" class="button btnCancel">回上頁</a>
+			</td>
+		</tr>
+	</table>
+	</cms:contentload>
+<cms:include property="template" element="foot" /> 

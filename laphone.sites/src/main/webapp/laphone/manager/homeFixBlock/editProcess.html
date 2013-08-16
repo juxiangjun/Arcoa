@@ -1,0 +1,35 @@
+<%@ page buffer="none" import="com.thesys.opencms.xml.*,org.opencms.json.JSONObject,java.util.*,org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*, java.lang.String,org.opencms.workplace.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+
+<%
+
+CmsJspActionElement cms = new CmsJspActionElement(pageContext,request,response);
+CmsObject cmsObj = cms.getCmsObject();
+JSONObject contents = new JSONObject();
+JSONObject properties = new JSONObject();
+
+java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy/MM/dd");
+for (Enumeration params  = request.getParameterNames() ; params.hasMoreElements() ;) {
+	String param = (String)params.nextElement();
+	String val = request.getParameter(param);
+	if(!"xmlPath".equals(param)) {
+		contents.put(param,val);
+	}
+}
+
+ThesysCmsXmlHandler xmlHandler = new ThesysCmsXmlHandler(cms.getCmsObject());
+String xmlPath = request.getParameter("xmlPath");
+String tagXpath ="/";
+
+
+properties.put("FileStatus","changed"); //增加被修改的屬性，供後台偵測
+xmlHandler.update(xmlPath,tagXpath ,contents,properties);
+//out.println("<script>alert('修改成功');location.href='index.html';</script>");
+response.sendRedirect("index.html");
+
+%>
+

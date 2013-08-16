@@ -1,0 +1,54 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<c:choose>
+<c:when test="${empty sessionScope.orderVO}">
+<script>
+alert("網頁已過期，將為您導回首頁");
+location.href="<cms:link>/index.html</cms:link>";
+</script>
+</c:when>
+<c:otherwise>
+<jsp:useBean id="orderVO" scope="session" class="com.thesys.opencms.laphone.order.dao.ThesysOrderVO">
+</jsp:useBean>	
+<jsp:useBean id="stock" scope="request" class="com.thesys.opencms.laphone.product.ThesysStockHandler">		
+<%stock.init(pageContext,request,response);%>				
+</jsp:useBean>
+   
+<c:forEach var="item" items="${orderVO.orderItems}" varStatus="status">
+   <jsp:setProperty name="stock" property="itemId" value="${item.itemId}"/>   
+   <c:set var="stockQuantity" value="${stock.stockQuantity}"/>
+   <c:set var="quantityFlag" value="false"/>
+   <c:if test="${item.quantity> stockQuantity}">
+      <c:set var="quantityFlag" value="true"/>
+      <input type="hidden" id="itemName" name="itemName" value="${item.itemName}"/>
+   </c:if>      
+</c:forEach> 
+</c:otherwise>
+</c:choose>
+<c:choose> 
+   <c:when test="${quantityFlag}">
+   <script>
+      var i, str, obj;  
+      obj = document.getElementsByName('itemName');
+      str=""
+      for(i=0; i< obj.length; i++){  
+         str += obj[i].value + "\n";  
+      }
+      alert(str + "商品庫存數量不足!");
+      location.href="step1.html";
+   </script>  
+   </c:when>    
+   <c:otherwise>
+   <script>       
+      location.href="<cms:link>orderProcess.jsp</cms:link>?tt=<%=(new java.util.Date()).getTime()%>";
+   </script>  
+   <%
+   session.removeAttribute("THESYS_CART_MAP");
+   %>     
+   </c:otherwise>   
+</c:choose> 

@@ -1,0 +1,71 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@page import="com.thesys.opencms.laphone.member.*,com.thesys.opencms.laphone.member.dao.*"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String sslUrl = paramHandler.getValueByParamKey("WEB_URL").replaceAll("http:","https:");
+
+if(session.getAttribute("memberNo") != null){
+	out.print("<script>location.href='/index.jsp';</script>");
+	return;
+}
+String eccode = request.getParameter("eccode");
+String beforePath = request.getParameter("beforePath");
+if(eccode!=null && eccode.indexOf("\"")>=0){
+	out.print("<script>alert('不正常的連結，請從首頁進入系統');location.href='/index.jsp';</script>");
+ 	return;
+}
+if(beforePath!=null && beforePath.indexOf("\"")>=0){
+	out.print("<script>alert('不正常的連結，請從首頁進入系統');location.href='/index.jsp';</script>");
+ 	return;
+}
+%>
+<cms:include property="template" element="head" />
+<div id="content">
+  <div class="main">
+        <h2 class="black">會員登入</h2>
+        <form class="login-form alertForm" name="loginForm" id="loginForm" action="<%=sslUrl%>login/loginProcess.jsp" method="post" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="loginType" value="accountId"/>
+            <input type="hidden" name="eccode" id="eccode" value="${param.eccode}"/>
+ 	    <input type="hidden" name="beforePath" id="beforePath" value="${param.beforePath}" />
+            <ul class="user-form">
+                    <li>
+                        <label>帳　號:</label><input title="帳號" class="required" id="accountId" name="accountId" type="text"  style="text-transform: lowercase"  placeholder="" value=""/>
+                    </li>
+	            <li>
+                        <label>密　碼:</label><input title="密碼" class="required" id="pwd" name="pwd" type="password" placeholder="" value=""/>
+                        <span class="red">(請注意大小寫)</span>
+                    </li>
+                    <c:if test="${sessionScope.loginErrTimes > 1}"><%--圖片驗證機制在二次錯誤後才出現--%>
+                    <li class="verify-line">                    	
+                    	<label>驗證碼:</label>
+	                <p>
+	                        <input type="text" title="驗證碼" class="required length" name="verifyCode" id="verifyCode"  maxlength="6"  autocomplete="off"><br/>	                        	
+	     			<span class="grey8 font13">不分大小寫</span>&nbsp;<a title="更新驗證碼" href="#verifyImage" class="btnRefresh red">更新驗證碼</a>
+	     		</p>
+     		    	<p>
+     		    		<img id="verifyImage" src="<cms:link>/newImage.html?tt=<%=(new java.util.Date()).getTime()%></cms:link>" width="125" >     		    	
+     		    	</p>
+                    </li>
+                    </c:if>
+	            <li class="last-line">
+	            	<p>
+	            		<span><a class="red" href="convertLogin.html">laphone 門市舊會員請由此進入</a><br/></span>
+	            		<span>
+			            	還不是會員！？ 請按此馬上<a class="red" href="<cms:link>/register/step1.html</cms:link>">加入會員</a><br/>
+			            	忘記密碼了，請按此<a class="red" href="forget.html">查詢密碼</a>
+			        </span>
+	                </p>
+	                <p class="btn-line"><a href="#loginForm" class="btnSubmit button">登入</a></p>
+	                <p>
+	                    <img alt="網站身分識別標章" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/identify_icon.jpg</cms:link>" class="login-id-img" />
+	                </p>  
+                   </li>
+                </ul>                
+         </form>
+    </div>
+</div>        
+<cms:include property="template" element="foot" />  

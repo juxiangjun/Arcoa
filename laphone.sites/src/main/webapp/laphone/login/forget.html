@@ -1,0 +1,50 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>		
+<%
+if(session.getAttribute("memberNo") != null){
+	out.print("<script>location.href='/index.jsp';</script>");
+	return;
+}
+%>
+<cms:include property="template" element="head" />
+<div id="content">
+ <div class="main">
+   	<h2 class="black"><cms:property name="Title"/></h2>
+         <form class="forget-form alertForm" name="forgetForm" id="forgetForm" action="forgetProcess.jsp" method="post" enctype="application/x-www-form-urlencoded">
+                <ul class="user-form">
+                    <li>
+                        <label>帳　號:</label><input title="帳號" class="required" id="accountId" name="accountId"  style="text-transform: lowercase" class="accountId" type="text" placeholder="" value=""/>
+                    	<span class="red"></span>
+                    </li>
+                    <li class="verify-line">                    	
+                    	<label>驗證碼:</label>
+	                <p>
+	                        <input title="驗證碼" type="text" class="required" name="verifyCode" id="verifyCode"  class="required verifyCode" title="驗證碼"  maxlength="6"  autocomplete="off"><br/>	                        	
+	     			<span class="grey8 font13">不分大小寫</span>&nbsp;<a title="更新驗證碼" href="#verifyImage" class="btnRefresh red">更新驗證碼</a>
+	     		</p>
+     		    	<p>
+     		    		<img id="verifyImage" src="<cms:link>/newImage.html?tt=<%=(new java.util.Date()).getTime()%></cms:link>" width="125" >     		    	
+     		    	</p>
+                    </li>
+                    <li class="last-line">
+                            <div class="btn-line-right"><a href="#forgetForm" class="btnSubmit button">發送新密碼</a></div>
+                    </li>
+                </ul>
+        </form>
+        <div class="space-line"></div>
+        <div class="msgbar-peach">
+	        <h2>說明</h2>
+	        <p>請輸入您的帳號以及驗證碼，系統將會發送一組新的隨機密碼簡訊至您當初會員資料中所留的手機號碼，請您<a class="red" title="登入" href="<cms:link>/login/</cms:link>">登入</a>後立即進行<a class="red" title="登入" href="<cms:link>/memberCenter/member/changePwd.html</cms:link>">密碼變更</a>。</p>
+	        <p>若仍無法順利取得密碼，請與洽詢<span class="red"><a href="<cms:link>/service/index.html</cms:link>" class="sky">客服中心</a></span>。</p>
+	        <p>未登入狀態下，才可以使用忘記密碼功能重新發送密碼。</p>
+	        <p>密碼查詢，一天以五次為限。</p>
+        </div>
+    </div>
+</div>  
+    
+
+
+<cms:include property="template" element="foot" />  

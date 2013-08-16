@@ -1,0 +1,179 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*,java.net.*,com.thesys.opencms.laphone.util.*,com.thesys.opencms.laphone.member.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>										    						
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+ <jsp:useBean id="cms" class="org.opencms.jsp.CmsJspLoginBean">
+ <% cms.init(pageContext, request, response); %>
+ </jsp:useBean>
+ <c:set var="pageSize" value="50"/>
+ 
+<cms:include property="template" element="head" />
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#importBtn").click(function(){
+	   	if($("#file").val() != ''){
+	   		if($("#file").val().toLowerCase().indexOf(".csv") == -1){
+				alert("檔案必須是csv檔");
+				return;
+			}else{
+				$("#selectForm").attr("enctype","multipart/form-data");
+				$("#selectForm").attr("action","importBlacklist.jsp");
+				$("#selectForm").submit();
+			}
+		}else{
+			alert("請先選擇愈匯入的檔案");
+		}
+	
+	})
+	//example.gif
+})
+</script>  
+<form  id="selectForm" action="<cms:link><cms:info property='opencms.request.uri'/></cms:link>" method="POST">
+<table width="100%">
+
+	  <tr>
+		<td align="right" width="110" class="tr_b">姓名:</td>
+		<td align="left" style="width: 275px" class="tr_b">
+		<input id="username" name="username" class="username" style="width: 203px" type="text"  value="${param.username}" /> &nbsp;</td>
+		<td width="2%">&nbsp;</td>
+		
+		<td rowspan="2" align="right" valign="top" class="tr_b" style="width: 15%">匯入黑名單會員</td>
+		<td width="37%" class="tr_b">
+			<span class="tr_b" style="width: 120px; "><span class="tr_b2" style="width: 120px; ">&nbsp;</span></span>
+		  	<input name="file" id="file" type="file" />
+		  	<a href="example.csv" target="_blank" title="Excel範例下載">範例</a>
+		</td>
+	  </tr>
+	  <tr>
+		<td align="right" class="tr_b2" width="110" style="height: 30px" >
+		帳號:</td>
+		<td align="left" class="tr_b2" style="width: 275px; height: 30px;">
+		<input id="accountId" name="accountId" class="accountId" style="width: 208px" type="text" value="${param.accountId}" /> &nbsp;</td>
+		<td>&nbsp;</td>
+		
+		<td class="tr_b" >
+		  &nbsp;<a href="#" id="importBtn" class="button" >匯入</a> 
+		</td>
+	  </tr>
+	  <tr>
+		<td align="right" width="110" class="tr_b">email:</td>
+		<td align="left" style="width: 275px" class="tr_b">
+		<input id="email" name="email" style="width: 203px" type="text" value="${param.email}"/> &nbsp;</td>
+		<td>&nbsp;</td>
+		
+	  </tr>
+	  <tr>
+		<td align="right" class="tr_b2" width="110" style="height: 30px" >
+		性別:</td>
+		<td align="left" class="tr_b2" style="width: 275px; height: 30px;">
+			<select name="gender" >
+				<option value="0" <c:if test="${param.gender == 0}">selected</c:if> >All</option>
+				<option value="1" <c:if test="${param.gender == 1}">selected</c:if> >男</option>
+				<option value="2" <c:if test="${param.gender == 2}">selected</c:if> >女</option>
+			</select>
+		</td>
+		<td>&nbsp;</td>
+	  </tr>
+	  <tr>
+		<td align="right" width="110" class="tr_b3 tr_b">狀態:</td>
+		<td align="left" style="width: 275px" class="tr_b3 tr_b">
+			<select name="status">
+				<option value="-1" <c:if test="${param.status == -1}">selected</c:if> >所有會員</option>
+				<option value="0" <c:if test="${param.status == 0}">selected</c:if> >一般會員</option>
+				<option value="1" <c:if test="${param.status == 1}">selected</c:if> >黑名單會員</option>
+				<option value="2" <c:if test="${param.status == 2}">selected</c:if> >SMS未認證會員</option>
+			</select>
+		</td>
+		<td>&nbsp;</td>
+	  </tr>
+	  <tr>
+		<td align="right" width="110" class="tr_b2">&nbsp;</td>
+		<td align="left" style="width: 275px" class="tr_b2">
+		<span style="height: 36px"><span style="width: 197px">
+		  <a href="#selectForm" class="button btnSubmit" >查詢</a> 
+		  <span >
+		  <a href="#selectForm" class="button btnReset">清空</a>
+		  </span></span></span></td>
+		<td>&nbsp;</td>
+		<td colspan="2">&nbsp;</td>
+	  </tr>
+
+</table>
+</form>
+<c:if test="${!empty param}">
+<!--如果將要搜尋username 或 email時 則分頁無效-->
+<jsp:useBean id="member" class="com.thesys.opencms.laphone.member.ThesysMemberHandler">
+	<%member.init(pageContext,request,response);%>
+	<jsp:setProperty name="member" property="pageSize" value="${pageSize}"/>
+	<jsp:setProperty name="member" property="pageIndex" param="pageIndex"/>
+	<jsp:setProperty name="member" property="accountId" param="accountId"/>
+	<jsp:setProperty name="member" property="username" param="username"/>
+	<jsp:setProperty name="member" property="email" param="email"/>
+	<jsp:setProperty name="member" property="gender" param="gender"/>
+	<jsp:setProperty name="member" property="status" param="status"/>
+</jsp:useBean>
+
+<c:set var="pageList" value="${member.pageList}" />
+<c:choose>
+    <c:when test="${!empty param.username ||!empty param.email }">
+       <c:set var="itemCount" value="${fn:length(pageList)}"/>
+    </c:when>
+    <c:otherwise>
+	<c:set var="itemCount" value="${member.count}"/>
+    </c:otherwise>
+</c:choose>
+<% //記LOG
+	String cmsuser = cms.getUserName();		
+	org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger("MANAGERMEMBER");
+	int pageIndex = request.getParameter("pageIndex") == null?1:Integer.parseInt(request.getParameter("pageIndex"));
+	int status = request.getParameter("status") == null?0:Integer.parseInt(request.getParameter("status"));
+	String username = request.getParameter("username") ==null ? "" :(String)request.getParameter("username");
+	String accountId = request.getParameter("accountId") ==null ? "" :(String)request.getParameter("accountId");
+	String email = request.getParameter("email") ==null ? "" :(String)request.getParameter("email");
+	int gender = request.getParameter("gender") ==null ? 0 :Integer.parseInt(request.getParameter("gender"));
+	LOG.info("管理員 "+cmsuser+",收詢條件 帳號:"+accountId +";姓名:"+username +";email:"+email +";性別:"+gender+";狀態:"+status);
+%>
+<div style="padding-top: 15px">
+	<table id="ctl00_MainContent_GridView1" border="0" cellpadding="0" cellspacing="0" class="table" rules="all" style="border-collapse: collapse;">
+		<tbody>
+		<tr>
+			<th scope="col" ></th>
+			<th scope="col">身份證</th>
+			<th scope="col">姓名</th>
+			<th scope="col">電話</th>
+			<th scope="col">狀態</th>
+			<th scope="col">建立日期</th>
+		</tr>
+		<c:set var="itemNum" >1</c:set>
+		<c:forEach var="item" items="${pageList}" varStatus="status">
+		<tr class="<c:if test="${itemNum%2==1}">tr_b</c:if><c:if test="${itemNum%2==0}">tr_a</c:if>">
+			<td><a href="MemberDetail.html?sno=${item.memberNo}">檢視</a></td>
+			<td>${fn:substring(item.idNo,0,6)}xxxx</td>
+			<td>${item.username}</td>
+			<td>${item.cellphone}</td>
+			<td>
+				<c:if test="${item.status == 0}">一般會員</c:if>
+				<c:if test="${item.status == 1}">黑名單會員</c:if>
+				<c:if test="${item.status == 2}">SMS未認證</c:if>
+			</td>
+			<td><fmt:formatDate value="${item.createDate}" type="both" pattern="yyyy/MM/dd a hh:mm:ss"/></td>
+		</tr>
+		<c:set var="itemNum">${itemNum+1}</c:set>
+		</c:forEach>	
+		<tr>
+			<c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>
+			<c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<td colspan="6" style="border-bottom: none">
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+	</tbody>
+	</table>
+</div>
+</c:if>
+<cms:include property="template" element="foot" /> 

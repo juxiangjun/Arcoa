@@ -1,0 +1,57 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.jsp.*, java.util.*,com.thesys.opencms.laphone.order.dao.*,com.thesys.opencms.laphone.util.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%!
+public String getReceiverStr(String receiver){
+	String result = "";
+	if(receiver!=null){
+		receiver = receiver.trim();
+		for(int i=0;i<receiver.length();i++){
+			String str = receiver.substring(i,i+1);
+			result += ((i==0)?str:"X");
+		}
+	}
+	return result;
+}
+public String getProductList(List plist){
+	String result = "";
+	if(plist!=null && plist.size()>0){
+		for(int i=0;i<plist.size();i++){
+			ThesysOrderItemVO vo = (ThesysOrderItemVO)plist.get(i);
+			String itemName = vo.getItemName();
+			if(itemName!=null && itemName.length()>=10){
+				result += itemName.substring(0,10) + "***********" + " X " + vo.getQuantity() + "<br>";
+			} else if(itemName!=null && itemName.length()>=5) {
+				result += itemName.substring(0,5) + "***********" + " X " + vo.getQuantity() + "<br>";
+			} else if(itemName!=null && itemName.length()>=1) {
+				result += itemName.substring(0,1) + "***********" + " X " + vo.getQuantity() + "<br>";
+			}
+		}
+	}
+	return result;
+}
+%>
+<%
+if(false && request.getParameter("orderId")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+<%orderHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+
+<c:if test="${param.act=='update'}">
+	<jsp:setProperty name="orderHandler" property="orderIds" param="checkOrderIds"/>
+	<%
+	if( orderHandler.checkOrder() >0){
+		out.println("<script>alert(\"審核成功\");location.href='index.html';</script>");
+	}else{
+		out.println("<script>alert(\"審核失敗\");location.href='index.html';</script>");
+	}
+	%>
+</c:if>

@@ -1,0 +1,19 @@
+<%@ page import="java.util.*,com.thesys.opencms.laphone.util.*,org.opencms.json.*" %>
+<%
+
+	Calendar ca = Calendar.getInstance();
+	String date = ca.get(Calendar.YEAR)+"年"+(ca.get(Calendar.MONTH)+1)+"月"+ca.get(Calendar.DATE)+"日"+ca.get(Calendar.HOUR_OF_DAY)+":"+ca.get(Calendar.MINUTE);
+
+	JSONObject jsonObj = new JSONObject();
+	jsonObj.put("date",date );
+	jsonObj.put("serviceURL","http://192.168.7.9:8080/shopping/service/");
+	jsonObj.put("pwd","sdfas2" );
+	
+ThesysSendMsgHandler handler = new ThesysSendMsgHandler(pageContext,request,response);
+	handler.setMsgName("changePwd");
+	handler.setJsonObj(jsonObj);
+	//handler.setCellphone("0953815198");
+	handler.setEmail("jack@thesys.com.tw");
+	handler.setMemberId("jack03");
+	handler.sendMsg();
+%>

@@ -1,0 +1,447 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="com.thesys.opencms.laphone.order.dao.*,org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+
+%>
+<%
+session.removeAttribute("orderVO");
+%>
+<jsp:useBean id="cart" class="com.thesys.opencms.laphone.cart.ThesysCartHandler">
+<%cart.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:useBean id="stock" scope="request" class="com.thesys.opencms.laphone.product.ThesysStockHandler">
+	<%stock.init(pageContext,request,response);%>				 
+</jsp:useBean>
+<%
+if(cart.getCount()==0){
+%>
+<script>
+	alert("購物車目前無商品");
+	location.href="step1.html";
+</script>
+<%
+	return;
+}
+%>
+<jsp:useBean id="memberHandler" class="com.thesys.opencms.laphone.member.ThesysMemberHandler">
+<%memberHandler.init(pageContext,request,response);%>
+<jsp:setProperty name="memberHandler" property="memberNo" value="${sessionScope.memberNo}"/>
+</jsp:useBean>
+<c:set var="member" value="${memberHandler.selectedMember}"/>
+<c:if test="${member.status == 2}">
+	<script>
+		alert("此帳號尚未簡訊驗證，請先驗證");
+		location.href="<cms:link>/login/verify.html</cms:link>?dt="+new Date().getTime();
+	</script>
+</c:if>
+<c:if test="${member.status == 1}">
+	<script>
+		alert("此帳號為禁止交易");
+		location.href="<cms:link>/index.html</cms:link>";
+	</script>
+</c:if>
+<jsp:useBean id="couponHandler" class="com.thesys.opencms.laphone.promote.ThesysCouponHandler">
+<%couponHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:useBean id="orderVO" scope="session" class="com.thesys.opencms.laphone.order.dao.ThesysOrderVO"/>
+<jsp:setProperty name="orderVO" property="*" />
+<jsp:setProperty name="orderVO" property="memberId" value="${member.accountId}"/>
+<jsp:setProperty name="orderVO" property="memberPid" value="${fn:substring(member.idNo,6,10)}"/>
+<jsp:setProperty name="orderVO" property="memberName" value="${member.username}"/>
+<jsp:setProperty name="orderVO" property="memberMobile" value="${member.cellphone}"/>
+<jsp:setProperty name="orderVO" property="memberEmail" value="${member.email}"/>
+<jsp:setProperty name="orderVO" property="receiver" value="${member.username}"/>
+<jsp:setProperty name="orderVO" property="recMobile" value="${member.cellphone}"/>
+<jsp:setProperty name="orderVO" property="recEmail" value="${member.email}"/>
+<jsp:setProperty name="orderVO" property="recZipCode" value="${member.zipCode}"/>
+<jsp:setProperty name="orderVO" property="recCounty" value="${member.zipCounty}"/>
+<jsp:setProperty name="orderVO" property="recArea" value="${member.zipArea}"/>
+<jsp:setProperty name="orderVO" property="recAddress" value="${member.fullAddress}"/>
+<%/**取得coupon**/%>
+<jsp:setProperty name="couponHandler" property="couponCode" value="${orderVO.couponCode}"/>
+<jsp:setProperty name="orderVO" property="coupon" value="${couponHandler.selectedCoupon}"/>
+   
+<%/**將購物車內容轉移至ordervo**/%>
+<jsp:useBean id="orderItems" scope="request" class="java.util.ArrayList"/>
+<c:forEach var="item" items="${cart.items}" varStatus="status">	
+	<%
+	ThesysOrderItemVO orderItem = new ThesysOrderItemVO();
+	pageContext.setAttribute("orderItem",orderItem );
+	%>
+	
+	<jsp:setProperty name="orderItem" property="itemId" value="${item.key}"/>	
+	<jsp:setProperty name="orderItem" property="quantity" value="${item.value}"/>
+	<jsp:setProperty name="stock" property="itemId" value="${item.key}"/> 
+	<c:set var="stockQuantity" value="${stock.stockQuantity}"/>  
+	<c:if test="${item.value > stockQuantity || stockQuantity == 0 || item.value == 0 }">
+		<script>
+			alert("商品數量錯誤");
+			history.go(-1);
+		</script>
+	</c:if>
+	<c:set var="productCode" value="${fn:replace(fn:replace(orderItem.itemId,'-','_'),'+','_')}"/>
+	<c:set var="xmlPath" value="/product/${productCode}.html"/>
+	<cms:contentload collector="singleFile" param="${xmlPath}" editable="false">  
+		<cms:contentaccess var="content" />	
+		<jsp:setProperty name="orderItem" property="itemName" value="${content.value['ProductName'].stringValue}"/>
+		<jsp:setProperty name="orderItem" property="specialPrice" value="${content.value['SpecialPrice'].stringValue}"/>
+		<jsp:setProperty name="orderItem" property="cvsShipFlag" value="${content.value['CVSShipFlag'].stringValue}"/>
+		<c:if test="${!orderItem.cvsShipFlag}"><jsp:setProperty name="orderVO" property="cvsShipFlag" value="false"/></c:if>
+		<jsp:setProperty name="orderItem" property="couponCountFlag" value="${content.value['CouponCountFlag'].stringValue}"/>
+		<jsp:setProperty name="orderItem" property="couponUseFlag" value="${content.value['CouponUseFlag'].stringValue}"/>
+		<jsp:setProperty name="orderItem" property="installments" value="${content.value['Installment'].stringValue}"/>		
+		<jsp:setProperty name="orderItem" property="groupFlag" value="${content.value['GroupFlag'].stringValue}"/>
+		<c:if test="${orderItem.groupFlag}"><%/**組合商品*/%>
+			<%
+			List<ThesysOrderItemDetailVO> itemDetailList = new ArrayList<ThesysOrderItemDetailVO>();
+			pageContext.setAttribute("itemDetailList",itemDetailList );
+			%>
+			<cms:contentloop element="GroupItem">				
+				<%
+				ThesysOrderItemDetailVO detailItem = new ThesysOrderItemDetailVO();
+				pageContext.setAttribute("detailItem",detailItem );
+				%>
+				<jsp:setProperty name="detailItem" property="groupId" value="${orderItem.itemId}"/>
+				<c:set var="detailId"><cms:contentshow element="GroupSapProductCode"/></c:set>				
+				<jsp:setProperty name="detailItem" property="detailId" value="${detailId}"/>
+				<c:set var="specialPrice"><cms:contentshow element="SpecialPrice"/></c:set>	
+				<jsp:setProperty name="detailItem" property="specialPrice" value="${specialPrice}"/>			
+				<c:set var="groupPrice"><cms:contentshow element="GroupPrice"/></c:set>	
+				<jsp:setProperty name="detailItem" property="groupPrice" value="${groupPrice}"/>			
+				<c:set var="groupQuantity"><cms:contentshow element="GroupQuantity"/></c:set>	
+				<jsp:setProperty name="detailItem" property="groupQuantity" value="${groupQuantity}"/>
+				<%/**取得是否計算coupon**/%>				
+				<c:set var="detailProductCode" value="${fn:replace(fn:replace(detailItem.detailId,'-','_'),'+','_')}"/>				
+				<cms:contentload collector="singleFile" param="/product/${detailProductCode}.html" editable="false">
+					<cms:contentaccess var="detailContent" />	
+					<jsp:setProperty name="detailItem" property="couponCountFlag" value="${detailContent.value['CouponCountFlag'].stringValue}"/>
+				</cms:contentload> 
+				<%itemDetailList.add(detailItem);%>
+			</cms:contentloop>
+			<jsp:setProperty name="orderItem" property="itemDetailList" value="${itemDetailList}"/>
+		
+		</c:if>
+	</cms:contentload>
+	<%orderItems.add(orderItem);%>
+</c:forEach>
+<jsp:setProperty name="orderVO" property="orderItems" value="${orderItems}"/> 
+<%orderVO.countOrder();//計算金額%>
+<cms:include property="template" element="head" /> 
+   <div id="shoppingCart">
+            <h2>購物步驟</h2>
+
+            <ul id="stepNav">
+                <li class="step0"><span class="success"></span></li>
+                <li class="step1"><span class="success"></span></li>
+                <li class="step2"><span class="current"></span></li>
+                <li class="step3"><span></span></li>
+                <li class="step4"><span></span></li>
+                <li class="step5"><span></span></li>
+            </ul>
+            
+            <h2>購物明細</h2>  
+    	    <table class="shopping-box">
+    		<tr class="header">
+            		<td class="photo">商品圖片</td>
+                        <td class="productName">產品名稱</td>
+                        <td class="price">價格</td>
+                        <td class="quantity">數量</td>
+                        <td class="total">小計</td>
+                </tr>
+                <c:forEach var="item" items="${orderVO.orderItems}" varStatus="status">
+	        	<c:set var="productCode" value="${fn:replace(fn:replace(item.itemId,'-','_'),'+','_')}"/>	        	  	
+                <tr>
+            		<td class="photo">
+            			<img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="${item.itemName}" width="124" height="100"/>
+            		</td>
+                        <td class="productName">${item.itemName}</li>
+                        <td class="price">優惠價 NT$ 
+		    		<fmt:formatNumber value="${item.specialPrice}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    	</td>
+                        <td class="quantity">${item.quantity}</li>
+                        <td class="total"> NT$ 
+                        	<fmt:formatNumber value="${item.specialPrice*item.quantity}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    	</td>
+                </tr> 
+                </c:forEach>               
+        </table>
+        <div class="totalAmountBar">
+       		<div>購物車內合計有 <span class="red">${orderVO.totalQuantity}</span> 項商品，消費總金額 <span  class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.totalAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元 (未含手續費) </div>
+ 	</div> 
+ 	<h2>選擇優惠方式</h2>
+        <div class="couponBar">
+       		<div>
+       		<c:choose><c:when test="${!empty orderVO.coupon}">
+       		使用抵用券<span  class="money"><sup>NT$</sup>${orderVO.couponAmount}</span>元 （配件類商品小計<span  class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.couponUseAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元 最高可折抵 <span  class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.coupon.couponAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元）
+       		</c:when>
+       		<c:otherwise>
+       		未使用抵用券
+       		</c:otherwise></c:choose>
+       		</div>
+ 	</div> 
+ 	<form id="orderForm" method="POST" action="<cms:link>step3.html</cms:link>"> 	
+ 	<div class="space-line"></div>
+ 	<h2>選擇取貨方式</h2>
+
+<script>
+$(function(){
+	$(".cvsStoreSelect").each(function(){
+		var id = $(this).attr("id");    	
+		$(this).twzipcode({
+			css:['cvs-county','cvs-area','cvs-zipcode'],
+			countyName: id+'_county',
+			areaName: id+'_area',
+			zipName: id+'_zipcode',
+			zipReadonly:true
+		}); 
+	});
+	$(".cvs-area").change(function(){
+		var parent = $(this).parents("li:first");
+		var storeType =  parent.find(".shipType:first").val();
+		var zipCode = parent.find(".cvs-zipcode:first").val();
+		var storeObj = parent.find(".storeSelect:first");
+		$.ajax({
+		    url: '<cms:link>/system/modules/com.thesys.opencms.laphone/jsps/cvsStores.jsp</cms:link>',
+		    type: "POST",
+		    data: { zipCode: zipCode ,storeType:storeType },
+		    success: function (msg) {
+		    	storeObj.children().remove().end().append(msg);
+		    }
+		});
+	});
+	$(".ship-detail").hide();
+	$(".detail_W").hide();
+	$(".shipType").change(function(){
+		$(".ship-detail").hide();
+		$(".ship-detail").find(":input").each(function(){
+			$(this).val("");
+			$(this).trigger('change');
+			$(this).attr('disabled',true);
+			$(this).removeClass("required");
+		});
+		
+		$(".detail_W").find(":input").each(function(){
+			$(this).val("");
+			$(this).trigger('change');
+			$(this).attr('disabled',true);
+			$(this).removeClass("required");
+		});
+		$(".detail_W").hide();
+		var val = $(this).val();
+		$(".detail_"+val).find(":input").each(function(){
+			$(this).attr('disabled',false);
+			if(val =="W"){
+				if($(this).attr("name")!='recNote'){
+					$(this).addClass("required");
+				}
+			}else if($(this).hasClass("storeSelect")){
+				$(this).addClass("required");
+			}
+		});
+		if(val =="W"){			
+			twzip();
+			$("#recTime").val("不限");
+			$("#divEqRecAddr").show(); //顯示同收件地址checkbox
+		}else{
+			$(".recZipCodeSelect").html(""); //清空Span，否則會一直增加select
+			$("#eqRecAdd").attr('checked',false);//取消同收件地址checkbox
+			$("#divEqRecAddr").hide(); //隱藏同收件地址checkbox
+		}
+		$(".detail_"+val).show();
+	});		
+	$(".shipType:first").trigger('change');
+	$(".invoiceType").change(function(){
+		var invoice = $(this).val();
+		if(invoice==2){ //二聯
+				$(".invoice-3").find(":input").val("");
+				$(".invoice-3").find(":input").removeClass("required");
+		}else{ //三聯
+			$(".invoice-2").find(":input").val("");
+			$(".invoice-3").find(":input").addClass("required");
+		}
+	});
+	//同收件地址
+	$("#eqRecAdd").click(function(){
+		if($(this).attr('checked') == 'checked'){
+			var fullAddr = $(".addr-county").val() +$(".addr-area").val()+$("#recAddress").val();
+			$("input[name=invoiceAddress]").val(fullAddr );
+		}
+	})
+
+});
+function twzip(){
+	var required = ($(".recZipCodeSelect").hasClass("required")?" required":"");
+ 	$(".recZipCodeSelect").twzipcode({
+		css:['addr-county','addr-area'+required,'addr-zipcode'],
+		countyName: 'recCounty',
+		areaName: 'recArea',
+		zipName: 'recZipCode',
+		countySel:$('#recCountyDef').val(),
+		areaSel: $('#recAreaDef').val(),
+		zipSel: $('#recZipCodeDef').val(),
+		zipReadonly:true
+	});
+	$("#recAddress").val($("#recAddressDef").val());
+}
+</script>	
+ 	<ul class="shippingTypeBox">
+<%-- //2013/02/07暫時隱藏便利商店功能 
+ 		<c:if test="${orderVO.cvsShipFlag }">
+ 		<li>
+ 			<input type="radio"  class="shipType" name="shipType" value="F" <c:if test="${orderVO.cvsShipFlag}">checked</c:if>/>&nbsp;&nbsp;全家便利商店。(滿488元以上免物流處理費) <a href="javascript:" class="red">看詳情</a>
+ 			<div class="ship-detail detail_F">
+	                    到店取貨，選擇店別
+	                    <div>請選擇取貨縣市：<span class="cvsStoreSelect" id="familyStore"></span><br/>
+	                    請選擇：
+	                        <select name="cvsStoreNo" id="cvsStoreNo" class="storeSelect">
+	                            <option value="">門市</option>
+	                        </select>
+	                    </div>
+	                </div>
+ 		</li>
+ 		<li>
+ 			<input type="radio"  class="shipType" name="shipType" value="K"/>&nbsp;&nbsp;OK超商。(滿488元以上免物流處理費) 
+ 			<a href="javascript:" class="red">看詳情</a>
+ 			<div class="ship-detail detail_K">
+	                    到店取貨，選擇店別
+	                    <div>請選擇取貨縣市：<span class="cvsStoreSelect" id="okStore"></span><br/>
+	                    請選擇：
+	                        <select name="cvsStoreNo" id="cvsStoreNo" class="storeSelect">
+	                            <option value="">門市</option>
+	                        </select>
+	                    </div>
+	                </div>
+ 		</li>
+ 		<li>
+ 			<input type="radio"  class="shipType" name="shipType" value="L"/>&nbsp;&nbsp;萊爾富便利商店。(滿488元以上免物流處理費) 
+ 			<a href="javascript:" class="red">看詳情</a>
+ 			<div class="ship-detail detail_L" >
+	                    到店取貨，選擇店別
+	                    <div>請選擇取貨縣市：<span class="cvsStoreSelect" id="hilifeStore"></span><br/>
+	                    請選擇：
+	                        <select name="cvsStoreNo" id="cvsStoreNo" class="storeSelect">
+	                            <option value="">門市</option>
+	                        </select>
+	                    </div>
+	                </div>
+ 		</li>
+ 		</c:if>
+										/******如要打開便利商店功能需將下方的 "true || " 拿掉*****/
+--%> 		
+ 		<li><input type="radio"  class="shipType" name="shipType" value="W"  <c:if test="${true || !orderVO.cvsShipFlag}">checked</c:if>/>&nbsp;&nbsp;國內宅配。</li>
+ 	</ul>
+				
+ 	
+ 	<div class="space-line"></div>
+ 	<h2>收貨人資料</h2>
+ 	<table class="recipient">
+            <tr>
+                <th><span class="red0">*</span>姓名</th>
+                <td>
+                    <input name="receiver" type="text" value="${orderVO.receiver}" placeholder="" class="required"/>(全名)</td>
+            </tr>      
+            <tr>
+               <th>
+                    <span class="red0">*</span>連結電話</th>
+                <td>
+                    手機<input name="recMobile" type="text" value="${orderVO.recMobile}" placeholder=""  class="required mobile" maxlength="10"/>
+                    市話<input name="recPhone" type="text" value="" placeholder=""  class="number" maxlength="11"/>(可不填)</td>
+            </tr>      
+            <tr>
+               <th>
+                    <span class="red0">*</span>收貨人電子郵件E-mail</th>
+                <td>
+                    <input name="recEmail" type="text" value="${orderVO.recEmail}"  class="required email"/></td>
+            </tr>   
+            <input type="hidden" id="recZipCodeDef" value="${orderVO.recZipCode}">
+            <input type="hidden" id="recCountyDef" value="${orderVO.recCounty}">
+     	    <input type="hidden" id="recAreaDef" value="${orderVO.recArea}">     
+       	    <input type="hidden" id="recAddressDef" value="${orderVO.recAddress}">  
+            <tr class="detail_W">
+               <th>
+                    <span class="red0">*</span>收件地址</th>
+                <td>
+                    <span class="zip">郵遞區號:</span>                  
+                   
+                    <span id="addr" class="recZipCodeSelect required"></span>
+                    <input type="text" id="recAddress" value="" name="recAddress"/>
+                </td>
+	    </tr>   
+            <!--<tr class="detail_W">
+               <th>
+                    <span class="red0">*</span>送貨時段</th>
+                <td><select name="recTime" id="recTime">
+                	<option value="不限" selected>不限</option>
+                	<option value="上午">上午</option>
+                	<option value="下午">下午</option>
+                	<option value="晚上">晚上</option>
+                </select></td>
+            </tr>   -->
+            <tr class="detail_W">
+                <th> 
+                    <span class="red0"></span>備註資料</th>
+                <td><input name="recNote" type="text" value="" maxlength="40" size="40" /></td>
+            </tr>  
+        </table>        
+ 	<div class="space-line"></div>
+        <h2>發票資訊</h2>
+        <table class="invoice">
+            <tr>
+                <th>
+                <input type="radio" class="invoiceType required" name="invoiceType" value="2" checked/>&nbsp;&nbsp;&nbsp;&nbsp;二聯式發票</th>
+                <td  class="invoice-2">
+                    <span class="highlight">買受人姓名:<input name="invoiceBuyer" type="text" value="" placeholder="" maxlength="10"/>&nbsp;&nbsp;(可不填)</span></td>
+            </tr> 
+             <tr>
+             	<td colspan="2"><div class="dotted-line"></div></td>
+            </tr>
+            <tr>
+                <th>
+                <input type="radio" class="invoiceType required" name="invoiceType" value="3"/>&nbsp;&nbsp;&nbsp;&nbsp;三聯式發票</th>
+                <td class="invoice-3">
+                    <span class="red0">&nbsp;*&nbsp;</span>統一編號:<input name="companyNo" type="text" value="" placeholder="" class="number" maxlength="8"/></td>
+            </tr>        
+            <tr>
+                <th></th>
+                <td class="invoice-3">
+                    <span class="red0">&nbsp;*&nbsp;</span>發票抬頭:<input name="companyName" type="text" value="" placeholder="" maxlength="40"/>&nbsp;&nbsp;限40個全形文字，若抬頭字數超過，請電洽客服人員處理。</td>
+            </tr>    
+            <tr>
+                <th></th>
+                <td class="invoice-3">
+                    <span class="red0">&nbsp;*&nbsp;</span>發票地址:<input style="width:360px" name="companyAddress" type="text" value="" placeholder=""/></td>
+            </tr>
+             <tr>
+             	<td colspan="2"><div class="dotted-line"></div></td>
+            </tr>
+            <tr>
+                <th><span class="red0">&nbsp;*&nbsp;</span>發票寄送地址:</th>
+                <td>
+                    <input style="width:413px" name="invoiceAddress" class="required" type="text" value="" placeholder=""/>
+                    <span id="divEqRecAddr"><input type="checkbox" id="eqRecAdd"/>同收件地址</span>
+                </td>
+            </tr>
+             <tr><td colspan="2">
+                <div class="invoice-notice">
+                    依統一發票使用辦法規定:個人戶(二聯式)發票一經開立，不得任意更改或改開公司戶(三聯式)發票。
+                </div>
+             </td></tr>
+        </table>
+ 	</form>
+     </div> 
+     <div id="shoppingButton">
+     	<ul>
+            <li class="btnPrev"><a href="step1.html">上一步</a></li>
+            <li class="btnNext"><a href="#orderForm" class="btnSubmit">下一步</a></li>
+        </ul>
+     </div>
+<cms:include property="template" element="foot" /> 

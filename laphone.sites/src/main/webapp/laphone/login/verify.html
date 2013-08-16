@@ -1,0 +1,65 @@
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@page import="com.thesys.opencms.laphone.member.*,com.thesys.opencms.laphone.member.dao.*"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<jsp:useBean id="memberhandler" class="com.thesys.opencms.laphone.member.ThesysMemberHandler">
+	<%memberhandler.init(pageContext,request,response);%>
+	<jsp:setProperty name="memberhandler" property="memberNo" value="${memberNo}"/>
+</jsp:useBean>
+<%
+	int memberStatus = memberhandler.getSelectedMemberStatus();
+	if(memberStatus== 0){
+	  	out.print("<script>alert('此帳號已驗證');location.href='../index.html';</script>");
+	  	return;
+	} 
+%>	
+<cms:include property="template" element="head" />
+<div id="content">
+  <div class="main">  
+	<h2 class="black">會員認證</h2>
+	<form class="verify-form alertForm" name="verifyForm" id="verifyForm" action="verifyProcess.jsp" method="post" enctype="application/x-www-form-urlencoded">
+            <ul class="user-form">
+            	<li class="title-line">
+	            	<h3 class="red font16">您的帳戶尚未驗證</h3>
+	            	<p class="black font12">請輸入簡訊驗證碼</p>
+            	</li>
+                <li>
+                    <label>簡訊驗證碼:</label><input title="簡訊驗證碼" id="validationCode" class="required validationCode" name="validationCode" type="text" placeholder="" value=""/> 
+                </li>
+                <c:if test="${sessionScope.smsErrTimes > 1}">
+                <li class="verify-line">                    	
+                    	<label>驗　證　碼:</label>
+	                <p>
+	                        <input type="text" id="驗證碼" name="verifyCode" id="verifyCode"  class="required verifyCode" title="驗證碼"  maxlength="6"  autocomplete="off"><br/>	                        	
+	     			<span class="grey8 font13">不分大小寫</span>&nbsp;<a title="更新驗證碼" href="#verifyImage" class="btnRefresh red">更新驗證碼</a>
+	     		</p>
+     		    	<p>
+     		    		<img id="verifyImage" src="<cms:link>/newImage.html?tt=<%=(new java.util.Date()).getTime()%></cms:link>" width="125" >     		    	
+     		    	</p>
+                </li>
+                </c:if>
+                <li class="last-line">
+                   <div class="btn-line-center">
+	                <a href="<cms:link>/memberCenter/member/modify/</cms:link>" class="button">修改會員資料</a>&nbsp;
+	                <a href="reSendSMScode.jsp" class="button">重新發送驗證簡訊</a>&nbsp;
+	                <a href="#verifyForm" class="button btnSubmit">馬上驗證</a>
+                    </div>
+                </li>
+               </ul>
+            </form>
+            <div class="space-line"></div>
+            <div class="notice-box">
+            	<ul class="disc">
+	        <li class="header">驗證說明</li>	        
+	        <li>laphone 網路購物採用會員手機認證碼來啟用會員身份，您必須輸入會員手機認證簡訊中的認證碼來啟用您的laphone 會員身份。</li>
+	        <li>若您的手機號碼已變更，可至「<a href="account_auth.html">會員資料</a>」修改會員資料中進行變更，在您變更手機號碼後，系統會自動發送會員手機認證簡訊到您所填寫的手機號碼，請於收到簡訊認證碼後「<a href="memberLogin.html">登入</a>」會員中心，並輸入簡訊認證碼，以啟用您的會員身份。在您會員身份未啟用前將無法進行購物車結帳。</li>
+	        <li>會員手機認證簡訊碼有效期限為24小時，若您的手機認證簡訊碼已失效，可透過「<a href="javascript:">重新發送會員手機認證簡訊</a>」重新發送一封新的會員手機認證簡訊到您的手機。</li>
+	        </ul>
+	    </div>
+       </div>
+    </div>
+    
+       
+<cms:include property="template" element="foot" />  

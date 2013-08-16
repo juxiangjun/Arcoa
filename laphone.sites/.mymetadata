@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="sites"
+  id="myeclipse.1376531845090"
+  context-root="/sites"
+  j2ee-spec="6.0"
+  archive="sites.war">
+  <attributes>
+    <attribute name="webrootdir" value="src/main/webapp" />
+  </attributes>
+</project-module>
+

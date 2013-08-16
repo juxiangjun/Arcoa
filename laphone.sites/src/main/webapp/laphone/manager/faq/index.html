@@ -1,0 +1,148 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<%
+String faqFolder = "/faq";
+pageContext.setAttribute("faqFolder",faqFolder+"/" );
+pageContext.setAttribute("subFolderList",cms.getCmsObject().getSubFolders(faqFolder )); 
+
+%>
+<c:set var="pageIndex">${(empty param.pageIndex)?1:param.pageIndex}</c:set>
+<c:set var="pageSize">50</c:set>
+<form id="searchForm" method="post" action="<cms:info property="opencms.uri"/>">		
+<table align="center" css="table">
+	<tr class="tr_b2">
+		<td align="right" class="tr_b" style="width: 81px">類別:</td>
+		<td align="left" class="tr_b" width="370">
+		<select name="selectFolder">
+		<option value="/faq">所有</option>
+		<c:forEach var="folder" items="${subFolderList}">
+			<c:set var="tmpFolder" value="${faqFolder}${folder.name}/"/>
+		<option value="${tmpFolder}" <c:if test="${tmpFolder==param.selectFolder}">selected</c:if>><cms:property name="Title" file="${tmpFolder}"/></option>
+		</c:forEach>
+		</select>
+		</td>
+	</tr>
+	<tr>
+	    <td align="right" class="tr_b2">狀態:</td>
+	    <td class="tr_b2">
+	    	<select name="fileStatus" style="width: 105px;">
+	    		<option value="">全部</option>
+	    		<option value="new" <c:if test="${param.fileStatus=='new'}">selected</c:if>>新增待發佈</option>
+	    		<option value="changed" <c:if test="${param.fileStatus=='changed'}">selected</c:if>>修改待發佈</option>
+	    		<option value="deleted" <c:if test="${param.fileStatus=='deleted'}">selected</c:if>>刪除待發佈</option>
+	    		<option value="published" <c:if test="${param.fileStatus=='published'}">selected</c:if>>無異動</option>
+	    	</select>
+	    </td>	    
+	</tr>
+	
+	<tr>
+	    <td align="center" colspan="2">	    	
+		<a href="#searchForm" class="button btnSubmit">查詢</a>
+		<a href="addForm.html" class="button">新增</a>
+		<a href="categoryList.html" class="button">類別維護</a>
+	    </td>
+	</tr>
+</table>
+</form>
+<div style="padding-top: 15px">
+	<table class="list-table" border="0" cellpadding="0" cellspacing="0">
+		<tbody>
+		<tr>
+			<th class="w100">狀態</th>
+			<th class="w100">類別</th>
+			<th class="w200">問題</th>
+			<th class="w250">答案</th>
+		</tr>
+	<c:set var="selectFolder" value="${param.selectFolder}"/>
+	<c:if test="${empty selectFolder}"><c:set var="selectFolder" value="${faqFolder}"/></c:if>
+	<jsp:useBean id="search" scope="request" class="org.opencms.search.CmsSearch">
+		<jsp:setProperty name="search" property="index" value="OFFLINE_FAQ_INDEX"/>
+		<jsp:setProperty name="search" property="matchesPerPage" value="${pageSize}"/>
+		<jsp:setProperty name="search" property="searchPage" param="pageIndex"/>
+		<jsp:setProperty name="search" property="displayPages" value="100"/>
+		<jsp:setProperty name="search" property="searchRoot" value="${selectFolder}"/>
+		<c:if test="${!empty param.fileStatus}">
+			<c:set var="query">(FileStatus:"${param.fileStatus}")</c:set>				
+		</c:if>
+		<c:if test="${empty param.fileStatus}">
+			<c:set var="query">(FileStatus:"new") OR (FileStatus:"changed") OR (FileStatus:"deleted") OR (FileStatus:"published") </c:set>				
+		</c:if>
+		<%
+		search.init(cms.getCmsObject());
+		CmsSearchParameters params = search.getParameters();
+		params.setQuery((String)pageContext.getAttribute("query"));
+		search.setParameters(params);
+		search.setSortOrder(CmsSearchParameters.SORT_DATE_CREATED);
+		%>
+	</jsp:useBean>
+	<c:set var="searchResult" value="${search.searchResult}"/>
+	<c:choose>
+		<c:when test="${!empty searchResult}">
+			<c:forEach var="entry" items="${searchResult}" varStatus="status">
+				<c:set var="xmlPath" value="${fn:replace(entry.path,cms.requestContext.siteRoot,'')}"/>
+				<jsp:useBean id="date" class="java.util.Date" /> 
+			<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+		<tr class="tr_${(status.index%2==0)?"a":"b"}">
+			<td>
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/xmlListButton.jsp">
+				<cms:param name="rowId">${status.index+1}</cms:param>
+				<cms:param name="fromUrl"><cms:info property="opencms.uri"/></cms:param>
+				<cms:param name="xmlPath">${xmlPath}</cms:param>
+				<cms:param name="editUrl"><cms:link>editForm.html</cms:link></cms:param>
+				<cms:param name="publishUrl"><cms:link>publishForm.html</cms:link></cms:param>
+				<cms:param name="deleteButton">true</cms:param>
+			</cms:include>
+			</td>
+			<td>
+				<c:set var="xmlPath"><cms:contentshow element="%(opencms.filename)"/></c:set>
+	            	    	<c:set var="xmlFolder" value=""/>            	    
+	            	    	<c:forTokens items="${xmlPath}" delims="/" var="tmp">
+	            	    		<c:if test="${!fn:endsWith(tmp,'.html')}"><c:set var="xmlFolder" value="${xmlFolder}/${tmp}"/></c:if>
+	            	    	</c:forTokens>
+				<cms:property name="Title" file="${xmlFolder}"/>
+			</td>
+			<td>
+				<cms:contentshow element="Question"/></td>
+			<td>
+				<c:set var="shortAnswer"><cms:contentshow element="ShortAnswer"/></c:set>
+				${fn:substring(shortAnswer,0,50)}<c:if test="${fn:length(shortAnswer)>50}">...</c:if>
+			</td>
+		</tr>
+			</cms:contentload>
+			</c:forEach>
+		</c:when>
+		<c:otherwise>	
+			<tr><td colspan="9">無相關問與答</td></tr>
+		</c:otherwise>
+	</c:choose>
+		<tr>
+			<td colspan="5" style="border-bottom: none">
+				<c:if test="${empty search.pageLinks && search.searchResultCount>0}">
+					<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+						<cms:param name="pageCount">1</cms:param>
+					</cms:include>
+				</c:if>
+				<c:if test="${not empty search.pageLinks}">
+					<c:forEach var="pagelink" items="${search.pageLinks}" varStatus="status">
+						<c:if test="${status.last}">			
+							<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+								<cms:param name="pageCount">${pagelink.key}</cms:param>
+							</cms:include>
+						</c:if>
+					</c:forEach>
+				</c:if>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+
+<cms:include property="template" element="foot" /> 

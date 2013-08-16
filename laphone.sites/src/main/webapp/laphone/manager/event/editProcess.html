@@ -1,0 +1,50 @@
+<%@ page buffer="none" import="com.thesys.opencms.laphone.product.*,com.thesys.opencms.xml.*,org.opencms.json.JSONObject,java.util.*,org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*, org.opencms.workplace.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<c:set var="userName" scope="request"><cms:user property="name"/></c:set>
+<%
+String userName = (String)request.getAttribute("userName");
+String linkFlag = (request.getParameter("LinkFlag")!=null)?request.getParameter("LinkFlag"):"false";
+CmsJspActionElement cms = new CmsJspActionElement(pageContext,request,response);
+JSONObject contents = new JSONObject();
+JSONObject properties = new JSONObject();
+
+contents.put("Author",userName);
+contents.put("LinkFlag",linkFlag);
+java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy/MM/dd");
+for (Enumeration params  = request.getParameterNames() ; params.hasMoreElements() ;) {
+	String param = (String)params.nextElement();
+	String val = request.getParameter(param);
+	if(!"xmlPath".equals(param)){
+		if(param.endsWith("Date")){ //轉型成long
+			if( val.length()>0){
+				long date = fmt.parse(val).getTime();
+				contents.put(param,String.valueOf(date));
+			}else if(param.equals("OfflineDate")){
+				contents.put(param,"2556028800000");
+			}else{
+				contents.put(param,String.valueOf(0));
+			}
+		} else {
+			contents.put(param,val);
+		}
+			
+	}
+}
+
+ThesysCmsXmlHandler xmlHandler = new ThesysCmsXmlHandler(cms.getCmsObject());
+String xmlPath = request.getParameter("xmlPath");
+
+if(!"new".equals(cms.property("FileStatus",xmlPath))){
+	properties.put("FileStatus","changed"); //增加被修改的屬性，供後台搜尋
+}
+xmlHandler.update(xmlPath,"/",contents,properties);
+
+
+OpenCms.getSearchManager().setOfflineUpdateFrequency(1000); //設定後台搜尋頻率為1秒
+try { Thread.sleep(3000); }catch (InterruptedException e) { }
+response.sendRedirect("index.html");
+%>

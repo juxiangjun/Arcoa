@@ -1,0 +1,116 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<form method="post" id="editForm" action="editProcess.html">
+	<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+		<input type="hidden" name="xmlPath" value="${param.xmlPath}"/>
+		<table cellspacing="0" cellpadding="0" border="0" class="table-2">
+			<tbody>
+				<tr class="tr_b">
+					<td valign="top" align="right" style="width: 72px">主旨:</td>
+					<td valign="top">
+						<textarea name="EventTitle" rows="10"  style="width:414px"  class="required"><cms:contentshow element="EventTitle"/></textarea>
+						<%--<input type="text" name="EventTitle" style="width:414px" class="required" value="<cms:contentshow element="EventTitle"/>">--%>
+					</td>
+				</tr>
+				<tr class="tr_b2">
+					<td valign="top" align="right" style="width: 72px">連結:</td>
+					<td valign="top">
+						<c:set var="LinkFlag"><cms:contentshow element="LinkFlag"/></c:set>
+						<input type="text" style="width: 411px" name="Link" value="<cms:contentshow element="Link"/>">
+						<input type="checkbox" name="LinkFlag" value="true" <c:if test="${LinkFlag==true}">checked</c:if>>是
+					</td>
+				</tr>
+				<tr style="display:none">
+					<td valign="top" align="right" class="tr_b2" style="width: 72px">摘要:</td>
+					<td valign="top" class="tr_a">
+						<textarea rows="10" name="Description" cols="80" id="Description"><cms:contentshow element="Description"/></textarea>
+					</td>
+				</tr>
+				<tr style="display:none">
+					<td valign="top" align="right" class="tr_b2" style="width: 72px">內文:</td>
+					<td valign="top" class="tr_a">
+						<textarea name="Content" id="Content" rows="10" class="htmlEditor"><cms:contentcheck ifexists="Content"><cms:contentshow element="Content"/></cms:contentcheck></textarea>
+					</td>
+				</tr>
+				<tr class="tr_b" style="display:none">
+					<td valign="top" align="right" style="width: 72px">排序:</td>
+					<td valign="top"><input type="text" name="Order" maxLength="5" class="number" value="<cms:contentshow element="Order"/>">(數愈大愈上方)</td>
+				</tr>
+				<tr class="tr_b2" style="display:none">
+					<td valign="top" align="right" style="width: 72px">關鍵字:</td>
+					<td valign="top">
+					<input type="text" style="width: 414px" name="SeoKeywords" value="<cms:contentshow element="SeoKeywords"/>"></td>
+				</tr>
+				<tr class="tr_b">
+					<td valign="top" align="right" style="width: 72px">新聞時間:</td>
+					<td valign="top">
+						<c:set var="dateLong"><cms:contentshow element="EventDate"/></c:set>
+						<c:set var="dateText" value=""/>
+						<c:if test="${dateLong!=0}">
+				                    	<jsp:useBean id="date" class="java.util.Date" /> 
+							<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+							<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+						</c:if>
+						<input type="text" name="EventDate" class="date" value="${dateText}">
+					</td>
+				</tr>
+				<tr class="tr_b2">
+					<td valign="top" align="right" style="width: 72px">上架時間:</td>
+					<td valign="top">
+						<c:set var="dateLong"><cms:contentshow element="OnlineDate"/></c:set>
+						<c:set var="dateText" value=""/>
+						<c:if test="${dateLong!=0}"> 
+							<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+							<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+						</c:if>
+						<input type="text" name="OnlineDate" class="date" value="${dateText}">
+					</td>
+				</tr>
+				<tr class="tr_b">
+			    		<td valign="top" align="right" style="width: 72px">下架時間:</td>
+					<td valign="top">
+						<c:set var="dateLong"><cms:contentshow element="OfflineDate"/></c:set>
+						<c:set var="dateText" value=""/>
+						<c:if test="${dateLong!=0 && dateLong!=2556028800000}"> 
+							<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+							<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+						</c:if>
+						<input type="text" name="OfflineDate" class="date" value="${dateText}">
+					</td>
+				</tr>
+				<tr class="tr_b2">
+					<td valign="top" align="right" style="width: 72px">是否上架:</td>
+					<td valign="top">
+						<c:set var="OnlineFlag"><cms:contentshow element="OnlineFlag"/></c:set>
+						<select name="OnlineFlag" id="OnlineFlag">
+							<option value="true" <c:if test="${OnlineFlag==true}">selected="selected"</c:if>>是</option>
+							<option value="false" <c:if test="${OnlineFlag!=true}">selected="selected"</c:if>>否</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+			    		<td valign="top" align="center" style="border-bottom: none" colspan="2">
+						<a href="#editForm" class="button btnSave">儲存</a>
+						<a href="#editForm" class="button btnCancel">取消</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</cms:contentload>
+</form>
+<cms:include property="template" element="foot" /> 

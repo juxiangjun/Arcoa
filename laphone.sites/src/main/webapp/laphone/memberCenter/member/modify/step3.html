@@ -1,0 +1,200 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*,java.text.*" %>
+<%@ page import="org.opencms.json.*,com.thesys.opencms.laphone.member.*,com.thesys.opencms.laphone.util.*,com.thesys.opencms.laphone.system.*,com.thesys.opencms.laphone.epaper.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<%  
+	
+	int memberNo = (Integer)session.getAttribute("memberNo");
+	
+	ThesysMemberHandler handler = new ThesysMemberHandler(pageContext, request, response);
+	ThesysMemberVO vo = handler.getMemberByMemberNo(memberNo);
+	
+	String englishName = request.getParameter("eng-name") ==null?"":(String)request.getParameter("eng-name");
+	String email = request.getParameter("email") ==null?"":(String)request.getParameter("email");
+	String cellphone = request.getParameter("cellphone") ==null?"":(String)request.getParameter("cellphone");
+	String zip_code = request.getParameter("addr_zipcode[]") ==null?"":(String)request.getParameter("addr_zipcode[]");
+	String zip_county = request.getParameter("addr_county[]") ==null?"":(String)request.getParameter("addr_county[]");
+	String zip_area = request.getParameter("addr_area[]") ==null?"":(String)request.getParameter("addr_area[]");
+	String fullAddress = request.getParameter("fullAddress") ==null?"":(String)request.getParameter("fullAddress");
+	int annualIncome = request.getParameter("income") ==null?0: Integer.parseInt((String)request.getParameter("income"));
+	int cellphoneBrands = request.getParameter("cellphone-brand") ==null?0: Integer.parseInt((String)request.getParameter("cellphone-brand"));
+	int occupation = request.getParameter("occupation") ==null?0: Integer.parseInt((String)request.getParameter("occupation"));
+	int education = request.getParameter("education") ==null?0: Integer.parseInt((String)request.getParameter("education"));
+	int marriage = request.getParameter("marriage") ==null?0: Integer.parseInt((String)request.getParameter("marriage"));
+	int offspring = request.getParameter("offspring") ==null?0: Integer.parseInt((String)request.getParameter("offspring"));
+	int edm = request.getParameter("promo-mail") ==null?0: Integer.parseInt((String)request.getParameter("promo-mail"));
+	String applySrc = "MEMBER"; //電子報訂閱來源
+	String preferences ="";
+	String randomstr = "";
+	boolean changeEmail = false;
+	boolean changeMobile = false;
+	
+	String oldEmail = vo.getEmail();	
+	
+	if(!oldEmail.equals(email))
+			changeEmail = true;
+	if(!vo.getCellphone().equals(cellphone))
+			changeMobile = true;
+			
+	/*//先不檢查是否重複
+	if(changeMobile  && handler.isMoblieExist(cellphone)){
+		out.print("<script>alert('手機重複');history.go(-1);</script>");
+		return;
+	}
+	*/
+	
+	if(changeEmail && handler.isEmailExist(email)){
+		out.print("<script>alert('E-mail重複');history.go(-1);</script>");
+		return;
+	}
+	
+	if(changeEmail ){
+		String mailVerifyCode = ThesysEncryption.getRandomStr(6);
+		vo.setEmail(email);
+		vo.setMailVerifyCode(mailVerifyCode);
+		vo.setMailStatus(0);
+		// 寄送驗證信及訊息(修正未更新至session)
+		handler.sendVerifyMail(vo.getMemberNo(), vo.getEmail(), mailVerifyCode);	
+		
+		session.setAttribute("memberEmail",vo.getEmail());
+		session.setAttribute("mailStatus",0);
+		session.setAttribute("mailVerifyCode",mailVerifyCode);
+	}
+	
+	if(changeMobile ){
+		String smsVerifyCode = ThesysEncryption.getRandomStr(6);
+		vo.setCellphone(cellphone);
+		vo.setSmsVerifyCode(smsVerifyCode);
+		vo.setStatus(2);
+		// 寄送驗證簡訊 (修正未更新至session)
+		java.util.Date deadline = handler.sendVerifySms(vo.getMemberNo(), vo.getCellphone(), smsVerifyCode);
+		
+		session.setAttribute("memberMobile",vo.getCellphone());		
+		session.setAttribute("smsVerifyCode",smsVerifyCode);
+		session.setAttribute("smsVerifyDeadline",deadline );
+	}
+	
+	ThesysParamHandler paramHandler = new ThesysParamHandler(pageContext, request, response);
+	String host = paramHandler.getValueByParamKey("WEB_URL");
+	
+
+	for(int i = 1;i<15;i++){ //個人喜好有選就1,沒有就0
+		preferences += request.getParameter("intr-"+i) ==null?"0":"1";
+	}
+	 
+
+	
+	
+	//	改edm或改email要做的事	
+	if(vo.getEdm() != edm || changeEmail ){
+		ThesysSubscribeHandler scribeHandler = new ThesysSubscribeHandler(pageContext, request, response);
+		com.thesys.opencms.laphone.epaper.dao.ThesysSubscribeVO scribevo = null;
+		if(changeEmail == true){
+			if(edm == 1 || edm ==2){
+				scribevo = scribeHandler.getRow(email);
+			 	if(scribevo == null){
+			 		scribeHandler.subscribe(email,applySrc);
+			 	}else{
+			 		scribevo.setSubscribeFlag(true);
+			 		scribevo.setApplySrc(applySrc);
+			 		scribeHandler.chengStatus(scribevo);
+			 	} 
+			}else if(edm == 3 || edm ==4){
+				scribevo = scribeHandler.getRow(email);
+			 	if(scribevo == null){
+			 		scribeHandler.subscribe(email,applySrc);
+			 	}
+			 	scribeHandler = new ThesysSubscribeHandler(pageContext, request, response);
+			 	scribevo = scribeHandler.getRow(email);
+			 	scribevo.setApplySrc(applySrc);
+				scribevo.setSubscribeFlag(false);
+				scribeHandler.chengStatus(scribevo);
+			}
+			scribeHandler = new ThesysSubscribeHandler(pageContext, request, response);
+		 	scribevo.setApplySrc(applySrc);
+		 	scribevo = scribeHandler.getRow(oldEmail);
+		 	if(scribevo != null){
+				scribevo.setSubscribeFlag(false);
+				scribeHandler.chengStatus(scribevo);
+			}
+		}else{
+			scribeHandler = new ThesysSubscribeHandler(pageContext, request, response);
+			if(edm == 1 || edm ==2){
+			 	scribevo = scribeHandler.getRow(email);
+				scribevo.setSubscribeFlag(true);
+				scribevo.setApplySrc(applySrc);
+				scribeHandler.chengStatus(scribevo);
+			}else if(edm == 3 || edm ==4){	
+			 	scribevo = scribeHandler.getRow(email);
+				scribevo.setSubscribeFlag(false);
+				scribevo.setApplySrc(applySrc);
+				scribeHandler.chengStatus(scribevo);
+			}
+		}
+	}
+	
+	vo.setLastUpdater(vo.getAccountId());
+	vo.setEnglishName(englishName);
+	vo.setEmail(email);
+	vo.setCellphone(cellphone);
+	vo.setZipCode(zip_code);
+	vo.setZipCounty(zip_county);
+	vo.setZipArea(zip_area);
+	vo.setFullAddress(fullAddress);
+	vo.setIncome(annualIncome );
+	vo.setCellphoneBrands(cellphoneBrands);
+	vo.setOccupation(occupation);
+	vo.setEducation(education);
+	vo.setMarriage(marriage);
+	vo.setOffspring(offspring);
+	vo.setPreferences(preferences);
+	vo.setEdm(edm);
+	
+	int r = handler.modify(vo);
+	if(r != 1){
+		out.print("<script>alert('修改失敗');history.go(-1);</script>");
+		return;   
+	}
+	session.setAttribute("memberStatus",vo.getStatus());
+	
+	
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	String date = sdf.format(new java.util.Date());
+	if(changeEmail == false){	
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("date",date);
+		
+		ThesysSendMsgHandler msghandler = new ThesysSendMsgHandler(pageContext,request,response);
+		msghandler.setMsgName("memberModify");
+		msghandler.setJsonObj(jsonObj);
+		msghandler.setMemberId(vo.getAccountId());
+		msghandler.setEmail(email);
+		msghandler.sendMsg();
+	}
+%>
+<cms:include property="template" element="head" />
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	
+        <div id="member-body" class="member-body">
+        	<h2>修改會員資料</h2>
+		<div class="auth-form">
+			<ul class="account-form">
+				<li>
+				    <p class="font13">您的資料已更改完成</p>
+				    <p>
+				    	<a class="button" href="<cms:link>/index.html</cms:link>">繼續購物</a>&nbsp;
+				    	<a class="button"  href="<cms:link>/memberCenter/</cms:link>">回會員中心</a>&nbsp;
+                        		<c:if test="${member.status == 2}"><a href="<cms:link>/login/verify.html</cms:link>" class="button">驗證手機</a></c:if>
+		                    </p>
+				</li>		
+			</ul>
+		</div>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

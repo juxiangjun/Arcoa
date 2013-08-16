@@ -1,0 +1,112 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<c:set var="pageSize" value="50" />
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<c:set var="xmlPath" value="/_config_/colorSetting.html"/>
+<table align="center" css="table">
+	<tr class="tr_b2">		
+		<td align="right" class="tr_b" style="width: 81px">色系:</td>
+		<td align="left" class="tr_b" width="500">
+		<form id="queryForm" action="<cms:link><cms:info property="opencms.request.uri"/></cms:link>" class="hiddenForm">
+		<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+			<select name="selectGroupXpath">	
+				<option value="">全部</option>		
+			<cms:contentloop element="ColorGroup">
+				<c:set var="groupRowId" value="${groupRowId+1}"/>				
+	    			<c:set var="groupXpath">ColorGroup[${groupRowId}]/</c:set>	
+				<option value="ColorGroup[${groupRowId}]/" <c:if test="${param.selectGroupXpath==groupXpath}">selected</c:if>><cms:contentshow element="ColorGroupName"/></option>
+			</cms:contentloop>
+			</select>
+		</cms:contentload>
+		</form>
+		<a href="#queryForm" class="button btnSubmit">查詢</a>	
+		<form id="addForm" method="post" action="<cms:link>addForm.html</cms:link>" class="hiddenForm">
+		<input type="hidden" name="fromUrl" value="<cms:info property="opencms.uri"/>"/>
+		<input type="hidden" name="autoPublish" value="true"/>
+		<input type="hidden" name="xmlPath" value="${xmlPath}"/>	
+		</form>
+		<a href="#addForm" class="button btnSubmit">新增</a>
+		</td>
+	</tr>
+</table>
+<div style="padding-top: 15px">
+	<%/**計算分頁index*/%>
+	<c:set var="pageRowStart" value="1"/>
+	<c:set var="pageRowEnd" value="${pageSize}"/>
+	<c:if test="${!empty param.pageIndex}">
+		<c:set var="pageRowStart" value="${pageSize*(param.pageIndex-1)+1}"/>
+		<c:set var="pageRowEnd" value="${pageSize*param.pageIndex}"/>	
+	</c:if>	
+	<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+        <table class="list-table" border="0" cellpadding="0" cellspacing="0">
+		<tr>
+			<th class="w100">操作</th>
+			<th class="w50">色系編琥</th>
+			<th class="w50">色系名稱</th>
+			<th class="w80">顯示圖樣</th>
+			<th class="w100">顏色代碼</th>
+			<th class="w100">顏色名稱</th>
+		</tr>
+		<c:set var="groupRowId" value="0"/>
+	    	<cms:contentloop element="ColorGroup"> 
+			<c:set var="groupRowId" value="${groupRowId+1}"/>	    			
+	    		<c:set var="colorGroupId"><cms:contentshow element="ColorGroupId"/></c:set>
+	    		<c:set var="colorGroupName"><cms:contentshow element="ColorGroupName"/></c:set>
+	    		<c:set var="htmlColorCode"><cms:contentshow element="HtmlColorCode"/></c:set>
+	    		<c:set var="htmlColorImage"><cms:contentshow element="HtmlColorImage"/></c:set>
+	    		<c:set var="groupXpath">ColorGroup[${groupRowId}]/</c:set>
+	    		<c:set var="colorRowId" value="0"/>
+	    		<c:if test="${empty param.selectGroupXpath || param.selectGroupXpath==groupXpath}">
+	    		<cms:contentloop element="Color">	    			
+	    			<c:set var="colorRowId" value="${colorRowId+1}"/>
+				<c:set var="totalRowId" value="${totalRowId+1}"/>
+				<c:if test="${pageRowStart<=totalRowId && totalRowId <=pageRowEnd}">		    							            	   	
+		<tr>
+			<td>
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/elemEditButton.jsp">
+				<cms:param name="rowId">${totalRowId}</cms:param>
+				<cms:param name="fromUrl"><cms:info property="opencms.uri"/></cms:param>
+				<cms:param name="xmlPath">${xmlPath}</cms:param>
+				<cms:param name="editUrl"><cms:link>editForm.html</cms:link></cms:param>
+				<cms:param name="rootXpath">ColorGroup[${groupRowId}]/</cms:param>				
+				<cms:param name="tagName">Color</cms:param>				
+				<cms:param name="tagId">${colorRowId}</cms:param>			
+				<cms:param name="autoPublish">true</cms:param>
+			</cms:include>
+			</td>
+			<td>${colorGroupId}</td>
+			<td>${colorGroupName}</td>
+			<td class="text-center">
+			<c:if test="${!empty htmlColorCode}"><div style="background:${htmlColorCode};width:52px;height:10px;margin:0 auto;border:1px #ccc solid;"></div></c:if>
+			<c:if test="${!empty htmlColorImage}"><div style="background-image:url(<cms:link>${htmlColorImage}</cms:link>);width:52px;height:10px;margin:0 auto;border:1px #ccc solid;"></div></c:if>
+			</td>
+			<td><cms:contentshow element="ColorCode"/></td>
+			<td ><cms:contentshow element="ColorName"/></span>
+			</td>
+		</tr>
+				</c:if>
+			</cms:contentloop>
+			</c:if>			
+		</cms:contentloop>
+		<tr>
+			<td colspan="6" class="btn-line">
+			<fmt:parseNumber  parseLocale="#" integerOnly="true" value="${totalRowId/pageSize}" var="pageCount" />
+			<c:if test="${totalRowId%pageSize>0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<c:if test="${pageCount == 0 }"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+	</table>
+        </cms:contentload>
+</div>
+<cms:include property="template" element="foot" /> 

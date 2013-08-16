@@ -1,0 +1,282 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+
+%>
+<%
+if(request.getParameter("xmlPath")==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<%
+String faqFolder = "/faq";
+pageContext.setAttribute("faqFolder",faqFolder+"/" );
+pageContext.setAttribute("subFolderList",cms.getCmsObject().getSubFolders(faqFolder )); 
+%>
+<form method="post" id="editForm" action="editProcess.html">
+	<cms:contentload collector="thesysSingleFile" param="${param.xmlPath}" editable="false">
+		<input type="hidden" name="xmlPath" value="${param.xmlPath}"/>
+	<table border="0" cellpadding="0" cellspacing="0" class="form-table">	
+		<tr>
+			<th>SAP類別碼：</th>
+			<td valign="top">
+				<c:set var="sapCategoryCode"><cms:contentshow element="SapCategoryCode"/></c:set>
+				<input type="text" name="SapCategoryCode" class="required" size="20" maxlength="20" value="${sapCategoryCode}">
+			</td>
+		</tr>
+		<tr>
+			<th>EC產品編號：</th>
+			<td valign="top">
+			<c:set var="productCode"><cms:contentshow element="ProductCode"/></c:set>
+			${productCode}
+			</td>
+		</tr>
+		<tr>
+			<th>產品編號：</th>
+			<td valign="top">
+				<c:set var="sapProductCode"><cms:contentshow element="SapProductCode"/></c:set>
+				${sapProductCode}
+			</td>
+		</tr>
+		<tr>
+			<th>產品名稱：</th>
+			<td valign="top"><cms:contentshow element="ProductName"/></td>
+		</tr>		
+		<tr>
+			<th>產品顏色：</th>
+			<td valign="top"><input type="text" name="ProductColor" class="required" value="<cms:contentshow element="ProductColor"/>"/></td>
+		</tr>
+		<tr>
+			<th>商品浮水印：</th>
+			<td valign="top"><c:set var="watermark"><cms:contentshow element="Watermark"/></c:set>
+			<input type="radio" name="Watermark" class="required" value="0" <c:if test="${watermark=='0'}">checked</c:if>>無
+			<input type="radio" name="Watermark" class="required" value="1" <c:if test="${watermark=='1'}">checked</c:if>>新品
+			<input type="radio" name="Watermark" class="required" value="2" <c:if test="${watermark=='2'}">checked</c:if>>限量
+			<input type="radio" name="Watermark" class="required" value="3" <c:if test="${watermark=='3'}">checked</c:if>>推薦
+			<input type="radio" name="Watermark" class="required" value="4" <c:if test="${watermark=='4'}">checked</c:if>>出清
+			</td>
+		</tr>		
+		<tr>
+			<th>商品簡介：</th>
+			<td valign="top">
+			<textarea name="Description" class="required"><cms:contentshow element="Description"/></textarea></td>
+		</tr>
+		<tr class="odd">
+			<th>商品詳細介炤:</th>
+			<td valign="top">			
+			<textarea name="Information" id="Information" rows="10" class="htmlEditor"><cms:contentcheck ifexists="Information"><cms:contentshow element="Information"/></cms:contentcheck></textarea></td>
+		</tr>		
+		<tr>
+			<th>SEO關鍵字：</th>
+			<td valign="top">
+			<textarea name="SeoKeywords"><cms:contentshow element="SeoKeywords"/></textarea></td>
+		</tr>		
+		<tr>
+			<th>售價:</th>
+			<td valign="top">
+			<c:set var="originalPrice"><cms:contentshow element="OriginalPrice"/></c:set>
+			<fmt:formatNumber value="${originalPrice}"/>			
+			</td>
+		</tr>		
+		<tr>
+			<th>會員價:</th>
+			<td valign="top">
+			<c:set var="specialPrice"><cms:contentshow element="SpecialPrice"/></c:set>
+			<fmt:formatNumber value="${specialPrice}"/>
+			</td>
+		</tr>	
+		<tr>
+			<th>同款不同色商品料號:</th>
+			<td valign="top">
+			<c:set var="seriesList"><cms:contentshow element="SeriesProductCode"/></c:set>
+			<c:forTokens items="${seriesList}" delims=";" var="seriesCode">
+				<c:set var="seriesId" value="${seriesId+1}"/>
+				<input type="text" name="SeriesProductCode" size="20" value="${seriesCode}"/>
+				<a href="#" class="iconBtn iconBtnDelete"></a>
+			</c:forTokens>
+			<span id="seriesSpan" style="display:none">
+				<input type="text" name="SeriesProductCode" size="20" value=""/>
+				<a href="#" class="iconBtn iconBtnDelete"></a>
+			</span>
+			<a href="#seriesSpan" class="iconBtn iconBtnAdd"></a>		
+			</td>
+		</tr>	
+			
+		<tr>
+			<th>相關商品料號(最多三筆):</th>
+			<td valign="top">
+			<c:set var="relationList"><cms:contentshow element="RelationProductCode"/></c:set>
+			<c:forTokens items="${relationList}" delims=";" var="relationCode">
+				<c:set var="relationId" value="${relationId+1}"/>
+				<input type="text" name="RelationProductCode" size="20" value="${relationCode}"/>
+				<a href="#" class="iconBtn iconBtnDelete"></a>
+			</c:forTokens>
+			<span id="relationSpan" style="display:none">
+				<input type="text" name="RelationProductCode" size="20" value=""/>
+				<a href="#" class="iconBtn iconBtnDelete"></a>
+			</span>
+			<a href="#relationSpan" class="iconBtn iconBtnAdd"></a>
+			</td>
+		</tr>	
+		<tr>
+			<th>顏色搜尋(上方搜尋列):</th>
+			<td valign="top">
+			
+			<cms:contentload collector="thesysSingleFile" param="/_config_/colorSetting.html" editable="false">
+				<jsp:useBean id="colorMap" class="java.util.TreeMap"/>
+				<cms:contentloop element="ColorGroup"><cms:contentloop element="Color">
+					<c:set var="colorCode"><cms:contentshow element="ColorCode"/></c:set>
+					<c:set var="colorName"><cms:contentshow element="ColorName"/></c:set>
+					<c:if test="${!empty colorCode}"><c:set target="${colorMap}" property="${colorCode}" value="${colorName}"/></c:if>
+				</cms:contentloop></cms:contentloop>
+			</cms:contentload>
+			<c:set var="selectedColors"><cms:contentshow element="ColorCode"/></c:set>
+			<c:forEach var="color" items="${colorMap}">
+				<span class="colorSpan"><input type="checkbox" name="ColorCode" id="ColorCode" class="required" value="${color.key}" <c:if test="${fn:indexOf(selectedColors,color.key)>=0}">checked</c:if>>${color.key} &nbsp; (${color.value})</span>
+			</c:forEach>
+			</td>
+		</tr>
+		<tr>
+			<th>商品風格(上方搜尋列):</th>
+			<td valign="top">
+			<c:set var="style"><cms:contentshow element="Style"/></c:set>
+			<cms:contentload collector="singleFile" param="/_config_/styleSetting.html" editable="false">                                    	
+                            	<cms:contentloop element="Parameter">
+                            	<c:set var="styleCount" value="${styleCount+1}"/>		                      
+                                <c:set var="key"><cms:contentshow element="Key"/></c:set> 
+                                <c:set var="value"><cms:contentshow element="Value"/></c:set>  
+                                <input name="Style" id="Style" class="required" type="checkbox" value="${key}" <c:if test="${fn:indexOf(style,key)>=0}">checked</c:if>>${value}   
+				</cms:contentloop>
+			</cms:contentload>
+			</td>
+		</tr>	
+		<tr>
+			<th>商品評價:</th>
+			<td valign="top">
+			<jsp:useBean id="ratingHandler" scope="request" class="com.thesys.opencms.laphone.product.ThesysRatingHandler">
+			<%ratingHandler.init(pageContext,request,response);%>
+			</jsp:useBean>
+			<jsp:setProperty name="ratingHandler" property="itemId" value="${sapProductCode}"/>
+			<c:set var="rating" value="${ratingHandler.rating}"/>
+			${rating}&nbsp;+&nbsp;
+			<input type="hidden" name="SapProductCode" value="${sapProductCode}"/>
+			<input type="text" size="5" name="Rating" class="number" value="0">(此欄位儲存後將直接生效)</td>
+		</tr>	
+		<tr>
+			<th>產生抵用券:</th>
+			<td valign="top">
+			<c:set var="couponCountFlag"><cms:contentshow element="CouponCountFlag"/></c:set>
+			<input name="CouponCountFlag" class="required" type="radio" value="true" <c:if test="${couponCountFlag}">checked</c:if>>是
+			<input name="CouponCountFlag" class="required" type="radio" value="false" <c:if test="${!couponCountFlag}">checked</c:if>>否
+			</td>
+		</tr>	
+		<tr>
+			<th>使用抵用券:</th>
+			<td valign="top">
+			<c:set var="couponUseFlag"><cms:contentshow element="CouponUseFlag"/></c:set>
+			<input name="CouponUseFlag" class="required" type="radio" value="true" <c:if test="${couponUseFlag}">checked</c:if>>是
+			<input name="CouponUseFlag" class="required" type="radio" value="false" <c:if test="${!couponUseFlag}">checked</c:if>>否
+			</td>
+		</tr>	
+		<tr>
+			<th>適用超商取貨:</th>
+			<td valign="top">
+			<c:set var="cvsShipFlag"><cms:contentshow element="CVSShipFlag"/></c:set>
+			<input name="CVSShipFlag" class="required" type="radio" value="true" <c:if test="${cvsShipFlag}">checked</c:if>>是
+			<input name="CVSShipFlag" class="required" type="radio" value="false" <c:if test="${!cvsShipFlag}">checked</c:if>>否
+			</td>
+		</tr>	
+		<tr>
+			<th>分期付款期數:</th>
+			<td valign="top">
+			<c:set var="installment"><cms:contentshow element="Installment"/></c:set>
+			<input name="Installment" class="required" id="Installment" value="${installment}" />
+<%--			
+			<input name="Installment" id="Installment" type="radio" value="1"  <c:if test="${installment=='1'}">checked</c:if>>不分期
+			<input name="Installment" id="Installment" type="radio" value="3"  <c:if test="${installment=='3'}">checked</c:if>>3期
+			<input name="Installment" id="Installment" type="radio" value="6"  <c:if test="${installment=='6'}">checked</c:if>>6期
+			<input name="Installment" id="Installment" type="radio" value="9"  <c:if test="${installment=='9'}">checked</c:if>>9期
+			<input name="Installment" id="Installment" type="radio" value="12" <c:if test="${installment=='12'}">checked</c:if>>12期
+--%>
+			</td>
+		</tr>	
+		<tr>
+			<th>上架日期:</th>
+			<td valign="top">
+			<c:set var="dateLong"><cms:contentshow element="OnlineDate"/></c:set>
+			<c:if test="${dateLong!=0}">
+                    	<jsp:useBean id="date" class="java.util.Date" /> 
+			<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+			<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+			</c:if>
+			<input name="OnlineDate" class="date required" value="${dateText}">
+			</td>
+		</tr>	
+		<tr>
+			<th>下架日期:</th>
+			<td valign="top">
+			<c:set var="dateLong"><cms:contentshow element="OfflineDate"/></c:set>
+			<c:set var="dateText" value=""/>
+			<c:if test="${dateLong!=0 && dateLong!=2556028800000}">
+			<jsp:setProperty name="date" property="time" value="${dateLong}" /> 
+			<c:set var="dateText"><fmt:formatDate value="${date}" pattern="yyyy/MM/dd" /></c:set>
+			</c:if>	
+			<input name="OfflineDate" class="date" value="${dateText}">
+			</td>
+		</tr>	
+		<tr>
+			<th>可供銷售:</th>
+			<td valign="top">
+			<c:set var="sellFlag"><cms:contentshow element="SellFlag"/></c:set>
+			<input name="SellFlag" class="required" type="radio" value="true" <c:if test="${sellFlag}">checked</c:if>>可銷售
+			<input name="SellFlag" class="required" type="radio" value="false" <c:if test="${!sellFlag}">checked</c:if>>不可銷售		
+			
+			</td>
+		</tr>	
+		<tr>
+			<th>上下架:</th>
+			<td valign="top">
+			<c:set var="onlineFlag"><cms:contentshow element="OnlineFlag"/></c:set>
+			<input name="OnlineFlag" class="required" type="radio" value="true" <c:if test="${onlineFlag}">checked</c:if>>上架
+			<input name="OnlineFlag" class="required" type="radio" value="false" <c:if test="${!onlineFlag}">checked</c:if>>下架
+			</td>
+		</tr>
+		<tr>
+			<th>清單圖:</th>
+			<td valign="top">
+			<a href="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="清單圖"  style="width:238px;height:160px;border:0px;"></a>
+	                </td>
+	        </tr>
+		<tr>
+			<th>產品圖:</th>
+			<td valign="top">
+	                <a href="${productPhotoUrl}/${productCode}/${productCode}_2.jpg" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_2.jpg" alt="產品圖一" style="width:133px;height:100px;border:0px;"></a>
+	                <a href="${productPhotoUrl}/${productCode}/${productCode}_3.jpg" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_3.jpg" alt="產品圖二" style="width:133px;height:100px;border:0px;"></a>
+	                <a href="${productPhotoUrl}/${productCode}/${productCode}_4.jpg" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_4.jpg" alt="產品圖三" style="width:133px;height:100px;border:0px;"></a>
+	                <a href="${productPhotoUrl}/${productCode}/${productCode}_5.jpg" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_5.jpg" alt="產品圖四" style="width:133px;height:100px;border:0px;"></a>
+	                </td>
+	        </tr>		
+		<tr>
+			<td colspan="2"  class="btn-line">
+				<a href="#editForm" class="button btnSubmit">儲存</a>
+				<a href="#editForm" class="button btnCancel">取消</a>
+			</td>
+		</tr>
+	</table>
+	</cms:contentload>
+</form>
+<cms:include property="template" element="foot" /> 

@@ -1,0 +1,84 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="orderReportHandler" scope="request" class="com.thesys.opencms.laphone.report.ThesysOrderReportHandler">
+<%orderReportHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<c:set var="pageSize" value="50"/>
+<jsp:setProperty name="orderReportHandler" property="pageSize" value="${pageSize}"/>
+<jsp:setProperty name="orderReportHandler" property="pageIndex" param="pageIndex"/>
+<jsp:setProperty name="orderReportHandler" property="startOrderDate" param="startOrderDate"/>
+<jsp:setProperty name="orderReportHandler" property="endOrderDate" param="endOrderDate"/>
+<jsp:setProperty name="orderReportHandler" property="orderStatus" param="orderStatus"/>
+<c:set var="orderList" value="${orderReportHandler.pageListForCheckAccountsReport}"/>
+<c:set var="itemCount">${orderReportHandler.checkAccountsReportCount}</c:set>
+<form id="searchForm" method="post" action="<cms:info property="opencms.uri"/>">
+	<table align="center" css="table">
+		<tbody>
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">訂單日期:</td>
+			<td width="370" align="left" class="tr_b">
+				<input type="text" class="date" name="startOrderDate" value="${param.startOrderDate}">到
+				<input type="text" class="date" name="endOrderDate" value="${param.endOrderDate}">
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">已核可:</td>
+			<td width="370" align="left" class="tr_b">
+				<select name="orderStatus">
+					<option value="">所有</option>
+					<option value="1" <c:if test="${param.orderStatus=='1'}">selected</c:if>>是</option>
+					<option value="0" <c:if test="${param.orderStatus=='0'}">selected</c:if>>否</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td align="center" colspan="2">
+				<a href="#searchForm" class="button btnSubmit">查詢</a>
+				<a href="#searchForm" class="button btnReset">清空</a>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</form>
+<div style="padding-top: 15px">
+	<table cellspacing="0" cellpadding="0" border="0" style="width: 780px; text-align: left; border-collapse: collapse;" rules="all" class="table" id="ctl00_MainContent_GridView1">
+		<tbody>
+		<tr>
+			<th scope="col" width="33%">訂單號碼</th>
+			<th scope="col" width="33%">訂單日期</th>
+			<th scope="col" width="33%">會員帳號</th>
+		</tr>
+		<c:forEach var="orderVO" items="${orderList}" varStatus="status">
+			<tr>
+				<td>
+					<form method="post" id="detailForm_${status.index}">
+					<input type="hidden" name="orderId" value="${orderVO.orderId}">
+					</form>
+					<a class="btnEdit" ref="detailForm.html" href="#detailForm_${status.index}">${orderVO.orderId}</a>
+				</td>
+				<td><fmt:formatDate value="${orderVO.orderDate}" pattern="yyyy/MM/dd HH:mm:ss" /></td>
+				<td>${orderVO.memberId}</td>
+			</tr>
+		</c:forEach>
+		<c:if test="${itemCount==0}">
+		<tr><td colspan="3">無訂單資料</td></tr>
+		</c:if>
+		<tr>
+			<c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>
+			<c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<td colspan="3" style="border-bottom: none">
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+<cms:include property="template" element="foot" />

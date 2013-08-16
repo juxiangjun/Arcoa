@@ -1,0 +1,59 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<%
+String currentFolder = cms.info("opencms.request.folder");
+pageContext.setAttribute("currentFolder",currentFolder );
+pageContext.setAttribute("subFolderList",cms.getCmsObject().getSubFolders("/faq")); 
+%>
+<div id="content">
+    <div class="main">
+        <h2><span><cms:property name="Title"/></span></h2>
+        <div id="faq-tab-box">
+            <ul class="faq-tabs">
+              <c:set var="rowId" value="0"/>
+              <c:forEach var="folder" items="${subFolderList}">
+              	<c:set var="rowId" value="${rowId+1}"/>
+                <li  class="faq-tab" ref="tab-${rowId}"><a href="#"><cms:property name="Title" file="${currentFolder}${folder.name}"/></a></li>
+              </c:forEach>
+            </ul>
+            <div class="clearfix"></div>
+        </div>
+        
+        <div id="faq-list-box">
+            <c:set var="rowId" value="0"/>
+            <c:forEach var="folder" items="${subFolderList}">            	
+           	<c:set var="rowId" value="${rowId+1}"/>
+            	<ul class="faq-box" id="tab-${rowId}">   
+            	<c:set var="faqFolder" value="${currentFolder}${folder.name}/"/>
+            	<cms:contentload collector="allInFolderNavPos" param="${faqFolder}Faq%(number).html|ThesysLaphoneFaq" editable="false">
+            	    <cms:contentinfo var="info"/> 
+            	    <c:choose><c:when test="${info.resultSize > 0}">
+            	    <li >
+                        <a href="#" class="question" ><cms:contentshow element="Question"/></a>
+                        <div class="answer">
+                            <h3><cms:contentshow element="Question"/></h3>
+                            <p>
+                                <cms:contentshow element="ShortAnswer"/>
+                                <c:set var="longAnswer"><cms:contentshow element="LongAnswer"/></c:set>
+                                <c:if test="${!empty longAnswer}">                                
+                                <a href="<cms:link><cms:contentshow element="%(opencms.filename)"/></cms:link>" target="_blank">more</a>
+                                </c:if>
+                           </p>
+                        </div>
+                    </li>
+                    </c:when>
+                    <c:otherwise><p>無相關問與答</p></c:otherwise>
+                    </c:choose>
+                </cms:contentload>
+                </ul>   
+             </c:forEach>      
+        </div>
+    </div>
+<cms:include property="template" element="foot" /> 

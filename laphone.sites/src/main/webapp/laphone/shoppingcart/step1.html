@@ -1,0 +1,378 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+%>
+<% session.removeAttribute("orderVO");%>
+<c:set var="pageSize" value="40"/>
+<c:set var="isCanSell" value="true" /><%--確認是否有商品庫存為0不可販售--%>
+<jsp:useBean id="tracking" class="com.thesys.opencms.laphone.cart.ThesysTrackingHandler">
+	<%tracking.init(pageContext,request,response);%>	
+	<jsp:setProperty name="tracking" property="pageSize" value="${pageSize}"/>
+	<jsp:setProperty name="tracking" property="pageIndex" value="1"/>
+</jsp:useBean>
+<jsp:useBean id="stock" scope="request" class="com.thesys.opencms.laphone.product.ThesysStockHandler">
+	<%stock.init(pageContext,request,response);%>				 
+</jsp:useBean>
+<jsp:useBean id="cart" class="com.thesys.opencms.laphone.cart.ThesysCartHandler">
+<%cart.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:useBean id="couponHandler" class="com.thesys.opencms.laphone.promote.ThesysCouponHandler">
+	<%couponHandler.init(pageContext,request,response);%>	
+	<jsp:setProperty name="tracking" property="pageSize" value="${pageSize}"/>
+	<jsp:setProperty name="tracking" property="pageIndex" value="1"/>
+</jsp:useBean>
+<c:if test="${not empty sessionScope.memberNo}">
+	<jsp:useBean id="memberhandler" class="com.thesys.opencms.laphone.member.ThesysMemberHandler" >
+		<%memberhandler.init(pageContext,request,response);%>
+		<jsp:setProperty name="memberhandler" property="memberNo" value="${memberNo}"/>
+	</jsp:useBean>
+	<c:set var="memberStatus" value="${memberhandler.selectedMemberStatus}"/>
+</c:if>
+<c:if test="${param.action=='add'}">
+<%cart.add(request.getParameter("itemId"),Integer.parseInt(request.getParameter("quantity")));%>
+</c:if>
+<c:if test="${param.action=='delete'}">
+<%cart.delete(request.getParameter("itemId"));%>
+</c:if>
+
+<c:if test="${param.action=='move'}">
+<%
+tracking.add(request.getParameter("itemId"));
+cart.delete(request.getParameter("itemId"));
+%>
+</c:if>
+<c:if test="${param.action=='deleteAll'}">
+<%cart.deleteAll();%>
+</c:if>
+<c:if test="${param.action=='trackingMove'}">
+<%
+cart.add(request.getParameter("itemId"),1);
+tracking.delete(request.getParameter("itemId"));
+%>
+</c:if>
+<c:if test="${param.action=='trackingDelete'}">
+<%tracking.delete(request.getParameter("itemId"));%>
+</c:if>
+<cms:include property="template" element="head" /> 
+<div style="display:none">         
+	<div id="couponDialog" class="laphoneDialog">
+		<h4>配件抵用券使用說明<a class="btnDialogClose"></a></h4>
+		<div class="dialogContent">
+		    <ul class="disc">
+		    	<li>「配件抵用券」（下稱抵用券）是laphone購物網站（下稱本網站）提供專屬網路會員享有的購物優惠，可用以折抵本網站上您欲購買之配件類商品金額。符合資格者，系統會將抵用券存入您的會員專屬帳戶中，您可經由登入「會員中心>抵用券記錄」查詢。</li>
+		    	<li>如何獲得抵用券：網路會員凡於本網站購買『手機類商品』，於7日猶豫期間經過確認商品無退貨後，系統即會將抵用券存入您的會員帳戶中，每一交易訂單可獲得一張抵用券。</li>
+		    	<li>抵用券面額計算=該筆訂單所購買之『手機類商品』結帳金額x6%。</li>
+		    	<li>抵用券使用效期：自抵用券存入會員帳戶之日起算30日曆天內，逾期失效。</li>
+		    	<li>提醒您：您於本網站購買『手機類商品』後如有辦理退貨或取消訂單，即不符合抵用券發放資格，已發放至您帳戶之抵用券亦將取消使用資格。如您已使用抵用券，則您必須償還該抵用券面額之金額或本網站得逕自您『手機類商品』退貨金額中扣抵。</li>
+		    	<li>如何使用：如您會員帳戶存有抵用券，在您選購完商品欲結帳時，可至「首頁>購物車」點選抵用券選單，勾選欲使用之抵用券，再點選確認結帳即可。</li>
+		    	<li>抵用券限會員本人使用，不得轉讓。</li>
+		    	<li>抵用券限折抵指定商品類別(配件類商品)之購物金額，且無法抵扣物流費（運費）、刷卡手續費、訂單處理費等費用；每筆交易訂單限使用一張抵用券。</li>
+		    	<li>抵用券每券限折抵乙次，不得兌領現金，亦不可分次折抵；交易使用抵用券，未抵用完之餘額即自動失效，剩餘抵用金額不可回復、合併、累積、找零或要求於其他交易訂單使用。</li>
+		    	<li>購買配件類商品使用抵用券時，本網站僅就折抵抵用券後「您實際所支付的金額」開立發票，抵用券面額不另行開立開票。</li>
+		    	<li>使用抵用券購買之商品，如日後辦理退貨或取消訂單，僅退還商品金額扣除抵用券面額後「您實際所支付的金額」，該次消費使用之抵用券則於系統確認退貨作業完成後退還至您的會員帳戶內，但抵用券原本使用效期不因此而中斷。</li>
+		    	<li>抵用券不得於其他優惠活動合併使用。</li>
+		    	<li>抵用券為本網站無償發行，不適用商品（服務）禮券定型化契約記載之規範。</li>
+		    	<li>本公司保留抵用券使用方式之變更及終止之權利。若對使用方式有任何疑問，請洽詢<a href="<cms:link>service/index.html</cms:link>" class="sky">客服中心</a>。</li>
+		    </ul>
+		</div>
+	</div>
+	<% /* a href="#orderDialog" id="btnOrderDialog" class="btnLightbox"></a>
+	<div id="orderDialog" class="laphoneDialog">
+		<h4>提醒您<a class="btnDialogClose"></a></h4>
+		<div class="dialogContent"> 
+		目前選購商品中，包含有無法選擇超商取貨付現的商品，您將無法選擇超商取貨付現服務。
+		<div class="btn-line-center"><a href="#" class="button btnDialogSubmit">確定</a></div>
+		</div>
+	</div */ %>
+</div>
+   <div id="shoppingCart">
+            <h2>購物步驟</h2>
+
+            <ul id="stepNav">
+                <li class="step0"><span class="success"></span></li>
+                <li class="step1"><span class="current"></span></li>
+                <li class="step2"><span></span></li>
+                <li class="step3"><span></span></li>
+                <li class="step4"><span></span></li>
+                <li class="step5"><span></span></li>
+            </ul>
+            
+            <ul id="cart-tab-box">
+                    <li class="cart-tab <c:if test="${!fn:startsWith(param.action,'tracking')}">selected</c:if>" ref="step1-1"><a href="#">購物明細</a></li>
+                    <li class="cart-tab" ref="step1-2">
+                    	<c:choose><c:when test="${empty sessionScope.memberNo}">
+                    	<a class="btnSubmit" href="#loginHiddenForm">抵用券</a>
+                    	</c:when>
+                    	<c:otherwise><a href="#">抵用券</a></c:otherwise>
+                    	</c:choose>
+                    </li>
+                    <li class="cart-tab <c:if test="${fn:startsWith(param.action,'tracking')}">selected</c:if>" ref="step1-3">
+                    	<c:choose><c:when test="${empty sessionScope.memberNo}">
+                    	<a class="btnSubmit" href="#loginHiddenForm">追蹤商品</a>
+                    	</c:when>
+                    	<c:otherwise><a href="#">追蹤商品</a></c:otherwise>
+                    	</c:choose>                   
+                    </li>
+                    <li class="cart-tab" ref="step1-4"><a href="#">注意事項</a></li>
+            </ul>
+            <div id="step1-1" class="tab-content <c:if test="${!fn:startsWith(param.action,'tracking')}">selected</c:if>">            	
+            	<table class="shopping-box">
+            		<tr class="header">
+	            		<td class="photo">商品圖片</td>
+	                        <td class="name">產品名稱</td>
+	                        <td class="price">價格</td>
+	                        <td class="quantity">數量</td>
+	                        <td class="total">小計</td>
+	                        <td class="tool"></td>
+	                </tr>
+	                <c:set var="totalPrice" value="0"/>
+	                <c:if test="${empty cart.items}"><tr><td class="nodata-line" colspan="6">購物車無商品</td></tr></c:if>	                
+	                <c:forEach var="item" items="${cart.items}" varStatus="status">
+	                	<c:set var="itemId" value="${item.key}"/>
+	                	<c:set var="quantity" value="${item.value}"/>
+	                	<c:set var="productCode" value="${fn:replace(fn:replace(itemId,'-','_'),'+','_')}"/>
+	                	<c:set var="xmlPath" value="/product/${productCode}.html"/>
+	                	<cms:contentload collector="singleFile" param="${xmlPath}" editable="false">
+	                	
+	                	<tr>
+	            		<td class="photo">
+	            			
+	            			<a href="<cms:link>/product.html?eccode=${productCode}</cms:link>" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="<cms:contentshow element="ProductName"/>" width="124" height="100"/></a>
+	            		</td>
+	                        <td class="name">
+	                        	<p><a href="<cms:link>/product.html?eccode=${productCode}</cms:link>" target="_blank"><cms:contentshow element="ProductName"/></a>
+	                        	<c:set var="cvsShipFlag"><cms:contentshow element="CVSShipFlag"/></c:set>
+	                        	<c:if test="${!cvsShipFlag}">
+	                        		<c:set var="showShipDialog" value="true"/>
+	                        		<br/><span class="red bold">不適用超商取貨</span>	                        	
+	                        	</c:if>
+	                        	</p>
+	                                
+	                        </td>
+	                        <td class="price">優惠價 NT$ 
+	                        	<c:set var="price"><cms:contentshow element="SpecialPrice"/></c:set>
+		    			<fmt:formatNumber value="${price}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    		</td>
+	                        <td class="quantity">     
+	                        	<form id="cartForm${status.index}" method="post" action="<cms:info property="opencms.uri"/>" >
+		                        <input type="hidden" name="action" value="add">
+		                        <input type="hidden" name="itemId" value="${itemId}">	
+					<jsp:setProperty name="stock" property="itemId" value="${itemId}"/>                   
+	                           	<c:set var="stockQuantity" value="${stock.stockQuantity}"/>                    
+	                           	<c:set var="sellQuantity" value="${stockQuantity}"/>                    
+	                           	<c:if test="${sellQuantity>10}"><c:set var="sellQuantity" value="10"/></c:if>
+	                           	<c:if test="${sellQuantity <= 0}">
+	                           		<%cart.add((String)pageContext.getAttribute("itemId"),0);%>
+	                           		<c:set var="quantity" value="0"/>
+	                           		<c:set var="sellQuantity" value="0"/>
+	                           		<c:set var="isCanSell" value="false" />
+	                           	</c:if>
+	                           	<c:if test="${sellQuantity < quantity}">
+	                           		<%cart.add((String)pageContext.getAttribute("itemId"),(Integer)pageContext.getAttribute("sellQuantity"));%>
+	                           		<c:set var="quantity" value="${sellQuantity}"/>
+	                           	</c:if>
+	                        	<select name="quantity" class="cartQuantity"  ref="#cartForm${status.index}">
+	                        	   <c:if test="${sellQuantity == 0}"><option value="0">0</option></c:if>
+	                                    <c:forEach var="i" begin="1" end="${sellQuantity}">
+		                            <option value="${i}" <c:if test="${i==quantity}">selected</c:if>>${i}</option>
+		                            </c:forEach>
+	                                </select>	                                	                        
+		                	</form>
+	                                
+	                        </td>
+	                        <td class="total"> NT$ 
+		    			<fmt:formatNumber value="${price*quantity}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    			<c:set var="totalPrice" value="${totalPrice+price*quantity}"/>
+		    		</td>
+	                        <td class="tool">
+	                        <span>
+	                        <c:choose><c:when test="${!empty sessionScope.memberNo}">
+	                        <a href="#cartForm${status.index}" class="button btnCartMove">加入追蹤</a>
+	                        </c:when><c:otherwise>
+	                        	<a class="btnSubmit button" href="#loginHiddenForm">加入追蹤</a>
+	                        </c:otherwise></c:choose>	                        
+	                        &nbsp;<a href="#cartForm${status.index}" class="button btnCartDelete">取消</a></span>
+	                        </td>
+	                	</tr>
+	                	</cms:contentload>
+	                </c:forEach>
+	                <c:if test="${showShipDialog}">
+	                <script>
+			$(function(){	$("#btnOrderDialog").click();});
+			</script>
+			</c:if>
+                </table>
+                <div class="totalBar">
+                	<form id="cartForm" method="post" action="<cms:info property="opencms.uri"/>" >
+                	<input type="hidden" name="action" value="deleteAll">
+                	</form>
+               		<div><a href="#cartForm" class="button btnSubmit">消空商品</a></div>
+               		<div>購物車內合計有 <span class="red">${cart.count}</span> 項商品，消費總金額 <span class="money"><sup>NT$</sup><fmt:formatNumber value="${totalPrice}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元</div>
+         	</div> 
+                <% /*div class="notice">
+                	<ul class="disc">
+                		<li class="header">&lt;提醒您&gt;</li>
+				<li class="txt">目前選購的商品中，包含有無法使用超商取貨的商品，您將無法選擇超商取貨服務。</li>
+				<li>選擇便利店取貨：單筆訂單實際消費金額未滿350元加收處理手續費<span class="red bold">20元</span>；單筆訂單實際消費金額超過350元以上，免處理手續費。</li>
+				<li>選擇宅配到府：單筆訂單實際消費金額未滿988元加收處理手續費<span class="red bold">65元</span>；單筆訂單實際消費金額超過988元以上，免處理手續費。</li>
+               		</ul>
+                </div */ %>
+            </div>
+            <div id="step1-2" class="tab-content">
+            	<c:if test="${!empty sessionScope.memberNo}">
+	           <div class="note">
+                        <div>您目前可使用的抵用券尚有 ${couponHandler.usableCount} 張：</div>
+                        <div><a href="#couponDialog" class="btnLightbox">抵用券使用說明</a></div>
+                   </div>
+                   <table class="shopping-box">
+            		<tr class="header">
+	            		<td class="stock">使用</td>
+	                        <td class="date">抵用券取得日期</td>
+	                        <td class="number">抵用券編號</td>
+	                        <td class="amount">可抵用金額</td>
+	                        <td class="date">使用期限</td>
+	                       	<td class="status">抵用券使用狀態</td>
+	                        <td class="date">抵用券使用日期</td>
+	                </tr>
+	                <c:set var="coupons" value="${couponHandler.pageList}"/>
+	                <c:if test="${empty coupons}"><tr><td class="nodata-line" colspan="7">無抵用券</td></tr></c:if>	                
+	                <form method="post" action="<cms:link>step2.html</cms:link>" id="couponForm">
+	                <c:forEach var="coupon" items="${coupons}" varStatus="status">	                
+	                <tr class="coupon">
+	            		<td class="stock">
+	            			<c:if test="${coupon.usable}"><input type="checkbox" name="couponCode" class="couponCheckBox" value="${coupon.couponCode}" /></c:if>
+	            		</li>
+	                        <td class="date"><fmt:formatDate pattern="yyyy/MM/dd" value="${coupon.couponDate}"/></td>
+	                        <td class="number">${coupon.couponCode}</td>
+	                        <td class="amount">NT$ ${coupon.couponAmount}</td>
+	                        <td class="date"><fmt:formatDate pattern="yyyy/MM/dd" value="${coupon.endDate}"/></td>
+	                       	<td class="status">
+	                       		<c:choose>
+	                        	<c:when test="${coupon.used}"><span class="blue">已使用</span></c:when>
+	                        	<c:when test="${coupon.expired}"><span class="red">已過期</span></c:when>
+	                        	<c:otherwise>尚未使用</c:otherwise>
+	                        	</c:choose>	 
+	                       	</td>
+	                        <td class="date">
+	                        	<c:choose>
+	                        	<c:when test="${coupon.used}"><fmt:formatDate pattern="yyyy/MM/dd" value="${coupon.usedDate}"/></c:when>
+	                        	<c:otherwise>------</c:otherwise>
+	                        	</c:choose>
+	                        </td>
+	                </tr>	                
+	                </c:forEach>
+	                </form>
+	           </table>
+	        </c:if>
+            </div>
+            <div id="step1-3" class="tab-content <c:if test="${fn:startsWith(param.action,'tracking')}">selected</c:if>">
+            	<c:if test="${!empty sessionScope.memberNo}">
+            	<table class="shopping-box">
+            		<tr class="header">
+	            		<td class="date">加入追蹤時間</td>
+	            		<td class="photo">商品圖片</td>
+	                        <td class="name">產品名稱</td>
+	                        <td class="stock">庫存</td>
+	                        <td class="price">售價</td>
+	                        <td class="tool">變更明細</td>
+	                </tr>
+	                <c:set var="trackingItems" value="${tracking.pageList}"/>
+	                <c:if test="${empty trackingItems}"><tr><td class="nodata-line" colspan="6">追蹤清單無商品</td></tr></c:if>	                
+	                <c:forEach var="item" items="${trackingItems}" varStatus="status">
+	                <c:set var="productCode" value="${fn:replace(fn:replace(item.itemId,'-','_'),'+','_')}"/>
+	                <c:set var="xmlPath" value="/product/${productCode}.html"/>
+	                <cms:contentload collector="singleFile" param="${xmlPath}" editable="false">
+	                
+	                <tr class="wishlist">
+	                	<td class="date">
+		                	<form id="trackingForm${status.index}" method="post" action="<cms:info property="opencms.uri"/>">
+			                        <input type="hidden" name="action" value="trackingMove">
+			                        <input type="hidden" name="itemId" value="${item.itemId}">
+			                </form>
+		                	<fmt:formatDate pattern="yyyy/MM/dd HH:mm:ss" value="${item.createDate}"/>
+	                	</td>
+	            		<td class="photo">
+	            			<a href="<cms:link>/product.html?eccode=${productCode}</cms:link>" target="_blank"><img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="<cms:contentshow element="ProductName"/>" width="124" height="100"/></a>
+	            		</td>
+	                        <td class="name">
+	                        	<p><a href="<cms:link>/product.html?eccode=${productCode}</cms:link>" target="_blank"><cms:contentshow element="ProductName"/></a>
+	                        	</p>	                                
+	                        </td>
+	                        <td class="stock">
+	                         <c:set var="sapProductCode"><cms:contentshow element="SapProductCode"/></c:set>                        
+				<jsp:setProperty name="stock" property="itemId" value="${sapProductCode}"/>                   
+                           	<c:set var="stockQuantity" value="${stock.stockQuantity}"/>  
+                           	<c:choose><c:when test="${stockQuantity>0}">有</c:when><c:otherwise>無</c:otherwise></c:choose>
+	                        </td>
+	                        <td class="price">優惠價 NT$ 
+	                        	<c:set var="price"><cms:contentshow element="SpecialPrice"/></c:set>
+		    			<fmt:formatNumber value="${price}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    		</td>
+	                        <td class="tool"><span>
+		                        <c:if test="${stockQuantity>0}"><a href="#trackingForm${status.index}" class="button btnTrackingMove">加入購物車</a>&nbsp;</c:if>
+		                        <a href="#trackingForm${status.index}" class="button btnTrackingDelete">刪除</a>
+	                        </span></td>
+	                </tr>	
+	                </cms:contentload>  
+	                </c:forEach>              
+                </table>
+                <h3 class="red font16 bold">重要提醒</h3>
+	        <div class="notice-box">
+	                <ul class="disc">
+                		<li class="header">追蹤商品</li>
+				<li>追蹤商品清單，商品售價、供貨狀況以訂單成立時為準，不保留優惠價、優先購買權及優先贈送權。</li>
+               		</ul>
+	         </div>
+	         </c:if>
+            </div>
+            <div id="step1-4" class="tab-content">
+            	<div class="notice-box">
+            		<ul class="disc">
+                		<li class="header">注意事項</li>
+				<li>處理費新台幣110元。</li>
+				<li>處理費的計算係以『實際消費金額』為準，此金額不包含任何折價券、抵用金、購物金等。</li>
+				<li>處理費：包括接單程序、倉儲處理、出貨包裝 與 物流交寄 等綜合費用，亦即一般國外非實體通路出貨所謂的 shipping and handling fee 。 『實際消費金額』小於新台幣 988 元者，必須加收此處理費。</li>
+				<li>laphone 網路購物配送範圍僅限台灣本島各地縣市，目前暫不提供離島及國外地區配送。</li>
+				<li>購物車明細、追蹤商品清單、商品售價、供貨狀況以訂單成立時為準，不保留優太、優先購買權及優先贈送權。</li>
+				<li>同筆訂單所有商品將同時出貨，恕不分開出貨，亦不接受單獨取消或退換貨。</li>
+               		</ul>
+                 </div>
+            </div>
+    </div>
+    
+            
+             <div id="shoppingButton">
+             	<ul>
+                    <li class="btnPrev"><a href="<cms:link>/index.html</cms:link>">繼續選購商品</a></li>
+                    <li class="btnNext">
+                    	<c:choose>
+                    		<c:when test="${isCanSell != 'true' }">
+	                    	<a href="#" onclick="alert('有商品已售完，請先取消');return true;">確認結帳</a>
+	                    	</c:when>
+	    			<c:when test="${empty sessionScope.memberNo}">
+	                    	<a href="#" onclick="alert('請先登入');$('#loginHiddenForm').submit();return true;">確認結帳</a>
+	                    	</c:when>
+	                    	<c:when test="${memberStatus == 1}">
+	                    	<a href="<cms:link>/index.html</cms:link>" onclick="alert('此帳號為禁止交易');return true;">確認結帳</a>
+	                    	</c:when>
+	                    	<c:when test="${memberStatus == 2}">
+	                    	<a href="<cms:link>/login/verify.html</cms:link>" onclick="alert('此帳號尚未簡訊驗證，請先驗證');return true;">確認結帳</a>
+	                    	</c:when>
+	                    	<c:when test="${empty cart.items}">
+	                    	<a href="#" onclick="alert('購物車無商品');return false;">確認結帳</a>
+	                    	</c:when>
+	                    	<c:otherwise><a href="#couponForm" class="btnSubmit">確認結帳</a></c:otherwise>
+                    	</c:choose>                   
+                    </li>
+                </ul>
+             </div>
+
+<cms:include property="template" element="foot" /> 

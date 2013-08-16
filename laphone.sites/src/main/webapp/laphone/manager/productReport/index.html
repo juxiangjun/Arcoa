@@ -1,0 +1,126 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+
+%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="reportHandler" scope="request" class="com.thesys.opencms.laphone.report.ThesysProductReportHandler">
+<%reportHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<c:set var="pageSize" value="50"/>
+<jsp:setProperty name="reportHandler" property="pageSize" value="${pageSize}"/>
+<jsp:setProperty name="reportHandler" property="*"/>
+<c:if test="${param.reportType>0}">
+<c:set var="dataList" value="${reportHandler.pageList}"/>
+<c:set var="itemCount">${reportHandler.count}</c:set>
+</c:if>
+
+<form id="searchForm" method="post" action="<cms:info property="opencms.uri"/>" class="alertForm">
+	<table align="center" css="table">
+		<tbody>
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">報表類型:</td>
+			<td width="370" align="left" class="tr_b">
+				<select name="reportType">
+				<option  value="1" <c:if test="${empty param.reportType|| param.reportType==1}">selected</c:if>>產品點擊數報表</option>
+				<option  value="2" <c:if test="${param.reportType==2}">selected</c:if>>產品加入追蹤排名報表</option>
+				<option  value="3" <c:if test="${param.reportType==3}">selected</c:if>>產品銷售排名報表</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">商品分類:</td>
+			<td width="370" align="left" class="tr_b">
+				<input type="radio" name="productType" value="0" title="商品分類" <c:if test="${empty param.productType || param.productType==0}">checked</c:if>>全部
+				<input type="radio" name="productType" value="1" title="商品分類" <c:if test="${param.productType==1}">checked</c:if>>一般商品
+				<input type="radio" name="productType" value="2" title="商品分類" <c:if test="${param.productType==2}">checked</c:if>>組合商品
+				
+			</td>
+		</tr>				
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">類別代碼:</td>
+			<td width="370" align="left" class="tr_b">
+				<input type="text" name="categoryId" value="${param.categoryId}" title="類別代碼">
+			</td>
+		</tr>			
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">產品料號:</td>
+			<td width="370" align="left" class="tr_b">
+				<input type="text" name="itemId" value="${param.itemId}" title="產品料號">
+			</td>
+		</tr>			
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">產品名稱:</td>
+			<td width="370" align="left" class="tr_b">
+				<input type="text" name="itemName" value="${param.itemName}" title="產品名稱">
+			</td>
+		</tr>			
+		<tr>
+			<td align="right" style="width: 81px" class="tr_b">日期區間:</td>
+			<td width="370" align="left" class="tr_b">
+				<input type="text" class="date" name="startDate" value="${param.startDate}" title="日期區間(起)">到
+				<input type="text" class="date" name="endDate" value="${param.endDate}"  title="日期區間(迄)">
+			</td>
+		</tr>
+		<tr>
+			<td align="center" colspan="2">
+				<a href="#searchForm" class="button btnSubmit" onclick="$('#searchForm').attr('action','<cms:info property="opencms.uri"/>');">查詢</a>
+				<a href="#searchForm" class="button btnSubmit" onclick="$('#searchForm').attr('action','download.html');">下載</a>
+				<a href="#searchForm" class="button btnReset">清空</a>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</form>
+<div style="padding-top: 15px">
+	<table cellspacing="0" cellpadding="0" border="0" style="width: 780px; text-align: left; border-collapse: collapse;" rules="all" class="table" id="ctl00_MainContent_GridView1">
+		<tbody>
+		<tr>
+			<th scope="col" width="15%">產品料號</th>
+			<th scope="col" width="15%">產品類別</th>
+			<th scope="col" width="20%">產品名稱</th>
+			<th scope="col" width="20%">產品圖</th>
+			<th scope="col" width="10%">點擊數</th>
+			<th scope="col" width="10%">加入追踪數</th>
+			<th scope="col" width="10%">銷售數</th>
+		</tr>
+		<c:forEach var="row" items="${dataList}" varStatus="status">			
+			<c:set var="productCode" value="${fn:replace(fn:replace(row[1],'+','_'),'-','_')}"/>
+			<tr>
+				<td>${row[1]}</td>
+				<td>${row[0]}</td>
+				<td>${row[2]}</td>
+				<td><img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="${row[2]}" width="124" height="100"/></td>
+				<td>${row[3]}</td>
+				<td>${row[4]}</td>
+				<td>${row[5]}</td>
+			</tr>
+		</c:forEach>
+		<c:if test="${! empty param.reportType && (empty itemCount || itemCount==0)}">
+		<tr><td colspan="7">查無資料</td></tr>
+		</c:if>
+		<c:if test="${empty param.reportType}">
+		<tr><td colspan="7">請先查詢</td></tr>
+		</c:if>
+		<tr>
+			<c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>
+			<c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<td colspan="7" style="border-bottom: none">
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+<cms:include property="template" element="foot" />

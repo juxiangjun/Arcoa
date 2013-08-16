@@ -1,0 +1,23 @@
+<%@page import="org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*, java.lang.String,org.opencms.workplace.*,com.thesys.opencms.laphone.log.dao.*" %>
+ <jsp:useBean id="cmslogin" class="org.opencms.jsp.CmsJspLoginBean">
+ <% cmslogin.init(pageContext, request, response); %>
+ </jsp:useBean>
+<%
+	//登出
+	CmsJspLoginBean cms = new CmsJspLoginBean(pageContext, request, response);
+	String cmsUser = cmslogin.getUserName();
+	if(cms.isLoggedIn()){
+	    if(session.getAttribute("sess") != null){	
+		String sessId  = (String)session.getAttribute("sess");		
+		com.thesys.opencms.laphone.report.ThesysLoginReportHandler handler = new com.thesys.opencms.laphone.report.ThesysLoginReportHandler (pageContext, request, response);
+		//handler.logoutLog(cmslogin.getUserName(),sessId );
+		handler.logoutLog(sessId );
+		session.removeAttribute("sess");
+		session.removeAttribute("user");
+		session.removeAttribute("siteId");
+	    }
+		cms.logout();
+	}
+
+		response.sendRedirect(cms.link("/manager/login.html"));
+%>

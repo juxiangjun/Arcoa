@@ -1,0 +1,26 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<c:choose>
+	<c:when test="${empty param.atmCode || empty param.orderId}">
+		<script>alert('錯誤操作');history.go(-1);</script>
+	</c:when>
+	<c:otherwise>
+		<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+		<%orderHandler.init(pageContext,request,response);%>
+		</jsp:useBean>
+		<jsp:setProperty name="orderHandler" property="orderId" param="orderId"/>
+		<jsp:setProperty name="orderHandler" property="atmCode" param="atmCode"/>
+		<%
+		int result = orderHandler.updateAtmCode();
+		if(result>0)
+			out.print("<script>alert('ATM付款資料已送出\\r\\n我們將會儘速為您處理訂單出貨事宜');location.href='index.html';</script>");
+		else
+			out.print("<script>alert('輸入失敗');location.href='index.html';</script>");
+		%>
+	</c:otherwise>
+</c:choose>

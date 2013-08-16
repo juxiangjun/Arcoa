@@ -1,0 +1,62 @@
+<%@ page buffer="none" import="com.thesys.opencms.xml.*,org.opencms.json.JSONObject,java.util.*,org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*, java.lang.String,org.opencms.workplace.*"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<c:set var="fileName" value="News0000.html"/>
+<cms:contentload collector="allInFolder" param="/news/News%(number).html|ThesysLaphoneNews|1" editable="false">
+<cms:contentinfo var="info"/>
+	<c:if test="${info.resultSize>0}">
+	<cms:contentshow element="%(opencms.filename)"/>
+		<c:set var="fileName"><cms:contentshow element="%(opencms.filename)"/></c:set>
+		<c:set var="fileName" value="${fn:replace(fileName,'/news/','')}"/>
+	</c:if>
+</cms:contentload>
+<c:set var="userName" scope="request"><cms:user property="name"/></c:set>
+<%
+String userName = (String)request.getAttribute("userName");
+String fileName = (String)pageContext.getAttribute("fileName");
+out.println(fileName);
+
+java.text.DecimalFormat fmt = new java.text.DecimalFormat("News0000.html");
+
+int no = fmt.parse(fileName).intValue()+1;
+String xmlPath = "/news/" + fmt.format(no);
+
+CmsJspActionElement cms = new CmsJspActionElement(pageContext,request,response);
+JSONObject contents = new JSONObject();
+JSONObject properties = new JSONObject();
+
+contents.put("Author",userName);
+java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("yyyy/MM/dd");
+for (Enumeration params  = request.getParameterNames() ; params.hasMoreElements() ;) {
+	String param = (String)params.nextElement();
+	String val = request.getParameter(param);
+	out.println(param);
+	out.println(val);
+	if(param.endsWith("Date")){ //轉型成long
+		if( val.length()>0){
+			long date = dateFmt.parse(val).getTime();
+			contents.put(param,String.valueOf(date));
+		}else if(param.equals("OfflineDate")){
+			contents.put(param,"2556028800000");
+		}else{
+			contents.put(param,String.valueOf(0));
+		}
+	
+	}else if(!param.equals("tmpImage")){
+		contents.put(param,val);
+	}
+}
+
+ThesysCmsXmlHandler xmlHandler = new ThesysCmsXmlHandler(cms.getCmsObject());
+
+properties.put("FileStatus","new"); //增加被修改的屬性，供後台搜尋
+xmlHandler.createFile(xmlPath,"ThesysLaphoneNews",contents,properties);
+
+OpenCms.getSearchManager().setOfflineUpdateFrequency(1000); //設定後台搜尋頻率為1秒
+try { Thread.sleep(3000); }catch (InterruptedException e) { } 
+ 
+response.sendRedirect("index.html");
+%>

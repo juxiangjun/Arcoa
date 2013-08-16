@@ -1,0 +1,104 @@
+<%@ page  language="java"  contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+<%@ page import="java.util.*,com.thesys.opencms.laphone.system.*,com.thesys.opencms.laphone.member.*,com.thesys.opencms.laphone.member.dao.*" %>
+<%@ page import="org.opencms.json.*,com.thesys.opencms.laphone.epaper.*,org.opencms.jsp.CmsJspActionElement,com.thesys.opencms.laphone.util.*" %>
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<jsp:useBean id="member" class="com.thesys.opencms.laphone.member.dao.ThesysMemberVO"/>
+<jsp:setProperty name="member" property="*"/>
+<jsp:setProperty name="member" property="registerIP" value="${remoteAddr}"/>
+<%
+
+String ip =request.getRemoteHost();  //取得會員的 Ip 
+String verifyCode = request.getParameter("verifyCode")==null?"":(String)request.getParameter("verifyCode").toUpperCase();
+String rand = session.getAttribute("rand")==null?"":(String)session.getAttribute("rand");
+
+if(!rand.equals(verifyCode)){
+out.print("<script>alert('驗證碼錯誤');history.go(-1);</script>");
+return;
+}	
+
+ThesysMemberHandler handler = new ThesysMemberHandler(pageContext, request, response);
+if(member.getAccountId()==null || member.getAccountId().length()==0){
+	out.print("<script>alert('帳號未填');history.go(-1);</script>");
+	return;
+}else if(handler.isAccountIdExist(member.getAccountId())){
+	out.print("<script>alert('帳號重複');history.go(-1);</script>");
+	return;
+}
+
+if(member.getIdNo() ==null || member.getIdNo().length() ==0){
+	out.print("<script>alert('身分證字號未填');history.go(-1);</script>");
+	return;
+}else if(handler.isIdNoExist(member.getIdNo())){
+	out.print("<script>alert('此身份證字號已被註冊\\n請與客服人員聯繫');history.go(-1);</script>");
+	return;
+}
+if(member.getEmail() ==null || member.getEmail().length() ==0){
+	out.print("<script>alert('E-mail未填');history.go(-1);</script>");
+	return;
+}else if(handler.isEmailExist(member.getEmail())){
+	out.print("<script>alert('E-mail重複');history.go(-1);</script>");
+	return;
+}
+/*//先不檢查是否重複
+	boolean isOnly =  handler.isMobileExist(member.getCellphone());
+	if(!isOnly){
+		out.print("<script>alert('手機重複');history.go(-1);</script>");
+		return;
+	}
+*/
+member.setRegisterIP(ip);
+boolean registerResult = handler.register(member );
+
+//新增edm
+
+String applySrc = "MEMBER"; //電子報訂閱來源
+int edm = member.getEdm();
+String email = member.getEmail();
+ThesysSubscribeHandler scribeHandler = new ThesysSubscribeHandler(pageContext, request, response);
+ if(edm == 1 || edm ==2){
+	com.thesys.opencms.laphone.epaper.dao.ThesysSubscribeVO scribevo = scribeHandler.getRow(email);
+ 	if(scribevo == null){
+ 		scribeHandler.subscribe(email,applySrc);
+ 	}else{
+ 		scribevo.setSubscribeFlag(true);
+ 		scribevo.setApplySrc(applySrc);
+ 		scribeHandler.chengStatus(scribevo);
+ 	} 
+ }else if(edm == 3 || edm ==4){
+	com.thesys.opencms.laphone.epaper.dao.ThesysSubscribeVO scribevo = scribeHandler.getRow(email);
+ 	if(scribevo == null){
+ 		scribeHandler.subscribe(email,applySrc);
+ 	}
+ 	scribeHandler = new ThesysSubscribeHandler(pageContext, request, response);
+ 	scribevo = scribeHandler.getRow(email);
+ 	scribevo.setApplySrc(applySrc);
+	scribevo.setSubscribeFlag(false);
+	scribeHandler.chengStatus(scribevo);
+ }
+
+
+%>
+<cms:include property="template" element="head" />
+
+<link rel="stylesheet" type="text/css" href="css/registerComplete.css" />
+<div id="content">
+  <div class="main">
+	<div class="register-steps"><div class="step4"></div></div>
+        <div class="register-msg">
+            <h2 class="title">註冊完成</h2>
+            <p>會員卡號：<%=member.getCardId()%></p>
+            <p>系統將自動發送會員手機認證簡訊，請於收到簡訊認證碼後「<a class="red" href="<cms:link>/login/</cms:link>">登入</a>」會員中心，</p>
+            <p>並輸入簡訊認證碼，以啟用您的會員身份。在您會員身份未啟用前將無法進行購物車結帳。</p>
+            <div class="btn-line-center">
+                        <a href="<cms:link>/login/verify.html</cms:link>" class="button">馬上驗證</a>
+            </div>
+
+    	</div>
+</div>
+
+<cms:include property="template" element="foot" />  
+

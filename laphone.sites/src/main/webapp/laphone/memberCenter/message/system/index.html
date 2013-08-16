@@ -1,0 +1,87 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<cms:include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp" />
+<cms:include property="template" element="head" />
+<script type="text/javascript">
+$(document).ready(function(){
+	$(".msgSubmit").click(function(){
+		var checked = false;
+		$(".delete").each(function(){
+			if($(this).attr('checked')){
+				checked = true;
+			}
+		})	
+		if(checked){
+			if(confirm("確定要刪除嗎??")){
+				$(".msgForm").submit();
+			}else{return false;}
+		}else{
+			alert("請至少勾選一封信");		
+		}
+	});
+})
+</script>
+<c:if test="${param.pageIndex<1}"><c:set var="pageIndex" value="1"/></c:if>
+<c:set var="pageSize" value="40"/>
+<jsp:useBean id="msg" class="com.thesys.opencms.laphone.msg.ThesysSystemMsgHandler">
+	<%msg.init(pageContext,request,response);%>
+	<jsp:setProperty name="msg" property="pageSize" value="${pageSize}"/>
+	<jsp:setProperty name="msg" property="pageIndex" param="pageIndex"/>
+	<c:if test="${param.pageIndex<1}"><jsp:setProperty name="msg" property="pageIndex" value="1"/></c:if>
+	<jsp:setProperty name="msg" property="messageType" value="1"/>
+	<jsp:setProperty name="msg" property="memberId" value="${sessionScope.memberId}"/>
+</jsp:useBean>
+<c:set var="itemCount" value="${msg.count}"/>
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	
+        <div id="member-body" class="member-body">
+        	<h2><cms:property name="Title"/></h2>
+		<div class="msgbar-darkgray">
+			<p>*點選信件主旨可查詢信件內容</p>
+                	<p>*僅保留三個月內的信件記錄</p>
+		</div>
+		<table class="member-list">
+            		<tr class="white-header">
+	            		<td class="msg-date">發送時間</td>
+	                        <td class="msg-subject">信件主旨</td>
+	                        <td class="msg-status">開啟狀態</td>
+	                        <td class="msg-delete">刪除信件</td>
+	                </tr >
+	            <form name="msgForm" class="msgForm" action="../deleteProcess.jsp" method="POST">  
+	            	<input type="hidden" name="msgType" value="1">  
+	                <c:forEach var="item" items="${msg.pageList}" varStatus="status">
+	                <tr class="msg-item">
+	            		<td class="msg-date"><fmt:formatDate value="${item.crtDate}" type="both" pattern="yyyy/MM/dd HH:mm"/></td>
+	                        <td class="msg-subject">
+	                        	<a href="msgDetail.html?msgId=${item.messageId}"  onClick='javascript:setTimeout(function(){window.location.reload()},1000);'  target="_blank">${item.subject}</a>
+	                        </td>
+	                        <td class="msg-status">
+	                        	<c:if test="${item.viewFlag}"><span class="read">已閱讀</span></c:if>
+	                        	<c:if test="${!item.viewFlag}"><span class="unread">未閱讀</span></c:if>
+	                        </td>
+	                        <td class="msg-delete"><input type="checkbox" name="delete" value="${item.messageId}" class="delete"/></td>
+	                </tr >
+	                </c:forEach>
+	                <tr class="msg-count">
+	                	<td colspan="4">
+	                	<span>共有${itemCount}封訊息</span>
+	                	<span class="last" colspan="3"><a href="#" class="red msgSubmit" >刪除已勾選的信件</a></span>
+	                	</td>
+	                </tr >
+	            </form>
+	        </table>	        
+			<c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>	
+		        <c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+		        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

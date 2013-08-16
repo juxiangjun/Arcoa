@@ -1,0 +1,28 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="au.com.bytecode.opencsv.CSVWriter,java.io.*,org.apache.commons.codec.net.BCodec,org.opencms.main.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<jsp:useBean id="reportHandler" scope="request" class="com.thesys.opencms.laphone.report.ThesysProductReportHandler">
+<%reportHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="reportHandler" property="*"/>
+<%
+String fileName = "";
+switch(reportHandler.getReportType()){
+	case 1: fileName = "產品點擊數報表.csv"; break;
+	case 2: fileName = "產品加入追蹤排名報表.csv"; break;
+	case 3: fileName = "產品銷售排名報表.csv"; break;
+}
+//ie用URLEncoder.encode firefox用BCodec().encode
+if (request.getHeader("User-Agent").indexOf("MSIE") != -1  || request.getHeader("User-Agent").indexOf("Chrome") != -1){
+	response.setHeader("Content-Disposition","attachment; filename=\""+java.net.URLEncoder.encode(fileName ,"utf-8") +"\"");
+}
+else{
+	response.setHeader("Content-Disposition","attachment; filename=\""+new BCodec().encode(fileName , "utf-8") +"\"");
+}
+
+reportHandler.export(response.getOutputStream());
+
+%>

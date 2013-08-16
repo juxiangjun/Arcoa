@@ -1,0 +1,183 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<cms:include property="template" element="head" />
+<% 
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String sslUrl = paramHandler.getValueByParamKey("WEB_URL").replaceAll("http:","http:");
+
+String agree =  request.getParameter("agree");
+
+if(!"on".equals(agree )){
+//如果不是重第一步來的話則.....
+   out.print("<script> location.href='step1.html';</script>");
+   return;
+}
+
+%>
+<script type="text/javascript" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/js/registerForm.js</cms:link>"></script>
+<script type="text/javascript" >
+$(document).ready(function(){
+	
+	$(".btnSubmit").click(function(){
+		var flag = false;
+		
+		var idType = $('input[name=idType]:checked').val();
+		if(idType == 1){
+			$("#idNo").addClass("pid");
+		}else{
+			$("#idNo").removeClass("pid");
+		}
+		flag = validateForm($("#registerForm"))
+		$("#accountId").blur();
+		var accErrHtml = $("#accountId").parents(":first").find("span.error").html();
+		var idNoErr = false;
+		if(idType == 2){
+			if($("#idNo").val().length <6  || !isNorD($("#idNo").val())){
+				idNoErr = true;
+				showErrorMessage($("#idNo"),"此欄位不得少於6碼,最長不超過20碼,且只允許英數字","fix");
+			}
+		}
+		if(accErrHtml =="" && !idNoErr && flag){
+			$("#registerForm").submit();
+		}else{
+			if((accErrHtml !="" || idNoErr) && flag){
+				alert("表單欄位驗證失敗，請檢查資料填寫是否正確");
+			}
+		}
+		
+	})
+	
+	$("#addr").append("<span class='error'  style='color:red;display:none'></span>");
+})
+function isNorD(num){
+  if (num=="") return true;
+  reNorD=/^[A-Za-z0-9]+$/
+  return reNorD.test(num);
+}
+</script>
+<style>
+
+</style>
+<div id="content">
+  <div class="main">
+  	<div class="register-steps"><div class="step2"></div></div>
+        <h2 class="register-title">輸入會員資料&nbsp;&nbsp;<span class="font12 red0">*欄位請必須填寫</span></h2>
+       
+        <form id="registerForm" class="fixForm" action="<%=sslUrl%>register/step3.html" method="post">
+        <input type="hidden" name="step" value="step2" /><%--檢查是否從第2頁到第3頁--%>
+            <table class="register-form" cellpadding="0" cellspacing="0" >
+            <tr>
+                <th><span class="red0">*</span>帳號</th><td>
+                    <input id="accountId" class="required" name="accountId"  type="text" maxlength="20"  style="text-transform: lowercase" />
+                    <span class="grey8">
+                    	<span id="validateError"></span><span id="validateOk"></span>
+                    </span>
+                    <span class="error" style="color:red"></span>
+                    <span class="grey8">
+                    	 (6~20個字元，限英文及數字之組合)
+                    </span>     
+                 </td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>姓名</th>
+                <td>
+                	<input id="username" class="required zh" name="username" type="text"  maxlength="20" />
+                	<span class="error" style="color:red"></span>
+                </td>
+            </tr>
+            <tr>
+                <th>英文名/英文姓</th>
+                <td>
+                    <input type="text" name="englishName" maxlength="40"  />
+                    <span class="error" style="color:red"></span>
+                </td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>身份證字號/護照號碼</th><td>
+                    <input type="radio" checked id="idTypeCitizen" name="idType" class="idType" value="1" />
+                    <label for="idTypeCitizen">本國籍</label>
+                    <input type="radio" id="idTypeForeign" name="idType" value="2" class="idType"/>
+                    <label for="idTypeForeign">外籍</label>
+                    <input id="idNo"  name="idNo" type="text" class="w160 required" style=" text-transform: uppercase"  onblur="this.value = this.value.toUpperCase();" maxlength="20" />
+                    <span class="error" style="color:red"></span></td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>登入密碼</th><td>
+                    <input id="pwd" name="pwd" type="password" class="w160 required password" maxlength="20" />
+                    <span class="error" style="color:red"></span>
+                    <span class="grey8">&nbsp;(6~20字元，至少需含1個英文、1個數字之組合)</span></td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>確認密碼</th><td>
+                    <input id="pwdVerify" name="pwdVerify" type="password" class="w160 required confirm" maxlength="20" />
+                    <span class="error" style="color:red"></span>
+                    <span class="grey8">&nbsp;(再輸入一次密碼)</span></td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>電子郵件</th><td>
+                    <input id="email" name="email" type="text" class="w240 required email" style="text-transform: lowercase"   onblur="this.value = this.value.toLowerCase();" maxlength="30" />
+                    <span class="error" style="color:red"></span>
+                    <p class="grey8">(為確保系統訊息能順利通知您，請填寫正確的電子郵件)</p></td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>性別</th>
+                <td>
+                   <input type="radio" name="gender" class="gender required" id="genderMale" value="1" />
+                    <label for="genderMale">男</label>
+                    <input type="radio" id="genderFemale" name="gender" class="gender required"  value="2" />
+                    <label for="genderFemale">女</label><span class="error" style="color:red"></span>
+                </td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>生日</th>
+               	<td>
+                    <input type="text" id="birthday" name="birthday" readonly class="birthday required"/>
+                    <span class="error" style="color:red"></span>
+                    <span class="grey8">&nbsp;(生日一旦確認後就無法變更)</span>
+                </td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>手機號碼</th>
+                <td>
+                    <input id="cellphone" name="cellphone" type="text" class="required cellphone mobile"   maxlength="10"/>
+                    <span class="error" style="color:red"></span>
+                    <p class="grey8">(範例：0987654321，註冊完成後，系統將會發送簡訊認證碼，請務必填寫正確手機號碼)</p>
+                </td>
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>聯絡地址</th>
+                <td><span class="zip">郵遞區號:</span>
+                	<span id="addr" class="zipcodeSelect required"></span>
+               		<input type="text" id="fullAddress" name="fullAddress" class="w160 required zh" maxlength="40" />
+               		<span class='error'  style='color:red;'></span>
+               		<input type="hidden" id="addr_zipcode_def" value="${param.zip_code}">
+                        <input type="hidden" id="addr_county_def" value="${param.zip_county}">
+                        <input type="hidden" id="addr_area_def" value="${param.zip_area}">
+            </tr>
+            <tr>
+                <th><span class="red0">*</span>是否願意接受廣告</th>
+                <td>
+                    <select id="edm" class="edm required" name="edm">
+                        <option value="">請選擇</option>
+                        <option value="1">願意接受</option>
+                        <option value="2">僅願意接受電子郵件廣告</option>
+                        <option value="3">僅願意接受手機簡訊廣告</option>
+                        <option value="4">否</option>
+                    </select>
+                    <span class="error" style="color:red"></span>
+                </td>
+            </tr>
+        </table>
+         <div class="btn-line-right">
+                    <a class="button btnBack" href="#">上一步</a>&nbsp;         
+                    <a class="button btnSubmit" href="#">下一步</a>
+        
+        </div>
+        </form>
+
+    </div>
+</div>
+<cms:include property="template" element="foot" />  

@@ -1,0 +1,19 @@
+ <%@page import="com.thesys.opencms.laphone.member.*"%>
+<%
+	session.removeAttribute("memberNo");
+	session.removeAttribute("memberId");
+	session.removeAttribute("cardId");
+	session.removeAttribute("memberName");
+	session.removeAttribute("memberEmail");
+	session.removeAttribute("memberMobile");
+	session.removeAttribute("oldMemberNo");
+	session.removeAttribute("pwdErrTimes"); 
+	session.removeAttribute("smsErrTimes"); 		
+	session.removeAttribute("mailVerifyCode");
+	session.removeAttribute("smsVerifyCode");
+	session.removeAttribute("smsVerifyDeadline");
+	
+	com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+	String webUrl = paramHandler.getValueByParamKey("WEB_URL");
+	out.print("<script>location.href='"+webUrl +"index.html';</script>");
+%>

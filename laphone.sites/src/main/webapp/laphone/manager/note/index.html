@@ -1,0 +1,49 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+
+	<table class="list-table" border="0" cellpadding="0" cellspacing="0">
+		<tr>
+			<th class="w100">狀態</th>
+			<th>類別</th>
+		</tr>
+	<cms:contentload collector="thesysAllInSubTreeRequireDeleted" param="/_config_/Note%(number).html|ThesysPageContent" editable="false" preload="true">
+       		<cms:contentinfo var="info"/> 
+            	<c:choose><c:when test="${info.resultSize > 0}">
+            		<cms:contentload pageSize="50" pageIndex="%(param.pageIndex)" pageNavLength="100" editable="false"> 
+	        		<cms:contentinfo var="pageInfo" />
+	            	   	
+				<tr>
+					<td class="text-right">
+					<cms:include file="/system/modules/com.thesys.opencms.manager/elements/xmlListButton.jsp">
+						<cms:param name="rowId">${pageInfo.resultIndex}</cms:param>
+						<cms:param name="fromUrl"><cms:info property="opencms.uri"/></cms:param>
+						<cms:param name="xmlPath"><cms:contentshow element="%(opencms.filename)"/></cms:param>
+						<cms:param name="editUrl"><cms:link>editForm.html</cms:link></cms:param>
+						<cms:param name="publishUrl"><cms:link>publishForm.html</cms:link></cms:param>
+						<cms:param name="deleteButton">false</cms:param>
+					</cms:include>
+					</td>
+					<td>
+					<cms:contentshow element="Title"/></td>
+				</tr>
+			</cms:contentload>
+				<tr>
+					<td colspan="2" class="btn-line">
+					<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+						<cms:param name="pageCount">${pageInfo.pageNavEndIndex}</cms:param>
+					</cms:include>
+					</td>
+				</tr>
+		</c:when><c:otherwise><tr><td colspan="2">無相關資料</td></tr></c:otherwise></c:choose>
+        </cms:contentload>
+		
+	</table>
+<cms:include property="template" element="foot" /> 

@@ -1,0 +1,73 @@
+<%@ page buffer="none" import="com.thesys.opencms.laphone.msg.dao.*,com.thesys.opencms.laphone.msg.*,java.util.*,com.thesys.opencms.laphone.system.*,org.opencms.json.*,com.thesys.opencms.laphone.util.*" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<jsp:useBean id="cms" class="org.opencms.jsp.CmsJspLoginBean">
+	<% cms.init(pageContext, request, response); %>
+</jsp:useBean>
+<%
+ String cmsuser = cms.getUserName();
+ String replyContent = request.getParameter("replyContent") == null?"":(String)request.getParameter("replyContent");
+ int msgId = request.getParameter("msgId") == null?0:Integer.parseInt(request.getParameter("msgId"));
+ ThesysGuestMsgHandler handler = new ThesysGuestMsgHandler(pageContext, request,response);
+ handler.setMsgId(msgId);
+
+ ThesysGuestMsgVO vo = handler.getPageList().get(0);
+ if(vo == null){
+	out.print("<script>alert('問題號碼錯誤');history.go(-1);</script>");
+	return;
+ }
+ 
+ vo.setReplyContent(replyContent );
+ vo.setReplier(cmsuser );
+ boolean res = handler.reply(vo);
+ if(res = true){
+ 	if(vo.isMemberFlag()){
+		String subject ="[客服回覆]";
+		
+		switch (vo.getMessageType()) {
+			case 1:subject +="商品內容不正確";break;
+			case 2:subject +="商品瑕疵";break;
+			case 3:subject +="退換貨";break;
+			case 4:subject +="取消廠商出貨訂單";break;
+			case 5:subject +="購物步驟";break;
+			case 6:subject +="付款方式";break;
+			case 7:subject +="發票";break;
+			case 8:subject +="維修／保固";break;
+			case 9:subject +="超商取貨";break;
+			case 10:subject +="商品資訊";break;
+			case 11:subject +="電子報";break;
+			case 12:subject +="帳號／密碼／認證";break;
+			default:break;
+		}
+		ThesysSystemMsgHandler syshandler = new ThesysSystemMsgHandler(pageContext, request,response);
+		syshandler.add(vo.getMemberId(),2,vo.getMessageId(),subject,null,cmsuser);
+	}
+	
+	ThesysParamHandler paramHandler = new ThesysParamHandler(pageContext, request, response);
+	String host = paramHandler.getValueByParamKey("WEB_URL");//http://192.168.7.9:8080/shopping/ 
+	
+	JSONObject jsonObj = new JSONObject();
+	jsonObj.put("msgId",""+vo.getMessageId());
+	jsonObj.put("reply",replyContent );
+	jsonObj.put("host",host);
+	
+	ThesysSendMsgHandler msghandler = new ThesysSendMsgHandler(pageContext,request,response);
+	msghandler.setMsgName("serviceReply");
+	msghandler.setJsonObj(jsonObj);
+	msghandler.setEmail(vo.getEmail());
+	msghandler.sendMsg();
+	
+	out.println("<script>alert(\"回覆成功\");location.href='qnADetail.html?msgId="+msgId+"';</script>");
+	return;
+ }else{
+ 	out.print("<script>alert('問題回覆錯誤');history.go(-1);</script>");
+	return;
+ }
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+%>

@@ -1,0 +1,67 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@page import="com.thesys.opencms.laphone.member.dao.*"%>
+<%
+if(session.getAttribute("memberNo") != null){
+	out.print("<script>location.href='/index.jsp';</script>");
+	return;
+}
+%>
+<cms:include property="template" element="head" />
+
+<div id="content">
+  <div class="main">    
+        <h2 class="black"><cms:property name="Title"/></h2>
+        <form class="conver-login alertForm" name="convertLoginForm" id="convertLoginForm" action="loginProcess.jsp" method="post" enctype="application/x-www-form-urlencoded">
+             <input type="hidden" name="loginType" value="idNo"/>
+             <ul class="user-form">
+                    <li>
+                        <label>身份證字號:</label><input id="idNo" name="idNo" type="text" class="required" placeholder="" maxlength="10" value="" title="身份證字號"/>
+                    	<span class="red"></span>
+                    </li>
+	            <li>
+                        <label>密　　　碼:</label><input id="pwd" name="pwd" type="password" class="required" placeholder="" value="" title="密碼"/>
+                    	<span class="red">(請注意大小寫)</span>
+                    </li>
+                    <c:if test="${sessionScope.loginErrTimes > 1}">            	    
+                    <li class="verify-line">                    	
+                    	<label>驗　證　碼:</label>
+	                <p>
+	                        <input type="text"  title="驗證碼" name="verifyCode" id="verifyCode"  class="required" title="驗證碼"  maxlength="6"  autocomplete="off"><br/>	                        	
+	     			<span class="grey8 font13">不分大小寫</span>&nbsp;<a title="更新驗證碼" href="#verifyImage" class="btnRefresh red">更新驗證碼</a>
+	     		</p>
+     		    	<p>
+     		    		<img id="verifyImage" src="<cms:link>/newImage.html?tt=<%=(new java.util.Date()).getTime()%></cms:link>" width="125" >     		    	
+     		    	</p>
+                    </li>
+                    </c:if>   
+                    <li class="last-line">
+	            	<p>
+	            		<span>
+			            	忘記密碼了，請按此<a class="red" href="convertForget.html">查詢密碼</a>
+			        </span>	
+	                </p>
+	                <p class="btn-line"><a href="#convertLoginForm" class="btnSubmit button">登入</a></p>
+	                <p>
+	                    <img alt="網站身分識別標章" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/identify_icon.jpg</cms:link>" class="login-id-img" />
+	                </p>  
+                   </li>
+             </ul> 
+        </form>
+        <div class="space-line"></div>
+            <div class="notice-box">
+            	<ul class="disc">
+	        <li class="header">密碼說明：</li>	        
+	        <li>若您曾在laphone門市加入會員，密碼請輸入您在laphone門市加入會員時所填手機號碼+生日月份及日期。<br/>
+	        舉例：您在laphone門市加入會員時的手機號碼為0987654321，您的生日為01月03日，則密碼為：09876543210103
+	        </li>
+	        <li>若會員仍無法登入，請洽<a class="red" href="../service/">客服中心</a>留下您的聯絡資料，客服人員將主動與您聯繫</li>
+	        </ul>
+	    </div>
+    </div>
+</div>
+        
+<cms:include property="template" element="foot" />  

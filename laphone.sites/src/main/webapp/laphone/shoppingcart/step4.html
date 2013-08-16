@@ -1,0 +1,186 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+com.thesys.opencms.laphone.system.ThesysParamHandler paramHandler = new com.thesys.opencms.laphone.system.ThesysParamHandler(pageContext, request, response);
+String photoUrl = paramHandler.getValueByParamKey("PRODUCT_PHOTO_URL");
+if(photoUrl.endsWith("/")) photoUrl = photoUrl.substring(0,photoUrl.length()-1);
+pageContext.setAttribute("productPhotoUrl",photoUrl);
+%>
+<cms:include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp" />
+<jsp:useBean id="orderVO" scope="session" class="com.thesys.opencms.laphone.order.dao.ThesysOrderVO">
+</jsp:useBean>
+<jsp:setProperty name="orderVO" property="*"/>
+<cms:include property="template" element="head" /> 
+<script type="text/javascript">
+$(function () {
+	$("#btnSubmit").click(function(){
+		if ($("#agree").is(":checked")) {
+			return true;
+		}else {
+			alert("若您確認進行購物，請勾選 \"我已詳細閱讀，並同意接受以上內容\" 後確認購物。");
+			return false;
+		}
+	
+	});
+});
+</script>
+   <div id="shoppingCart">
+            <h2>購物步驟</h2>
+
+            <ul id="stepNav">
+                <li class="step0"><span class="success"></span></li>
+                <li class="step1"><span class="success"></span></li>
+	        <li class="step2"><span class="success"></span></li>
+                <li class="step3"><span class="success"></span></li>
+                <li class="step4"><span class="current"></span></li>
+                <li class="step5"><span></span></li>
+            </ul>
+            
+        <form id="orderForm" method="POST" action="<cms:link>step4.html</cms:link>"> 
+         <h2>購物明細</h2>           
+             	
+    	    <table class="shopping-box">
+    		<tr class="header">
+            		<td class="photo">商品圖片</td>
+                        <td class="productName">產品名稱</td>
+                        <td class="price">價格</td>
+                        <td class="quantity">數量</td>
+                        <td class="total">小計</td>
+                </tr>
+                <c:forEach var="item" items="${orderVO.orderItems}" varStatus="status">
+	        	<c:set var="productCode" value="${fn:replace(fn:replace(item.itemId,'-','_'),'+','_')}"/>	        	  	
+                <tr>
+            		<td class="photo">
+            			<img src="${productPhotoUrl}/${productCode}/${productCode}_1.jpg" alt="${item.itemName}" width="124" height="100"/>
+            		</td>
+                        <td class="productName">${item.itemName}</td>
+                        <td class="price">優惠價 NT$ 
+		    		<fmt:formatNumber value="${item.specialPrice}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    	</td>
+                        <td class="quantity">${item.quantity}</td>
+                        <td class="total"> NT$ 
+                        	<fmt:formatNumber value="${item.specialPrice*item.quantity}" pattern="#,##0.0#" maxFractionDigits="0"/>
+		    	</td>
+                </tr> 
+                </c:forEach>               
+        </table> 	
+ 	<div class="space-line"></div> 
+        <h2>選擇優惠方式</h2>
+        <div class="couponBar">
+       		<div>
+       		<c:choose><c:when test="${orderVO.couponAmount>0}">
+       		使用抵用券<span  class="money"><sup>NT$</sup>${orderVO.couponAmount}</span>元 （配件類商品小計<span  class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.couponUseAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元 最高可折抵 <span  class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.coupon.couponAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元）
+       		</c:when>
+       		<c:otherwise>
+       		未使用抵用券
+       		</c:otherwise></c:choose>
+       		</div>
+ 	</div>   	
+ 	<div class="space-line"></div>    
+        <h2>付費方式與寄送資訊</h2>
+ 	<table border="0" cellpadding="0" cellspacing="0" width="100%" class="receiverTable">
+                <tr>
+                    <td colspan="2">取貨方式 : 
+                    <c:choose><c:when test="${orderVO.shipType=='W'}">國內宅配</c:when>
+                    <c:otherwise>
+                    	 <c:choose>
+                    	 	<c:when test="${orderVO.shipType=='F'}">全家便利商店</c:when>
+                    	 	<c:when test="${orderVO.shipType=='K'}">OK超商</c:when>
+                    	 	<c:when test="${orderVO.shipType=='L'}">萊爾富便利商店</c:when>
+                    	 </c:choose>
+                    	 -${orderVO.cvsStoreName}-${orderVO.cvsStoreAddress}
+                    </c:otherwise>                    
+                    </c:choose>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">付款方式 :
+                     <c:choose>
+            	 	<c:when test="${orderVO.payType==0}">到店取貨付款</c:when>
+            	 	<c:when test="${orderVO.payType==1}">線上刷卡一次付清</c:when>
+            	 	<c:when test="${orderVO.payType==2}"> 信用卡分期付款</c:when>
+            	 	<c:when test="${orderVO.payType==3}">ATM 匯款</c:when>
+                    </c:choose> 
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">收件者　 : ${orderVO.receiver}</td>
+                </tr>
+                <tr>
+                    <td width="50%">連絡電話 : ${orderVO.recMobile}<c:if test="${! empty orderVO.recPhone}">/${orderVO.recPhone}} </c:if></td>
+                    <td width="50%">電子郵件 : ${orderVO.recEmail}</td>
+                </tr>
+                
+                <tr>
+                    <td colspan="2">收件地址 : ${orderVO.recZipCode} ${orderVO.recCounty}${orderVO.recArea}${orderVO.recAddress}</td>
+                </tr>
+            </table>            
+ 	<div class="space-line"></div>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" class="receiverTable">
+                <tr>
+                    <td colspan="2">發票類型 :   <c:choose><c:when test="${orderVO.invoiceType==3}">三聯式電子發票</c:when><c:otherwise>二聯式電子發票</c:otherwise></c:choose></td>
+                </tr>
+                <c:choose><c:when test="${orderVO.invoiceType==3}">
+                <tr>
+                    <td width="50%">統一編號 : ${orderVO.companyNo}</td>
+                    <td width="50%">發票抬頭 : ${orderVO.companyName}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">發票地址 :   ${orderVO.companyAddress}</td>
+                </tr>
+                </c:when><c:otherwise> 
+                <tr>
+                    <td colspan="2">買受人　 :   ${orderVO.invoiceBuyer}</td>
+                </tr> 
+                </c:otherwise></c:choose>             
+                <tr>
+                    <td colspan="2">發票寄送地址 :  ${orderVO.invoiceAddress}</td>
+                </tr>
+            </table>
+ 	<div class="space-line"></div>    
+        <div class="paymentBar">
+       		<p>總計 <span class="money">&nbsp;${orderVO.totalQuantity}&nbsp;</span> 項商品，消費金額小計：<span class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.totalAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span>元</p>
+	        <p>使用優惠： 抵用券，金額 <span class="money"><sup>NT$</sup>${orderVO.couponAmount}</span> 元</p>
+	        <p>處理費：<span class="money"><sup>NT$</sup>${orderVO.shipFee}</span>元</p>
+	        <p>應付金額總計：<span class="money"><sup>NT$</sup><fmt:formatNumber value="${orderVO.orderAmount}" pattern="#,##0.0#" maxFractionDigits="0"/></span> 元</p>
+ 	</div>	
+ 	<div class="space-line"></div>    
+ 	<div class="notice-box">
+		 <ul class="disc">
+            		<li class="header">退換貨須知</li>
+			<li>產品顏色可能會因網頁呈現與拍攝關係產生色差，圖片僅供參考，商品依實際供貨樣式為準。</li>
+			<li>產品文案為原廠(供應商)所提供，若有變動敬請參照實際商品為準。</li>
+			<li>猶豫期並非試用期。</li>
+			<li>依照消費者保護法的規定，顧客享有商品貨到日起7天猶豫期的權益。但猶豫期並非試用期，所以您所退回的商品必須是全新的狀態且包裝完整(含所有贈品)。</li>
+			<li>若您購買的商品是電腦軟體、遊戲光碟、CD、VCD、DVD、食品、耗材、個人衛生用品等一經拆封即無法回復原狀的商品，請您在尚未確認是否辦理退貨前，請勿拆封。</li>
+			<li>若您決定保留商品，當您開啟商品時，請務必以刀片將外盒之封口膠帶拆封，以確保外盒外觀完整如新。</li>
+			<li>若您發現購買的商品有瑕疪，請以下述方式辦理退貨</li>
+			<p>&nbsp;■ 請將完整商品、配件及包裝紙盒（含內外盒）、贈品，一併放入原宅配紙箱中。</p>
+			<p>&nbsp;■ 請至「會員中心 / 訂單查詢」申請退貨，我們將以物流方式取回商品進行檢測(檢測時間約7個工作天）。</p>
+			<p>&nbsp;■ 後續處理方式，將依檢測結果辦理。</p>
+			<li>若有下列情形，將會影響商品退貨權益</li>
+			<p>&nbsp;■ 商品、使用手冊、相關配備、贈品或配件不齊全。</p>
+			<p>&nbsp;■ 商品、外盒外觀污損或刮傷（含外盒條碼撕除)。</p>
+			<p>&nbsp;■ 商品如有視窗貼紙保護已受污損或刮傷。</p>
+			<p>&nbsp;■ 商品保固貼紙毀損。</p>
+			<p>&nbsp;■ 已拆封之電腦軟體、遊戲光碟、CD、VCD、DVD、食品、耗材、個人衛生用品。</p>
+			<p>&nbsp;■ 其他於本公司商品銷售網頁上有特別載明者。</p>
+			<li>退費時程，您退回之商品經供應商完成檢測無誤後，本公司將約於8~10個工作天(不含假日)完成退款作業。</li>
+                </ul>                
+	</div>
+     </div> 
+     <div id="shoppingButton">
+     	<ul class="btnShort">
+     		<li>
+     		<input type="checkbox" name="agree" id="agree" value="true"/>&nbsp;我已詳細閱讀，並同意接受以上內容
+     		</li>
+     		<li class="btnPrev"><a href="step3.html">上一步</a></li>
+     	        <!--<li><a href="<cms:link>orderProcess.jsp</cms:link>?tt=<%=(new java.util.Date()).getTime()%>" id="btnSubmit">確認購物</a></li>-->
+     	        <li><a href="step41.html" id="btnSubmit">確認購物</a></li>
+        </ul>
+     </div>
+<cms:include property="template" element="foot" /> 

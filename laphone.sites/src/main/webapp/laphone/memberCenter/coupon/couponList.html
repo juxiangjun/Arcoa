@@ -1,0 +1,87 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<cms:include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp" />
+<cms:include property="template" element="head" />
+<c:set var="pageSize" value="40"/>
+<jsp:useBean id="couponHandler" class="com.thesys.opencms.laphone.promote.ThesysCouponHandler">
+	<%couponHandler.init(pageContext,request,response);%>
+	<jsp:setProperty name="couponHandler" property="pageSize" value="${pageSize}"/>
+	<jsp:setProperty name="couponHandler" property="pageIndex" param="pageIndex"/>
+</jsp:useBean>
+<div style="display:none">         
+	<div id="couponDialog" class="laphoneDialog">
+		<h4>配件抵用券使用說明<a class="btnDialogClose"></a></h4>
+		<div class="dialogContent">
+			<ul class="disc">
+				<li>「配件抵用券」（下稱抵用券）是laphone購物網站（下稱本網站）提供專屬網路會員享有的購物優惠，可用以折抵本網站上您欲購買之配件類商品金額。符合資格者，系統會將抵用券存入您的會員專屬帳戶中，您可經由登入「會員中心>抵用券記錄」查詢。</li>
+				<li>如何獲得抵用券：網路會員凡於本網站購買『手機類商品』，於7日猶豫期間經過確認商品無退貨後，系統即會將抵用券存入您的會員帳戶中，每一交易訂單可獲得一張抵用券。</li>
+				<li>抵用券面額計算=該筆訂單所購買之『手機類商品』結帳金額x6%。</li>
+				<li>抵用券使用效期：自抵用券存入會員帳戶之日起算30日曆天內，逾期失效。</li>
+				<li>提醒您：您於本網站購買『手機類商品』後如有辦理退貨或取消訂單，即不符合抵用券發放資格，已發放至您帳戶之抵用券亦將取消使用資格。如您已使用抵用券，則您必須償還該抵用券面額之金額或本網站得逕自您『手機類商品』退貨金額中扣抵。</li>
+				<li>如何使用：如您會員帳戶存有抵用券，在您選購完商品欲結帳時，可至「首頁>購物車」點選抵用券選單，勾選欲使用之抵用券，再點選確認結帳即可。</li>
+				<li>抵用券限會員本人使用，不得轉讓。</li>
+				<li>抵用券限折抵指定商品類別(配件類商品)之購物金額，且無法抵扣物流費（運費）、刷卡手續費、訂單處理費等費用；每筆交易訂單限使用一張抵用券。</li>
+				<li>抵用券每券限折抵乙次，不得兌領現金，亦不可分次折抵；交易使用抵用券，未抵用完之餘額即自動失效，剩餘抵用金額不可回復、合併、累積、找零或要求於其他交易訂單使用。</li>
+				<li>購買配件類商品使用抵用券時，本網站僅就折抵抵用券後「您實際所支付的金額」開立發票，抵用券面額不另行開立開票。</li>
+				<li>使用抵用券購買之商品，如日後辦理退貨或取消訂單，僅退還商品金額扣除抵用券面額後「您實際所支付的金額」，該次消費使用之抵用券則於系統確認退貨作業完成後退還至您的會員帳戶內，但抵用券原本使用效期不因此而中斷。</li>
+				<li>抵用券不得於其他優惠活動合併使用。</li>
+				<li>抵用券為本網站無償發行，不適用商品（服務）禮券定型化契約記載之規範。</li>
+				<li>本公司保留抵用券使用方式之變更及終止之權利。若對使用方式有任何疑問，請洽詢<a href="<cms:link>service/index.html</cms:link>" class="sky">客服中心</a>。</li>
+			</ul>
+		</div>
+	</div> 
+</div>
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	
+        <div id="member-body" class="member-body">
+		<div class="msgbar-darkgray">您目前可使用的抵用券尚有${couponHandler.usableCount}張： <a href="#couponDialog" class="btnLightbox white">抵用券使用說明</a></div>
+		<table class="member-list">
+            		<tr class="red-header">
+	            		<td class="cp-date">抵用券取得日期</td>
+	                        <td class="cp-no">抵用券編號</td>
+	                        <td class="cp-amt">可抵用金額</td>
+	                        <td class="cp-date">使用期限</td>
+	                        <td class="cp-date">抵用券狀態</td>
+	                        <td class="cp-date">抵用券使用日期</td>
+	                </tr>
+	                <c:set var="itemCount" value="${couponHandler.count}"/>	                
+	                <c:if test="${itemCount==0}"><tr><td colspan="6" class="nodata-line">無抵用券</td></tr></c:if>	
+	                <c:forEach var="coupon" items="${couponHandler.pageList}" varStatus="status">
+	                
+	                <tr class="cp-item">
+	            		<td class="cp-date"><fmt:formatDate pattern="yyyy/MM/dd" value="${coupon.couponDate}"/></td>
+	                        <td class="cp-no">${coupon.couponCode}</li>
+	                        <td class="cp-amt">NT$ ${coupon.couponAmount}</li>
+	                        <td class="cp-date"><fmt:formatDate pattern="yyyy/MM/dd" value="${coupon.endDate}"/></td>
+	                        <td class="cp-date">
+	                        	<c:choose>
+	                        	<c:when test="${!empty coupon.usedDate}"><span class="blue">已使用</span></c:when>
+	                        	<c:when test="${coupon.expired}"><span class="red">已過期</span></c:when>
+	                        	<c:otherwise>尚未使用</c:otherwise>
+	                        	</c:choose>	                        
+	                        </td>
+	                        <td class="cp-date">
+	                        	<c:choose>
+	                        	<c:when test="${!empty coupon.usedDate}"><fmt:formatDate pattern="yyyy/MM/dd" value="${coupon.usedDate}"/></c:when>
+	                        	<c:otherwise>------</c:otherwise>
+	                        	</c:choose>	                  
+	                        </td>
+	                </tr>
+	                </c:forEach>
+	        </table>
+	        
+		<c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>	
+	        <c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+	        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/pager.jsp">
+			<cms:param name="pageCount">${pageCount}</cms:param>
+		</cms:include>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

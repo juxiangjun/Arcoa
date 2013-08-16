@@ -1,0 +1,38 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	
+        <div id="member-body" class="member-body">
+        	<h2>修改會員資料</h2>
+		<form class="auth-form alertForm" id="pwdVerifyForm" method="post" action="step2.html">
+			<ul class="account-form">
+				<li>
+				    <label for="account-passwd">請輸入會員登入密碼：</label>
+		                    <input type="password" name="pwd" id="account-passwd" class="required" title="密碼"/>
+		                    <p class="red">（為了保護您的個人資料安全，請輸入您的會員密碼）</p>
+				</li>
+		                <div class="btn-line-right">		                    
+		                    <a href="#pwdVerifyForm" class="button btnSubmit" >確認送出</a>
+		                </div>				
+			</ul>
+		</form>		
+		<div class="space-line"></div>
+	        <div class="notice-box">
+	        	<ul class="disc">
+			<li class="header">說明</li>
+		        <li>會員需在登入狀態下，方能進行會員資料修改。</li >
+            		<li>為保護個人資料安全，修改個人資料時，需輸入會員登入密碼，密碼輸入三次錯誤，系統會自動將會員登出。</li>
+            		</ul>
+		</div>		
+		<div class="space-line"></div>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

@@ -1,0 +1,42 @@
+<%@ page buffer="none" import="com.thesys.opencms.laphone.imp.*,java.util.*,com.thesys.util.*,java.io.*,com.thesys.web.*,org.opencms.main.*, org.opencms.jsp.*,org.opencms.file.*"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+ThesysFileUploadRequest fileRequest = new ThesysFileUploadRequest(request);
+int fileType = Integer.parseInt((String)fileRequest.getParameter("fileType"));
+InputStream in = (InputStream)fileRequest.getParameter("fileUpload");
+
+ThesysSapStockImportHandler stockHandler = new ThesysSapStockImportHandler(pageContext, request,response);
+ThesysSapProductImportHandler productHandler = new ThesysSapProductImportHandler(pageContext, request,response);
+
+switch(fileType){
+	case 1:
+		//out.println("匯入物料主檔");		
+		productHandler.importProductCsv(in);		
+		break;
+	case 2:			
+		//out.println("匯入單品價格檔");		
+		productHandler.importPriceCsv(in);
+		break;
+	case 3:			
+		//out.println("匯入組案價格檔");		
+		productHandler.importGroupCsv(in);
+		break;
+	case 4:
+		//out.println("匯入商品庫存檔");		
+		stockHandler.importFile(in, false);
+		break;
+	case 5:			
+		//out.println("匯入商品基本資料");
+		productHandler.importProductExcel(in);
+		break;
+
+}
+%>
+<script>
+<%if(fileType==4){%>
+alert('匯入完成!\r\n共處理<%=stockHandler.getProcessCount() %>筆資料；\r\n成功匯入：<%=stockHandler.getSuccessCount() %>筆\r\n錯誤：<%=stockHandler.getErrorCount() %>筆\r\n<%=stockHandler.getErrorMessage() %>');
+<%}else{%>
+alert('匯入完成!\r\n共處理<%=productHandler.getProcessCount() %>筆資料；\r\n成功匯入：<%=productHandler.getSuccessCount() %>筆\r\n錯誤：<%=productHandler.getErrorCount() %>筆\r\n<%=productHandler.getErrorMessage() %>');
+<%}%>
+location.href="index.html";
+</script>

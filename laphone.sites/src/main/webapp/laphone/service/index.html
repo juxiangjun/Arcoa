@@ -1,0 +1,89 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
+<cms:include property="template" element="head" /> 
+<script type="text/javascript">
+$(document).ready(function(){
+	 $(".btnReset").click(function(){
+	    	$("form[id='serviceForm']").find("input[type=text]").each(function(){
+	    		$(this).val("");
+	    	})
+	    	$("form[id='serviceForm']").find("select").each(function(){
+	    		$(this)[0].selectedIndex = 0; 
+	    	})
+	    	$("form[id='serviceForm']").find("textarea").each(function(){
+	    		$(this).val("");
+	    	})
+		return false;	
+	 });
+})
+</script>
+<div id="content">
+  <div class="main">
+        <div class="title">
+            <h2><span><cms:property name="Title"/></span></h2>
+        </div>            
+         <form id="serviceForm" action="serviceInsert.jsp" method="POST">
+         <div class="service-form">
+            <c:if test="${empty sessionScope.memberId}">	
+         	<div>
+         		<ul class="member-radio">
+			<li><input type="radio" name="isMember" <c:if test="${not sessionScope.memberId}">checked </c:if> onclick="$('#loginHiddenForm').submit();" value="Y"/> 我是laphone會員</li>
+			<li><input type="radio" name="isMember"  <c:if test="${empty sessionScope.memberId}">checked </c:if> checked value="n"/> 我不是laphone會員</li>
+			</ul>
+                	<ul class="customer-info">
+	                	<li>
+	                            <span class="red">*</span><label for="q-login-name">姓　　名：</label>
+	                            <input name="username" class="username required" type="text" maxlength="50" size="15"/>
+	                        </li>
+	                        <li>
+	                            <span class="red">*</span><label for="q-login-name">聯絡電話：</label>
+	                            <input name="phone" class="number required" type="text" maxlength="10" size="15"/>
+	                        </li>
+	                        <li>
+	                            <span class="red">*</span><label for="q-login-name">電子郵件：</label>
+	                            <input name="email" class="email required" type="text" maxlength="50" size="15"/>
+	                        </li>
+                        </ul>
+                </div>
+                <div>
+                     <ul>若您無法登入、忘記帳號或密碼，請選擇『我不是laphone會員』，</ul>
+                     <ul>並留下您的問題及聯絡方式，客服人員將會儘快與您聯繫。</ul>
+                </div>
+		<div class="dotted-line"></div>
+            </c:if>
+		<div>
+			<ul class="service-msg">
+			<li>
+			   <span class="red">*</span>問題類型：
+			   <select name="msgType" class="required">
+	                        <option value="">請選擇...</option>
+	                        <option value="1">商品內容不正確</option>
+	                        <option value="2">商品瑕疵</option>
+	                        <option value="3">退換貨</option>
+	                        <option value="4">取消廠商出貨訂單</option>
+	                        <option value="5">購物步驟</option>
+	                        <option value="6">付款方式</option>
+	                        <option value="7">發票</option>
+	                        <option value="8">維修／保固</option>
+	                        <option value="9">超商取貨</option>
+	                        <option value="10">商品資訊</option>
+	                        <option value="11">電子報</option>
+	                        <option value="12">帳號／密碼／認證</option>
+	                    </select>
+	                    <span name="errmsg"></span>
+	                </li>
+                
+	                <li><span class="red">*</span>問題說明：（請務必詳細說明您詢問及反應的問題）</li>
+	                <li><textarea name="msgContent" class="msgContent required" rows="10"  maxlength="255"></textarea><span name="errmsg"></span></li>
+			<li class="btn-line"><a href="#serviceForm" class="button btnSubmit">發送</a>&nbsp;<a href="#" class="button btnReset">清除</a></li>
+			</ul>			
+		</div>
+         </div>           
+         </form>
+  </div>
+</div>    
+<cms:include property="template" element="foot" /> 

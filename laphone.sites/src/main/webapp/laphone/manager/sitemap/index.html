@@ -1,0 +1,83 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="com.thesys.opencms.laphone.system.*,org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*,java.net.*" %>
+<%@ page buffer="none" import="org.apache.commons.codec.net.BCodec,java.io.*,org.opencms.main.*, java.lang.String"%>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%!
+//recursive function
+    @SuppressWarnings({"unchecked"})    
+    static void showNavMenu(CmsJspActionElement cms, JspWriter out, CmsJspNavBuilder nav,List<CmsJspNavElement> filesInFolder ,String host)
+            throws java.io.IOException {
+        int rowCount =0;
+ 	 for (CmsJspNavElement sub : filesInFolder) {            
+            String name = sub.getResourceName();
+            String fileName = sub.getFileName();
+            
+            if (name.endsWith("index.html") || name.endsWith("index.jsp")) continue;
+            String navText = sub.getProperty(CmsPropertyDefinition.PROPERTY_NAVTEXT);
+            if (navText == null) navText = sub.getTitle();
+            	if(sub.isFolderLink()){
+            		String defFile = sub.getProperty("default-file");
+            	 	if(defFile==null) defFile = "index.html";
+           	 	out.println("<url><loc>"+host+name.substring(1)+defFile+"</loc></url>");
+          	}else{
+            		out.println("<url><loc>"+host+name.substring(1)+"cc</loc></url>");
+		}
+        }	
+    } 
+%> 
+<%
+  
+	String fName = "sitemap.xml";
+	
+	//ie用URLEncoder.encode firefox用BCodec().encode
+	if (request.getHeader("User-Agent").indexOf("MSIE") != -1  || request.getHeader("User-Agent").indexOf("Chrome") != -1){
+		response.setHeader("Content-Disposition","attachment; filename=\""+java.net.URLEncoder.encode(fName ,"utf-8") +"\"");
+	}
+	else{
+		response.setHeader("Content-Disposition","attachment; filename=\""+new BCodec().encode(fName , "utf-8") +"\"");
+	}
+  
+      	
+      	CmsJspLoginBean cms = new CmsJspLoginBean(pageContext, request, response);
+      	CmsJspNavBuilder nav = cms.getNavigation();
+	ThesysParamHandler paramHandler = new ThesysParamHandler(pageContext, request, response);
+	String host = paramHandler.getValueByParamKey("WEB_URL");
+        
+        int navIdx = 1;
+        List<CmsJspNavElement> filesInFolder = nav.getNavigationForFolder("/");
+        
+        out.println("<xml version='1.0' encoding='UTF-8'?> ");
+        out.println("<urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9' >");
+        for (CmsJspNavElement sub : filesInFolder) {            
+            String name = sub.getResourceName();
+            String fileName = sub.getFileName();
+            
+          // if (name.endsWith("index.html") || name.endsWith("index.jsp")) continue;
+            String navText = sub.getProperty(CmsPropertyDefinition.PROPERTY_NAVTEXT);
+            if (navText == null) navText = sub.getTitle();
+           
+            if(sub.isFolderLink()){
+            	 String defFile = sub.getProperty("default-file");
+            	 if(defFile==null) defFile = "index.html";
+           	 out.println("<url><loc>"+host+name.substring(1)+defFile+"</loc></url>");
+            	 if(nav.getNavigationForFolder(name).size()>0){
+	            	List<CmsJspNavElement> list = nav.getNavigationForFolder(name);
+	            	showNavMenu(cms,out,nav,list,host );
+	         }
+            }else{
+            	 out.println("<url><loc>"+host+name.substring(1)+"</loc></url>");
+            }
+            navIdx ++;
+        }
+        out.println("</urlset>");
+
+	java.io.OutputStream outStream = response.getOutputStream();
+	OutputStreamWriter writer = new OutputStreamWriter(outStream );
+	
+	outStream .close();
+%> 
+
+

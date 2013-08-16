@@ -1,0 +1,104 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<%
+String orderId = request.getParameter("orderId");
+if(orderId ==null){
+	out.println("<script>alert('錯誤操作');history.go(-1);</script>");
+	return;
+}
+int updateResult= 0;
+%>
+<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+<%orderHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:setProperty name="orderHandler" property="orderId" param="orderId"/>
+<c:set var="orderVO" value="${orderHandler.selectedOrder}"/>
+<c:set var="orderStatus" value="${orderVO.orderStatus}"/>
+<c:if test="${param.receiptFlag=='Y'}">
+<%
+	updateResult++;
+	if(!orderHandler.checkReceipt(orderId)){
+%>
+		<script>
+			alert("更新失敗");
+			location.href='index.html';
+		</script>
+<%	
+		return;
+	}
+%>
+</c:if>
+<c:if test="${!empty param.invoiceDate}">
+<%
+	java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy/MM/dd");
+	java.util.Date invoiceDate = fmt.parse(request.getParameter("invoiceDate"));
+	updateResult++;
+	if(!orderHandler.updateInvoiceDate(orderId,invoiceDate )){
+%>
+		<script>
+			alert("更新失敗");
+			location.href='index.html';
+		</script>
+<%	
+		return;
+	}
+%>
+</c:if>
+
+<c:if test="${param.changeStatusFlag=='Y'}">	
+	<jsp:setProperty name="orderHandler" property="orderId" param="orderId"/>
+	<c:choose>
+	<c:when test="${param.orderStatus==9}">
+	<%
+	updateResult++;
+	if(!orderHandler.checkCanceledOrder()){
+%>
+		<script>
+			alert("更新失敗");
+			location.href='index.html';
+		</script>
+<%	
+		return;
+	}	
+	%>
+	</c:when>
+	<c:when test="${param.orderStatus==11}">
+	<%
+	updateResult++;
+	if(!orderHandler.checkReturnOrder()){ //客服已聯絡退貨
+%>
+		<script>
+			alert("更新失敗");
+			location.href='index.html';
+		</script>
+<%	
+		return;
+	}	
+	%>
+	</c:when>
+	<c:when test="${param.orderStatus==12}">
+	<%
+	updateResult++;
+	if(!orderHandler.processReturnOrder()){ //貨運已收取退貨商品
+%>
+		<script>
+			alert("更新失敗");
+			location.href='index.html';
+		</script>
+<%	
+		return;
+	}	
+	%>
+	</c:when>
+	</c:choose>
+</c:if>	
+<script>
+	alert("<%=(updateResult>0)?"更新成功":"未執行任何動作"%>");
+	location.href='index.html';
+</script>
+	

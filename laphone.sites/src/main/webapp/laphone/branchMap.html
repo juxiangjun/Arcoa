@@ -1,0 +1,100 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<cms:include property="template" element="head" /> 
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=zh_tw" type="text/javascript"></script>
+<script src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/js/googleMap.js</cms:link>" type="text/javascript"></script>
+<script>
+$(function(){
+	//$(".viewpic:first a").trigger("click");
+});
+</script>
+<div id="content">
+  <div class="main">
+        <div class="title">
+            <h2><span><cms:property name="Title"/></span></h2>
+        </div>         
+        <div class="blank10px"></div>
+        
+    	<div id="branch_wrapper">
+	        <div class="branch_main black">
+	        	<h3>laphone 新潮手機與時尚配件專賣店</h3>
+	        	<p>laphone是全新的流行平價電信商品專賣店，提供專業優質、多樣化且價格優惠的商品，讓選購電信產品的過程不僅更有保障、也更輕鬆！ 它一目瞭然的開架陳列方式， 讓消費者可以在很短的時間內就找到自己所需要的商品，並直接拿取至櫃台結帳付款。laphone 名字的靈感來自於中文 ”拉風” ，也是「la」和「phone」兩個字的結合； 「la」在法文中等同於英文的「the」 ，因此la phone = the phone 傳達出個人風格化的通訊商品，也能盡情展現自我的品牌概念。</p>
+	        </div>
+        	<div class="blank55px"></div>
+        	<div class="list">		
+		            <div class="small_wrapper">
+		                <div class="branch black">
+		                    <h4 class="font16 red">【laphone 鳳山青年店】</h4>
+		                    <div class="left">
+		                        <img src="<cms:link>/images/store/shop_02.jpg</cms:link>" width="300" alt="鳳山青年店"/>
+		                    </div>
+		                    <div class="right">
+		                        <div>營業電話：(07) 7678 111</div>
+		                        <div class="grey35px"><a href="#" onclick="openBranchMap('高雄市鳳山區青年路二段330號 1樓');return false;"><span>營業地址：高雄市鳳山區青年路二段330號 1樓(文衡路口)</span><img alt="看地圖" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/watchmap.jpg</cms:link>" /></a></div>
+		                        <div>
+		                            <p>營業時間：<span>週一 ~ 週日 09:30 ~ 22:00</span></p>
+		                            <p>　　　　　<span></span></p>
+		                        </div>
+		                    </div>
+		                    <div class="clearfix"></div>
+		                </div>
+		                <div class="blank20px"></div>
+		            </div>
+		            
+		            <div class="small_wrapper">
+		                <div class="branch black">
+		                    <h4 class="font16 red">【laphone 高雄裕誠店】</h4>
+		                    <div class="left">
+		                        <img src="<cms:link>/images/store/shop_03.png</cms:link>" width="300" alt="高雄裕誠店"/>
+		                    </div>
+		                    <div class="right">
+		                        <div>營業電話：(07) 557 6111</div>
+		                        <div class="grey35px"><a href="#" onclick="openBranchMap('高雄市左營區裕誠路303號1樓');return false;"><span>營業地址：高雄市左營區裕誠路303號1樓 (A1)</span><img alt="看地圖" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/watchmap.jpg</cms:link>" /></a></div>
+		                        <div>
+		                            <p>營業時間：<span>週一 ~ 週日 09:30 ~ 22:00</span></p>
+		                            <p>　　　　　<span></span></p>
+		                        </div>
+		                    </div>
+		                    <div class="clearfix"></div>
+		                </div>
+		                <div class="blank20px"></div>
+		            </div>
+		            
+		            <div class="small_wrapper">
+		                <div class="branch black">
+		                    <h4 class="font16 red">【laphone 台南華東店】</h4>
+		                    <div class="left">
+		                        <img src="<cms:link>/images/store/shop_04.jpg</cms:link>" width="300" alt="台南華東店"/>
+		                    </div>
+		                    <div class="right">
+		                        <div>營業電話：(06) 260 7555</div>
+		                        <div class="grey35px"><a href="#" onclick="openBranchMap('台南市東區中華東路二段151號');return false;"><span>營業地址：台南市東區中華東路二段151號</span><img alt="看地圖" src="<cms:link>/system/modules/com.thesys.opencms.laphone/resources/images/watchmap.jpg</cms:link>" /></a></div>
+		                        <div>
+		                            <p>營業時間：<span>週一 ~ 週日 09:30 ~ 22:00</span></p>
+		                            <p>　　　　　<span></span></p>
+		                        </div>
+		                    </div>
+		                    <div class="clearfix"></div>
+		                </div>
+		                <div class="blank20px"></div>
+		            </div>
+        	</div><!--end of list-->
+        </div><!--end branch_wrapper-->
+        <div class="blank10px"></div>
+  </div>
+</div>   
+<div style="display:none">
+	<a href="#branchMapDialog" id="btnMapDialog" class="btnLightbox"></a>
+	<div id="branchMapDialog" class="laphoneDialog">
+		<h4><a class="btnDialogClose"></a></h4>		
+		<div class="dialogContent">
+		   <div id="gmap-wrapper">
+			<div id="map_canvas" />
+		   </div>
+		</div>
+	</div> 
+</div> 
+<cms:include property="template" element="foot" /> 

@@ -1,0 +1,57 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@page import="com.thesys.opencms.laphone.member.*,org.opencms.jsp.CmsJspActionElement"%>
+<%@include file="/system/modules/com.thesys.opencms.laphone/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="memberhandler" class="com.thesys.opencms.laphone.member.ThesysMemberHandler">
+	<%memberhandler.init(pageContext,request,response);%>
+	<jsp:setProperty name="memberhandler" property="memberNo" value="${memberNo}"/>
+</jsp:useBean>
+<c:set var="emailVerify" value="${memberhandler.emailVerify}" />
+<div id="content">
+	<div class="member-main">  
+        <cms:include file="/system/modules/com.thesys.opencms.laphone/elements/memberMenu.jsp"/>
+	
+        <div id="member-body" class="member-body">
+        	<h2><cms:property name="Title"/></h2>
+		<form class="email-form" id="emailForm">
+		    <ul class="account-form">
+		    	<li>
+			     	<h2>	
+	                	<c:if test="${!emailVerify}">您的電子郵件尚未驗證</c:if>
+	                	<c:if test="${emailVerify}">您的電子郵件已驗證</c:if>
+	                	</h2>
+	                    	電子郵件： <span class="email">${sessionScope.memberEmail}</span>
+	                    	 <p><c:if test="${!emailVerify}"><span class="red">(尚未驗證)</span></c:if>
+	                     	 	<c:if test="${!emailVerify}">
+	                    	 	<span class="btn-line" id="accountEmailAuth">
+	                    	 		<a href="reSendMail.jsp" class="button">重新發送電子郵件驗證信</a>
+	                    	 	</span>
+	                    	 	</c:if>
+	                    	 </p>
+	                 </li>
+                    	 <div class="btn-line-right">		                    
+		          <a href="modify/step1.html" class="button">修改會員資料</a>
+		         </div>	
+		     </ul>
+		</form>
+		<div class="space-line"></div>
+        	<div class="notice-box">
+		        <ul class="disc">
+		            <li class="header">驗證說明</li>
+		            <li>為保持系統訊息能順利通知您以及保護您的個人資料安全，請填寫正確的電子郵件，系統稍後將發送電子郵件認證信到您所填寫的電子郵件信箱中，請您留意您的電子郵件信箱。</li>
+		            <li>當您註冊成為laphone會員或變更電子郵件信箱時，系統會自動發送電子郵件認證信至您的電子郵件信箱，請您進行電子認證，以保持系統通知信函能便利寄送到您的電子郵件信箱，並避免您的電子信箱遭冒用。</li>
+		            <li>認證連結有效期限為三天，為了維護您的權益，請於三天內點選上方連結以完成電子郵件認證。</li>
+		            <li>若您收到非由您本人所進行的電子郵件認證信函，請不要進行認證，並通知客服人員為您進行查核。</li>
+		            <li>如果您一直未收到電子郵件認證信函，請檢查您的垃圾郵件或大量郵件資料夾。您電子郵件的垃圾郵件或大量郵件篩選器可能攔截了我們寄給您的電子郵件。</li>
+		            <li>若有任何問題，請您可於客服中心詢問。</li>
+		        </ul>
+		</div>
+		<div class="space-line"></div>
+        </div>
+     </div>
+</div>    
+<cms:include property="template" element="foot" /> 

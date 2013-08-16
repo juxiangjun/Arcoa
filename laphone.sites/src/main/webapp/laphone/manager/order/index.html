@@ -1,0 +1,136 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="com.thesys.opencms.laphone.order.dao.*,org.opencms.main.*, org.opencms.search.*, org.opencms.file.*, org.opencms.jsp.*, java.util.*, java.sql.*, java.net.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" />
+<jsp:useBean id="orderHandler" scope="request" class="com.thesys.opencms.laphone.order.ThesysOrderHandler">
+<%orderHandler.init(pageContext,request,response);%>
+</jsp:useBean>
+<c:set var="pageSize" value="40"/>
+<jsp:setProperty name="orderHandler" property="pageSize" value="${pageSize}"/>
+<jsp:setProperty name="orderHandler" property="*"/>
+<c:set var="orderList" value="${orderHandler.backendPageList}"/>
+<c:set var="itemCount">${orderHandler.backendCount}</c:set>
+<form id="searchForm" method="post" action="<cms:info property="opencms.uri"/>">
+	<table align="center" css="table">
+		<tbody>
+			<tr>
+				<td width="70" align="right" class="tr_b">訂單日期:</td>
+				<td width="370" align="left" class="tr_b">
+					<input type="text" name="startDate" id="startDate" class="date" value="${param.startDate}"> 
+					到&nbsp; 
+					<input type="text" name="endDate" id="endDate" class="date" value="${param.endDate}">
+				</td>
+			</tr>
+			<tr>
+				<td width="70" align="right" class="tr_b2">會員姓名:</td>
+				<td width="370" align="left" class="tr_b2">
+				<input type="text" name="memberName" id="memberName" value="${param.memberName}"> &nbsp;</td>
+			</tr>
+			<tr>
+				<td width="70" align="right" class="tr_b">會員帳號:</td>
+				<td width="370" align="left" class="tr_b">
+					<input type="text" name="searchMemberId" id="searchMemberId" value="${param.searchMemberId}"> &nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td width="70" align="right" class="tr_b2">訂單編號:</td>
+				<td width="370" align="left" class="tr_b2">
+			  		<input type="text" name="orderId" id="orderId" value="${param.orderId}"> &nbsp;
+			  	</td>
+			</tr>
+			<tr>
+				<td width="70" align="right" class="tr_b">狀態:</td>
+				<td width="370" align="left" class="tr_b">
+			  		<select name="orderStatus" id="orderStatus">
+					<option value="">請選擇</option>
+					<%pageContext.setAttribute("statusMap",com.thesys.opencms.laphone.order.dao.ThesysOrderVO.getOrderStatusMap());%>
+					<c:forEach var="st" items="${statusMap}">
+					<option value="${st.key}" <c:if test="${param.orderStatus==st.key}">selected</c:if>>${st.value}</option>
+					</c:forEach>
+					</select>
+			  	</td>
+			</tr>
+			<tr>
+				<td align="center" class="style1" colspan="2"> 
+					<a href="#searchForm" class="button btnSubmit">查詢</a>
+					<a href="#searchForm" class="button btnReset">清空</a>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+<div style="padding-top: 15px">
+	<table cellspacing="0" cellpadding="0" border="0" style="width: 780px; text-align: left; border-collapse: collapse;" rules="all" class="table">
+		<tbody>
+		<tr>
+			<th scope="col">&nbsp;</th>
+			<th style="width: 128px; " scope="col">訂單編號</th>
+		        <th scope="col">客戶名稱</th>
+			<th scope="col">訂單金額</th>
+			<th scope="col">付款方式</th>
+			<th scope="col">訂單日期</th>
+			<th scope="col">訂單狀態</th>
+			<th scope="col">收款報告單</th>
+		</tr>
+		<c:forEach var="orderVO" items="${orderList}" varStatus="status">
+		<c:set var="trCalss">tr_b</c:set>
+		<c:if test="${status.index%2==0}">
+			<c:set var="trCalss">tr_a</c:set>
+		</c:if>
+		<tr class="${trCalss}">
+			<td>
+				<form method="post" id="editForm_${status.index}">
+					<input type="hidden" name="orderId" value="${orderVO.orderId}">
+				</form>
+				<a class="btnEdit" ref="editForm.html" href="#editForm_${status.index}">編輯</a>
+			</td>
+			<td class="auto-style1">${orderVO.orderId}</td>
+			<td>${orderVO.receiver}</td>
+			<td>${orderVO.orderAmount}</td>
+			<td>
+				<c:choose>
+					<c:when test="${orderVO.payType==0}">
+						到店取貨付款
+					</c:when>
+					<c:when test="${orderVO.payType==1}">
+						線上刷卡一次付清
+					</c:when>
+					<c:when test="${orderVO.payType==2}">
+						信用卡分期付款
+					</c:when>
+					<c:when test="${orderVO.payType==3}">
+						ATM 匯款
+						<c:if test="${not empty orderVO.atmCode}">
+						(${orderVO.atmCode})
+						</c:if>
+					</c:when>
+				</c:choose>
+				
+			</td>
+			<td>
+				<fmt:formatDate value="${orderVO.orderDate}" pattern="yyyy/MM/dd HH:mm" />
+			</td>
+			<td>${orderVO.backendOrderStatusName}<BR><c:if test="${not empty orderVO.orderMessage}">(${orderVO.orderMessage})</c:if></td>			
+			<td><c:choose><c:when test="${empty orderVO.receiptDate}">未填寫</c:when><c:otherwise>已填寫</c:otherwise></c:choose></td>
+		</tr>
+		</c:forEach>
+		<c:if test="${empty orderList}">
+			<tr><td colspan="7">無訂單資料</td></tr>
+		</c:if>
+		<tr>
+			<c:set var="pageCount"><fmt:parseNumber integerOnly="true" value="${itemCount/pageSize}"/></c:set>
+			<c:if test="${(itemCount % pageSize) >0}"><c:set var="pageCount" value="${pageCount+1}"/></c:if>
+			<td colspan="6" style="border-bottom: none">
+			<cms:include file="/system/modules/com.thesys.opencms.manager/elements/pager.jsp">
+				<cms:param name="pageCount">${pageCount}</cms:param>
+			</cms:include>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+<cms:include property="template" element="foot" />

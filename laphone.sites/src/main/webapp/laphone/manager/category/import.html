@@ -1,0 +1,160 @@
+<%@ page trimDirectiveWhitespaces="true" %>
+<%@ page buffer="none" import="java.util.*,java.io.*,jxl.*" %>
+<%@ page buffer="none" import="com.thesys.web.*" %>
+<%@ page buffer="none" import="com.thesys.opencms.xml.*,org.opencms.main.*, org.opencms.json.JSONObject, org.opencms.file.*, org.opencms.jsp.*" %>
+<%@ taglib prefix="cms" uri="http://www.opencms.org/taglib/cms" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ include file="/system/modules/com.thesys.opencms.manager/elements/loginCheck.jsp"%>
+<cms:include property="template" element="head" /> 
+<jsp:useBean id="cms" scope="request" class="org.opencms.jsp.CmsJspActionElement">
+<%cms.init(pageContext,request,response);%>
+</jsp:useBean>
+<jsp:useBean id="sapCategoryMap" class="java.util.HashMap" />
+<%
+//讀取現有設定
+CmsJspNavBuilder nav = cms.getNavigation();
+HashMap mainCategoryMap = new HashMap();
+HashMap subCategoryMap = new HashMap();
+HashMap newSapCategoryMap = new HashMap();
+Iterator<CmsJspNavElement> iterator1 = nav.getNavigationForFolder("/").iterator();
+while(iterator1.hasNext()){
+	CmsJspNavElement file1 = iterator1.next();
+	if(file1.getNavPosition()>10 && file1.getNavPosition()<50){
+		String title1 = file1.getTitle();
+		String folderPath1 =file1.getResourceName();
+		mainCategoryMap.put(title1 ,folderPath1 );
+		Iterator<CmsJspNavElement> iterator2 = nav.getNavigationForFolder(folderPath1 ).iterator();
+		while(iterator2.hasNext()){
+			CmsJspNavElement file2 = iterator2.next();
+			String title2 = file2.getTitle();
+			String folderPath2 =file2.getResourceName();
+			subCategoryMap.put(title1+"/"+title2 ,folderPath2 );
+			pageContext.setAttribute("categoryPath",title1+"/"+title2);
+			pageContext.setAttribute("xmlPath",folderPath2);
+%>
+			
+			<cms:contentload collector="thesysSingleFile" param="${xmlPath}" editable="false">
+				<cms:contentloop element="SapCategoryCode">
+					<c:set var="code"><cms:contentshow/></c:set>					
+					<c:set target="${sapCategoryMap}" property="${categoryPath}/${code}" value="${categoryPath}/${code}"/>
+				</cms:contentloop>
+			</cms:contentload>
+<%		
+				
+		}
+	}
+}
+
+ThesysCmsXmlHandler xmlHandler = new ThesysCmsXmlHandler(cms.getCmsObject());
+
+//讀取上傳的檔案
+ThesysFileUploadRequest fileRequest = new ThesysFileUploadRequest(request);
+InputStream in = (InputStream)fileRequest.getParameter("fileUpload");
+String msg = "";
+int rowCount = 0;
+int newCount = 0;
+int oldCount = 0;
+int errorCount = 0;
+try{
+	Workbook book = Workbook.getWorkbook(in );
+	Sheet sheet = book.getSheet(0);
+	rowCount = sheet.getRows(); 
+	int colNum = sheet.getColumns();   
+	for(int row=0;row<rowCount;row++){
+		String [] nextLine = new String[3];
+		for(int col=0;col<3;col++){
+			String colVal = sheet.getCell(col,row).getContents().trim();   
+			nextLine[col] = colVal;
+		}
+		// nextLine[] is an array of values from the line
+		String mainCategory = nextLine[0];
+		String subCategory = nextLine[1];
+		String sapCategoryCode = nextLine[2].toUpperCase();
+		if(mainCategory .length()==0 || subCategory.length()==0 || sapCategoryCode.length()==0){
+			String errorMsg = "";
+			if(mainCategory .length()==0)
+				errorMsg += "主商品分類空白；";
+			if(subCategory.length()==0)
+				errorMsg += "次商品分類空白；";			
+			if(sapCategoryCode.length()==0)
+				errorMsg += "SAP類別碼空白；";
+			msg += "Line "+(row+1)+"："+errorMsg+"\\r\\n";
+			errorCount ++;		
+		}else if( mainCategoryMap.get(mainCategory) == null){
+			//out.println("無對應主商品分類");
+			msg += "Line "+(row+1)+"：無對應主商品分類\\r\\n";
+			errorCount ++;
+		}else if(subCategoryMap.get(mainCategory+"/"+subCategory)== null){
+			String folderPath = (String)mainCategoryMap.get(mainCategory);
+			
+			//取得新檔名
+			List<CmsResource> fileList = cms.getCmsObject().getFilesInFolder(folderPath, CmsResourceFilter.requireType(905));
+			int size = fileList.size();  //包含index.html			
+			java.text.DecimalFormat idFmt = new java.text.DecimalFormat("/C00/");
+			java.text.DecimalFormat fileNameFmt = new java.text.DecimalFormat("C0000.html");
+			int no = idFmt.parse(folderPath).intValue()*100+1;
+			if(size>0){
+				CmsResource lastFile = fileList.get(size-1);
+				no = fileNameFmt.parse(lastFile.getName()).intValue()+1;
+			}
+			
+			String xmlPath = folderPath +fileNameFmt.format(no);
+			//out.println(xmlPath);
+			//設定內容
+			JSONObject contents = new JSONObject();
+			JSONObject properties = new JSONObject();
+			
+			//contents.put("CategoryId",idFmt.format(no));
+			contents.put("OrderBy",10);
+			contents.put("CategoryName",subCategory);
+			//properties.put("NavPos",10);
+			//properties.put("NavText",subCategory);
+			//properties.put("Title",subCategory);
+			xmlHandler.createFile(xmlPath,"ThesysLaphoneProductCategory",contents,properties);
+			subCategoryMap.put(mainCategory+"/"+subCategory ,xmlPath);
+			//加入sap類別
+			List<String> newSapCaegoryList  =new ArrayList<String>();
+			newSapCaegoryList.add(sapCategoryCode);
+			newSapCategoryMap.put(xmlPath,newSapCaegoryList);
+			newCount ++;
+			
+		}else if(sapCategoryMap.get(mainCategory+"/"+subCategory+"/"+sapCategoryCode)==null){
+			
+			//out.println("加入SAP類別");
+			String xmlPath = (String)subCategoryMap.get(mainCategory+"/"+subCategory);
+			List<String> newSapCaegoryList = (List<String>)newSapCategoryMap.get(xmlPath);
+			if(newSapCaegoryList==null) newSapCaegoryList  =new ArrayList<String>();
+			out.println(xmlPath);
+			//List<String> values = new ArrayList<String>();
+			//values.add(sapCategoryCode);
+			//xmlHandler.add(xmlPath,"","SapCategoryCode",values);
+			if(!newSapCaegoryList.contains(sapCategoryCode)) newSapCaegoryList.add(sapCategoryCode);
+			newSapCategoryMap.put(xmlPath,newSapCaegoryList);			
+			newCount ++;
+			
+		}else{
+			oldCount ++;
+			//SAP類別已存在，直接跳過不處理
+		}
+	}
+}catch(Exception ex){
+	msg = "上傳格式錯誤";
+	
+}
+	
+if(!newSapCategoryMap.isEmpty()){
+	Iterator<String> it = newSapCategoryMap.keySet().iterator();
+	while(it.hasNext()){
+		String xmlPath = it.next();
+		List<String> values = (List<String>)newSapCategoryMap.get(xmlPath);
+		xmlHandler.add(xmlPath,"","SapCategoryCode",values);
+		xmlHandler.publishFile(xmlPath);
+	}
+}
+%>
+<script>
+alert('匯入完成!\r\n共處理<%=rowCount %>筆資料；\r\n成功匯入：<%=newCount%>筆\r\n重覆未匯入：<%=oldCount%>筆\r\n錯誤：<%=errorCount%>筆\r\n<%=msg%>');
+location.href='index.html';
+</script>
+<cms:include property="template" element="foot" /> 
