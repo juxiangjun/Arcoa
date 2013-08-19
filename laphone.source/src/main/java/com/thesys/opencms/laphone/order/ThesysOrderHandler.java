@@ -4,6 +4,7 @@ package com.thesys.opencms.laphone.order;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +18,9 @@ import org.opencms.main.CmsLog;
 import com.thesys.opencms.laphone.ThesysLaphoneHandler;
 import com.thesys.opencms.laphone.order.dao.ThesysOrderCreditVO;
 import com.thesys.opencms.laphone.order.dao.ThesysOrderDAO;
+import com.thesys.opencms.laphone.order.dao.ThesysOrderItemVO;
 import com.thesys.opencms.laphone.order.dao.ThesysOrderVO;
+import com.thesys.opencms.laphone.product.ThesysStockHandler;
 import com.thesys.opencms.laphone.system.ThesysSerialHandler;
 import com.thesys.opencms.laphone.system.dao.ThesysParamDAO;
 import com.thesys.opencms.laphone.util.ThesysSendMsgHandler;
@@ -48,6 +51,7 @@ public class ThesysOrderHandler extends ThesysLaphoneHandler {
 	public ThesysOrderHandler(){}
 	public ThesysOrderHandler(PageContext context, HttpServletRequest req,HttpServletResponse res) throws Exception  {
 		init(context, req, res);
+		
 	}
 	public void init(PageContext context, HttpServletRequest req,HttpServletResponse res){			
 		serialHandler.init(context, req, res);
@@ -156,6 +160,7 @@ public class ThesysOrderHandler extends ThesysLaphoneHandler {
 		return result;
 	}
 	
+
 	/**
 	 * 建立訂單
 	 * @param vo
