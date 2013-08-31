@@ -90,7 +90,7 @@ public class ThesysSapProductImportHandler{
 	private final String JSON_GROUP_QUANTITY = "GroupQuantity";	
 	
 	/**增加资料首次与最近一次汇入时间*/
-	private final String JSON_LAST_IMPORTED_DATE = "LastImportedDate";
+	//private final String JSON_LAST_IMPORTED_DATE = "LastImportedDate";
 	
 	private int processCount;
 	private int successCount;
@@ -582,8 +582,8 @@ public class ThesysSapProductImportHandler{
 		
 		/**加入汇入时间*/
 		
-		String now = String.valueOf(dateUtil.getNowLong());
-		jsonObj.put(JSON_LAST_IMPORTED_DATE, now);
+		//String now = String.valueOf(dateUtil.getNowLong());
+		//jsonObj.put(JSON_LAST_IMPORTED_DATE, now);
 		
 		createProductXml(jsonObj);
 		

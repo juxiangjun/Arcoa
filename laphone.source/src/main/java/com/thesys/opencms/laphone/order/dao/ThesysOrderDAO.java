@@ -3,6 +3,12 @@
  */
 package com.thesys.opencms.laphone.order.dao;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,11 +17,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.thesys.opencms.laphone.ThesysLaphoneDAO;
-import com.thesys.opencms.laphone.order.dao.ThesysOrderVO;
 import com.thesys.opencms.laphone.promote.dao.ThesysCouponDAO;
 /**
  * @author maggie
@@ -875,6 +884,121 @@ public class ThesysOrderDAO extends ThesysLaphoneDAO {
         }
         return result;
     }
+    
+    public String getHttpData(URL url) throws IOException {
+		
+		InputStream is = null;
+		InputStreamReader isr = null;
+		BufferedReader br = null;
+		HttpURLConnection con = null;
+		try{
+			
+			con = (HttpURLConnection) url.openConnection();//创建HTTP请求访问GameShow注册地址
+			con.setConnectTimeout(30000);//设置超时时间
+			con.setRequestMethod("GET");//设置GET请求方式
+			if (con.getResponseCode() != 200){//如果请求失败
+				throw new RuntimeException("请求url失败");
+			}else{
+				is = con.getInputStream();//得到网络返回的输入流
+				isr = new InputStreamReader(is, "utf-8");
+				br = new BufferedReader(isr);
+				StringBuffer gameShowResult = new StringBuffer();
+				String temp = null;
+				while ((temp = br.readLine()) != null) {
+					gameShowResult.append(temp);
+				}
+				//JSONObject json = JSONObject.fromObject(gameShowResult.toString());
+				return gameShowResult.toString();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e.getMessage());
+		} finally {
+			if(null != is){
+				is.close();
+			}
+			if(null  != isr){
+				isr.close();
+			}
+			if(null != br){
+				br.close();
+			}
+			if(null != con){
+				con.disconnect();
+			}
+		}
+	}
+
+	
+
+	private int getQtyForGroupedBySelf(String siteId, String itemId, String...groupCodes) throws SQLException {
+		int result = -1;
+		
+		Map<String, Integer> itemMap = new HashMap<String, Integer>();
+		int qtyGroupTotal = this.getCountFormUncheckedItem(siteId, itemId);
+		
+		int groupSize = groupCodes.length / 2;
+		
+		int qtyGroupDivided = 0;
+		for (int i=0; i<groupSize; i++) {
+			String productCode =  groupCodes[i*2];
+			int qtyInOrder = this.getCountFormUncheckedItem("",productCode);
+			int m = 0;
+			for (Map.Entry<String, Integer> entry : itemMap.entrySet()) {
+				if (entry.getKey().equals(productCode)){
+					int maxQty = qtyInOrder / entry.getValue();
+					if(m == 0 || qtyGroupDivided < maxQty) qtyGroupDivided = maxQty ;
+				}
+				m++;
+			}
+		 }
+		result = qtyGroupTotal + qtyGroupDivided;
+		return result;
+	}
+	
+	private int getQtyForGroupedByOthers(String siteId, String itemId, String[] groupCodes) throws Exception {
+		int result = 0;
+		int qty0 = this.getCountFormUncheckedItem(siteId, itemId);
+		int groupSize = groupCodes.length / 2;
+		int qtyInGroupedItem = 0;
+		for (int i=0; i<groupSize; i++) {
+			String productCode =  groupCodes[i*2];
+			qtyInGroupedItem += this.getCountFormUncheckedItem(siteId,productCode);
+		 }
+		result = qty0 + qtyInGroupedItem;
+		return result;
+	}
+	
+	public int getProducQtyInOrder(String siteId, String itemId) throws Exception {
+		int result = -1;
+		String strURL = "/shopping/shoppingcart/get_group_items.html?code="+itemId;
+    	URL url;
+    	String groupItems = "";
+		try {
+			url = new URL(strURL);
+			groupItems = this.getHttpData(url);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if (StringUtils.isNotBlank(groupItems)) {
+			String [] tmp = groupItems.split(",");
+			String groupType = tmp[0];
+			
+			tmp = groupItems.replaceAll(tmp[0]+",", "").split(",");
+			if (groupType=="1") {
+				result = this.getQtyForGroupedBySelf(siteId, itemId, tmp);
+			} else if (groupType=="2") {
+				result = this.getQtyForGroupedByOthers(siteId, itemId, tmp);
+			} else {
+				result = -1;
+			}
+		} else {
+			result = this.getCountFormUncheckedItem(siteId, itemId);
+		}
+    	
+		return result;
+	}
 
     /**
      * 取得所有尚未核可的訂單中特定商品的數量
@@ -884,6 +1008,8 @@ public class ThesysOrderDAO extends ThesysLaphoneDAO {
      * @throws SQLException
      */
     public int getCountFormUncheckedItem(String siteId, String itemId) throws SQLException{
+    	
+    	
     	Connection con = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -896,7 +1022,7 @@ public class ThesysOrderDAO extends ThesysLaphoneDAO {
             			 	   "MAIN.ORD_ID = ITEM.ORD_ID AND " +
             				   "MAIN.SITE_ID=? AND " +
             				   "ITEM.ITEM_ID=? AND " +
-            				   "(MAIN.ORD_ST=-1 or MAIN.ORD_ST=0 or MAIN.ORD_ST=1) ";
+            				   "(MAIN.ORD_ST=-1 or MAIN.ORD_ST=0 or MAIN.ORD_ST=1) AND MAIN.SAP_SHIP_NO IS NULL";
             stmt = con.prepareStatement(sql);
             int idx = 1;
             stmt.setString(idx++, siteId);
@@ -1099,7 +1225,6 @@ public class ThesysOrderDAO extends ThesysLaphoneDAO {
 		return "LAPHONE_ORD_MAIN";
 	}
 
-	
 
 	
 

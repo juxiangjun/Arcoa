@@ -85,6 +85,8 @@ public class ThesysStockVO extends ThesysAbstractVO{
 	 * @return the itemQuantity
 	 */
 	public int getQuantity() {
+		
+		 
 		return quantity;
 	}
 
